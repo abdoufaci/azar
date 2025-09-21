@@ -1,0 +1,129 @@
+"use client";
+
+import { useState } from "react";
+import { Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { EmployeesTable } from "./employees-table";
+import { ClientsTable } from "./clients-table";
+import { AddClientForm } from "@/components/forms/add-client-form";
+import { AddEmployeeForm } from "@/components/forms/add-employee-form";
+
+type TabType = "client" | "employees";
+
+export function MembersInterface() {
+  const [activeTab, setActiveTab] = useState<TabType>("client");
+  const [isAdd, setIsAdd] = useState(false);
+
+  return (
+    <div className="space-y-5">
+      <h1 className="text-2xl font-medium text-[#06191D]">Members</h1>
+      <div className="w-full h-12 border-b border-b-[#9BB5BB4D] flex">
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsAdd(false);
+            setActiveTab("client");
+          }}
+          className={cn(
+            "h-full flex justify-center items-center gap-4 w-32 cursor-pointer",
+            activeTab === "client" ? "border-b-2 border-b-brand" : ""
+          )}>
+          <h1
+            className={cn(
+              activeTab === "client" ? "text-[#576070]" : "text-[#A2ABBD]"
+            )}>
+            Client
+          </h1>
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              if (activeTab === "client") {
+                setIsAdd(true);
+              }
+            }}
+            className={cn(
+              "h-4 w-4 rounded-md border  flex items-center justify-center cursor-pointer",
+              activeTab === "client" ? "border-[#5A5A5A]" : "border-white"
+            )}>
+            <Plus
+              className={cn(
+                "h-3 w-3",
+                activeTab === "client" ? "text-[#5A5A5A]" : "text-white"
+              )}
+            />
+          </div>
+        </div>
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsAdd(false);
+            setActiveTab("employees");
+          }}
+          className={cn(
+            "h-full flex justify-center items-center gap-4 w-32 cursor-pointer",
+            activeTab === "employees" ? "border-b-2 border-b-brand" : ""
+          )}>
+          <h1
+            className={cn(
+              activeTab === "employees" ? "text-[#576070]" : "text-[#A2ABBD]"
+            )}>
+            Employées
+          </h1>
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              if (activeTab === "employees") {
+                setIsAdd(true);
+              }
+            }}
+            className={cn(
+              "h-4 w-4 rounded-md border  flex items-center justify-center cursor-pointer",
+              activeTab === "employees" ? "border-[#5A5A5A]" : "border-white"
+            )}>
+            <Plus
+              className={cn(
+                "h-3 w-3",
+                activeTab === "employees" ? "text-[#5A5A5A]" : "text-white"
+              )}
+            />
+          </div>
+        </div>
+      </div>
+      {activeTab === "client" && (
+        <>
+          {isAdd ? (
+            <div className="w-full max-w-xl mx-auto space-y-5">
+              <div className="space-y-1">
+                <h5 className="text-sm text-brand">Ajouter un client</h5>
+                <h1 className="text-3xl font-medium text-[#06191D]">
+                  Les Informations de <span className="text-brand">Client</span>
+                </h1>
+              </div>
+              <AddClientForm onCancel={() => setIsAdd(false)} />
+            </div>
+          ) : (
+            <ClientsTable />
+          )}
+        </>
+      )}
+      {activeTab === "employees" && (
+        <>
+          {isAdd ? (
+            <div className="w-full max-w-xl mx-auto space-y-5">
+              <div className="space-y-1">
+                <h5 className="text-sm text-brand">Ajouter un employée</h5>
+                <h1 className="text-3xl font-medium text-[#06191D]">
+                  Les Informations de{" "}
+                  <span className="text-brand">Employée</span>
+                </h1>
+              </div>
+              <AddEmployeeForm onCancel={() => setIsAdd(false)} />
+            </div>
+          ) : (
+            <EmployeesTable />
+          )}
+        </>
+      )}
+    </div>
+  );
+}

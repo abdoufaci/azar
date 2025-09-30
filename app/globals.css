@@ -38,6 +38,7 @@ input[type="number"] {
 
 @layer base {
   :root {
+  --color-yellow-brand: #F2BA05;
   --color-brand: #1E78FF;
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;

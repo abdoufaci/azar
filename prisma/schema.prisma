@@ -30,11 +30,15 @@ model User {
   password              String
   address               String
   phone                 String                 @default("")
+  wilaya                String                 @default("")
   role                  UserRole               @default(USER)
   employeeRole          EmplyeeRole            @default(TAILOR)
   accounts              Account[]
   isTwoFactorEnabled    Boolean                @default(false)
   twoFactorConfirmation TwoFactorConfirmation?
+
+  workShopId String?
+  workShop   WorkShop? @relation(fields: [workShopId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -95,4 +99,15 @@ model TwoFactorConfirmation {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId])
+}
+
+model WorkShop {
+  id    String @id @default(cuid())
+  name  String @unique
+  image String
+
+  employees User[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

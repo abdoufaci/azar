@@ -66,7 +66,7 @@ export function LoginForm() {
             return;
           }
 
-          router.push("/travels");
+          router.push("/management");
         })
         .catch((err) => {
           setError("Something went wrong .");
@@ -76,8 +76,9 @@ export function LoginForm() {
 
   return (
     <CardWrapper
-      headerLabel="الدخول إلى منصة العمرة"
-      backButtonHref="/auth/register">
+      headerLabel="Bienvenue"
+      backButtonHref="/auth/register"
+      subLabel="Connectez-vous pour consulter vos commentaires et effectuer vos demandes.">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4">
@@ -107,15 +108,12 @@ export function LoginForm() {
                   name="username"
                   render={({ field }) => (
                     <FormItem className="w-full">
-                      <FormLabel className="text-[#A4A4A4] flex justify-end text-right w-full">
-                        اسم المستخدم
-                      </FormLabel>
                       <FormControl>
                         <Input
-                          className="auth-input placeholder:text-white/50 text-white border-none"
+                          className="border border-[#182233] py-6 rounded-[9.75px]"
                           {...field}
                           disabled={isPending}
-                          placeholder="اسم المستخدم"
+                          placeholder="Username"
                         />
                       </FormControl>
                       <FormMessage />
@@ -127,25 +125,22 @@ export function LoginForm() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[#A4A4A4] flex justify-end text-right">
-                        كلمة المرور
-                      </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
-                          className="auth-input placeholder:text-white/50 text-white border-none"
+                          className="border border-[#182233] py-6 rounded-[9.75px]"
                           disabled={isPending}
-                          placeholder="******"
+                          placeholder="Password"
                           type="password"
                         />
                       </FormControl>
-                      <Button
+                      {/* <Button
                         size={"sm"}
                         variant={"link"}
                         asChild
                         className="px-0 font-normal text-[#A4A4A4] flex justify-end">
                         <Link href={"/auth/reset"}>نسيت كلمة المرور ؟</Link>
-                      </Button>
+                      </Button> */}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -157,10 +152,11 @@ export function LoginForm() {
           <FormSuccess message={success} />
           <Button
             type="submit"
+            size={"lg"}
             variant={"brand"}
             disabled={isPending}
             className="w-full">
-            {showTwoFactor ? "Confirm" : "تسجيل دخول"}
+            Log in
           </Button>
         </form>
       </Form>

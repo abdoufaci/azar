@@ -48,7 +48,8 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { ScrollArea } from "../ui/scroll-area";
-import { EmplyeeRole } from "@prisma/client";
+import { EmplyeeRole, WorkShop } from "@prisma/client";
+import { addEmployee } from "@/actions/mutations/users/add-employee";
 
 export const AddEmployeeformSchema = z.object({
   name: z.string(),
@@ -58,13 +59,18 @@ export const AddEmployeeformSchema = z.object({
   password: z.string().optional(),
   username: z.string(),
   role: z.enum([EmplyeeRole.CHEF, EmplyeeRole.CUTTER, EmplyeeRole.TAILOR]),
+  workshop: z.object({
+    name: z.string(),
+    id: z.string(),
+  }),
 });
 
 interface Props {
   onCancel: () => void;
+  workshops: WorkShop[];
 }
 
-export function AddEmployeeForm({ onCancel }: Props) {
+export function AddEmployeeForm({ onCancel, workshops }: Props) {
   const form = useForm<z.infer<typeof AddEmployeeformSchema>>({
     resolver: zodResolver(AddEmployeeformSchema),
   });
@@ -122,8 +128,19 @@ export function AddEmployeeForm({ onCancel }: Props) {
   };
 
   async function onSubmit(data: z.infer<typeof AddEmployeeformSchema>) {
-    // startTransition(() => {
-    // });
+    startTransition(() => {
+      addEmployee(data)
+        .then((res) => {
+          if (res.error) {
+            toast.error(res.error);
+          }
+          if (res.success) {
+            toast.success("Employeé est crée avec succès");
+            onCancel();
+          }
+        })
+        .catch(() => toast.error("Erreur"));
+    });
   }
 
   return (
@@ -156,7 +173,7 @@ export function AddEmployeeForm({ onCancel }: Props) {
                       </div>
                       <ChevronDown className="size-4 text-[#A7ABAF]" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[350px]">
+                    <DropdownMenuContent className="w-[350px] sm:!w-[576px]">
                       <DropdownMenuItem
                         onClick={() => {
                           field.onChange(EmplyeeRole.CHEF);
@@ -169,15 +186,59 @@ export function AddEmployeeForm({ onCancel }: Props) {
                           field.onChange(EmplyeeRole.CUTTER);
                         }}
                         className="hover:cursor-pointer w-full">
-                        Coupeur
+                        Decoupeur
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {
                           field.onChange(EmplyeeRole.TAILOR);
                         }}
                         className="hover:cursor-pointer w-full">
-                        Tailleur
+                        Tapisier
                       </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="workshop"
+            render={({ field }) => (
+              <FormItem className="flex flex-col items-start w-full text-[#15091B]">
+                <FormLabel
+                  htmlFor="slogan"
+                  className="text-[#182233] text-lg font-normal">
+                  L’atelier
+                </FormLabel>
+                <FormControl className="w-full">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="flex items-center justify-between w-full rounded-lg h-fit border border-[#A2ABBD] px-4 py-3 focus:outline-none">
+                      <div className="flex flex-col text-start">
+                        {field.value ? (
+                          <p className="text-sm">{field.value.name}</p>
+                        ) : (
+                          <p className="text-sm text-[#A2ABBD]">
+                            L’atelier assigné
+                          </p>
+                        )}
+                      </div>
+                      <ChevronDown className="size-4 text-[#A7ABAF]" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[350px] sm:!w-[576px]">
+                      {workshops.map((workshop) => (
+                        <DropdownMenuItem
+                          onClick={() => {
+                            field.onChange({
+                              id: workshop.id,
+                              name: workshop.name,
+                            });
+                          }}
+                          className="hover:cursor-pointer w-full">
+                          {workshop.name}
+                        </DropdownMenuItem>
+                      ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </FormControl>
@@ -371,7 +432,7 @@ export function AddEmployeeForm({ onCancel }: Props) {
                 <FormControl>
                   <div className="relative w-full">
                     <Input
-                      type="number"
+                      type="text"
                       id="slogan"
                       className="w-full text-xs rounded-lg border border-[#A2ABBD] px-4 py-5 focus:outline-none 
                     focus:ring-0 placeholder:text-[#A2ABBD]"

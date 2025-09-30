@@ -27,7 +27,7 @@ export const AdminNav = [
   },
   {
     title: "Command Client",
-    url: "/management/commands",
+    url: "/management/orders",
     icon: Commands,
   },
   {
@@ -42,7 +42,7 @@ export const AdminNav = [
   },
   {
     title: "L’atelier",
-    url: "/management/workshop",
+    url: "/management/workshops",
     icon: Workshop,
   },
   {

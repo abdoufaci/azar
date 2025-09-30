@@ -27,7 +27,9 @@ export function NavMain({
   items: {
     title: string;
     url: string;
-    icon?: LucideIcon | (() => React.JSX.Element);
+    icon?:
+      | LucideIcon
+      | (({ className }: { className?: string }) => React.JSX.Element);
     items?: {
       title: string;
       url: string;
@@ -97,11 +99,23 @@ export function NavMain({
                     <item.icon
                       className={cn(
                         "",
-                        item.url === MainPartLink && "text-brand"
+                        !!(item.icon as LucideIcon).displayName
+                          ? item.url === MainPartLink
+                            ? "text-brand"
+                            : "text-[#182233]"
+                          : item.url === MainPartLink
+                          ? "#1e78ff"
+                          : "#182233"
                       )}
                     />
                   )}
-                  <span>{item.title}</span>
+                  <span
+                    className={cn(
+                      "",
+                      item.url === MainPartLink && "text-brand"
+                    )}>
+                    {item.title}
+                  </span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

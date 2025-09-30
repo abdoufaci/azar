@@ -48,6 +48,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { ScrollArea } from "../ui/scroll-area";
+import { addClient } from "@/actions/mutations/users/add-client";
 
 export const AddClientformSchema = z.object({
   name: z.string(),
@@ -121,8 +122,19 @@ export function AddClientForm({ onCancel }: Props) {
   };
 
   async function onSubmit(data: z.infer<typeof AddClientformSchema>) {
-    // startTransition(() => {
-    // });
+    startTransition(() => {
+      addClient(data)
+        .then((res) => {
+          if (res.error) {
+            toast.error(res.error);
+          }
+          if (res.success) {
+            toast.success("Client est crée avec succès");
+            onCancel();
+          }
+        })
+        .catch(() => toast.error("Erreur"));
+    });
   }
 
   return (
@@ -359,7 +371,7 @@ export function AddClientForm({ onCancel }: Props) {
                 <FormControl>
                   <div className="relative w-full">
                     <Input
-                      type="number"
+                      type="text"
                       id="slogan"
                       className="w-full text-xs rounded-lg border border-[#A2ABBD] px-4 py-5 focus:outline-none 
                     focus:ring-0 placeholder:text-[#A2ABBD]"

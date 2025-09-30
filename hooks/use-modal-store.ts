@@ -1,13 +1,6 @@
 import { create } from "zustand";
 
-export type ModalType =
-  | "manageAgency"
-  | "manageTravel"
-  | "deleteUser"
-  | "deleteTravel"
-  | "manageReservation"
-  | "setAgencyPassword"
-  | "deleteReservation";
+export type ModalType = "manageDemand" | "manageProduction" | "manageWorkShop";
 
 export interface ModalData {
   isEdit?: boolean;

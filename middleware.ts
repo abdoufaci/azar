@@ -1,40 +1,69 @@
+import { NextResponse } from "next/server";
 import NextAuth from "next-auth";
 import authConfig from "./auth.config";
 import {
   apiAuthPrefix,
   authRoutes,
   DEFAULT_LOGIN_REDIRECT,
+  protectedRoutes,
   publicRoutes,
 } from "./routes";
+import { match } from "@formatjs/intl-localematcher";
+import Negotiator from "negotiator";
 
 export const { auth } = NextAuth(authConfig);
 
+let locales = ["fr", "ar"];
+let defaultLocale = "fr";
+
+function getLocale(request: any) {
+  const normalizedHeaders = Object.fromEntries(request.headers);
+  let languages = new Negotiator({ headers: normalizedHeaders }).languages();
+
+  if (languages.length === 1 && languages[0] === "*") return defaultLocale;
+  return match(languages, locales, defaultLocale);
+}
+
 export default auth(
   //@ts-ignore
-  (req) => {
-    const { nextUrl } = req;
-    const isLoggedIn = !!req.auth;
+  (request) => {
+    const { pathname } = request.nextUrl;
 
-    const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
-    const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
-    const isAuthRoute = authRoutes.includes(nextUrl.pathname);
-
+    const isApiAuthRoute = request.nextUrl.pathname.startsWith(apiAuthPrefix);
     if (isApiAuthRoute) {
       return null;
     }
+    const pathnameHasLocale = locales.some(
+      (locale) =>
+        pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+    );
+
+    const locale = getLocale(request);
+    if (!pathnameHasLocale && !isApiAuthRoute) {
+      request.nextUrl.pathname = `/${locale}${pathname}`;
+    }
+
+    const isLoggedIn = !!request.auth;
+
+    const isProtectedRoutes = protectedRoutes.includes(
+      request.nextUrl.pathname
+    );
+    const isAuthRoute = authRoutes.includes(request.nextUrl.pathname);
 
     if (isAuthRoute) {
       if (isLoggedIn) {
-        return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+        return Response.redirect(
+          new URL(DEFAULT_LOGIN_REDIRECT, request.nextUrl)
+        );
       }
-      return null;
+      return pathnameHasLocale ? null : NextResponse.redirect(request.nextUrl);
     }
 
-    if (!isLoggedIn && !isPublicRoute) {
-      return Response.redirect(new URL("/auth/login", nextUrl));
+    if (!isLoggedIn && isProtectedRoutes) {
+      return Response.redirect(new URL("/auth/login", request.nextUrl));
     }
 
-    return null;
+    return pathnameHasLocale ? null : NextResponse.redirect(request.nextUrl);
   }
 );
 

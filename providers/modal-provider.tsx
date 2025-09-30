@@ -1,5 +1,6 @@
 "use client";
 
+import { ManageWorkShopModal } from "@/components/modals/manage-work-shop-modal";
 import { useEffect, useState } from "react";
 
 export const ModalProvider = () => {
@@ -15,5 +16,9 @@ export const ModalProvider = () => {
   }
   //code for hydrations error
 
-  return <></>;
+  return (
+    <>
+      <ManageWorkShopModal />
+    </>
+  );
 };

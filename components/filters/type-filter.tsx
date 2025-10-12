@@ -6,22 +6,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User } from "@prisma/client";
+import { ProductSubtype, User } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import qs from "query-string";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
   url: string;
+  types: ProductSubtype[];
 }
 
-function TypeFilter({ searchParams, url: pathname }: Props) {
+function TypeFilter({ searchParams, url: pathname, types }: Props) {
   const router = useRouter();
 
   return (
     <Select
       onValueChange={(type) => {
-        const { type: curr, ...rest } = searchParams;
+        const { type: curr, page, ...rest } = searchParams;
 
         const url = qs.stringifyUrl(
           {
@@ -40,8 +41,11 @@ function TypeFilter({ searchParams, url: pathname }: Props) {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="default">Par Default</SelectItem>
-        <SelectItem value="bois">Bois</SelectItem>
-        <SelectItem value="tissu">Tissu</SelectItem>
+        {types.map((type) => (
+          <SelectItem key={type.id} value={type.id}>
+            {type.name}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );

@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User } from "@prisma/client";
+import { DemandPriority, User } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import qs from "query-string";
 
@@ -21,7 +21,7 @@ function PriorityFilter({ searchParams, url: pathname }: Props) {
   return (
     <Select
       onValueChange={(priority) => {
-        const { priority: curr, ...rest } = searchParams;
+        const { priority: curr, page, ...rest } = searchParams;
 
         const url = qs.stringifyUrl(
           {
@@ -40,9 +40,9 @@ function PriorityFilter({ searchParams, url: pathname }: Props) {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="default">Par Default</SelectItem>
-        <SelectItem value="urgent">Urgent</SelectItem>
-        <SelectItem value="normal">Normal</SelectItem>
-        <SelectItem value="faible">Faible</SelectItem>
+        <SelectItem value={DemandPriority.URGENT}>Urgent</SelectItem>
+        <SelectItem value={DemandPriority.NORMAL}>Normal</SelectItem>
+        <SelectItem value={DemandPriority.WEAK}>Faible</SelectItem>
       </SelectContent>
     </Select>
   );

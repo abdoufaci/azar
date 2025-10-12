@@ -73,44 +73,13 @@ interface Member {
 }
 
 export function ManageWorkShopForm() {
-  const { onClose } = useModal();
+  const { onClose, data } = useModal();
+
+  const { employees: users } = data;
 
   const [isPending, startTransition] = useTransition();
   const [steps, setSteps] = useState<1 | 2>(1);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const [members] = useState<Member[]>([
-    {
-      id: "1",
-      name: "Kelan Arm",
-      role: "Tapisier",
-      avatar: "/man.png",
-    },
-    {
-      id: "3",
-      name: "Kelan Arm",
-      role: "Couteur",
-      avatar: "/man.png",
-    },
-    {
-      id: "4",
-      name: "Kelan Arm",
-      role: "Couteur",
-      avatar: "/man.png",
-    },
-    {
-      id: "5",
-      name: "Kelan Arm",
-      role: "Decop",
-      avatar: "/man.png",
-    },
-    {
-      id: "6",
-      name: "Kelan Arm",
-      role: "Couteur",
-      avatar: "/man.png",
-    },
-  ]);
 
   const form = useForm<z.infer<typeof ManageWorkShopformSchema>>({
     resolver: zodResolver(ManageWorkShopformSchema),
@@ -211,8 +180,8 @@ export function ManageWorkShopForm() {
 
                         {/* Members List */}
                         <div className="space-y-3">
-                          {members
-                            .filter((item) =>
+                          {users
+                            ?.filter((item) =>
                               item.name
                                 .toLowerCase()
                                 .trim()
@@ -223,17 +192,25 @@ export function ManageWorkShopForm() {
                                 (m) => m.id === member.id
                               );
                               return (
-                                <button
+                                <div
                                   key={member.id}
-                                  type="button"
-                                  onClick={() => toggleMember(member)}
-                                  className="flex w-full items-center justify-between rounded-[5.46px] bg-[#f3f6f8] p-4 py-2 transition-colors hover:bg-[#ebecf2]">
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    toggleMember({
+                                      avatar:
+                                        (member.image as { id: string })?.id ||
+                                        "",
+                                      id: member.id,
+                                      name: member.name,
+                                      role: member.employeeRole,
+                                    });
+                                  }}
+                                  className="flex cursor-pointer w-full items-center justify-between rounded-[5.46px] bg-[#f3f6f8] p-4 py-2 transition-colors hover:bg-[#ebecf2]">
                                   <div className="flex items-center gap-4">
                                     <Avatar className="h-12 w-12">
                                       <AvatarImage
-                                        src={
-                                          member.avatar || "/placeholder.svg"
-                                        }
+                                        src={""}
                                         alt={member.name}
                                         className="object-cover"
                                       />
@@ -263,7 +240,7 @@ export function ManageWorkShopForm() {
                                       <Check className="h-4 w-4 text-[#ffffff]" />
                                     )}
                                   </div>
-                                </button>
+                                </div>
                               );
                             })}
                         </div>
@@ -303,6 +280,7 @@ export function ManageWorkShopForm() {
           {...(steps === 1 && {
             onClick: (e) => {
               e.stopPropagation();
+              e.preventDefault();
               setSteps(2);
             },
           })}

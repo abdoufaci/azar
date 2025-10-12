@@ -1,6 +1,6 @@
 "use client";
 
-import { XIcon } from "lucide-react";
+import { Star, XIcon } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
@@ -34,17 +34,21 @@ interface Props {
     >
   >;
   children: React.ReactNode;
+  onClick?: (idx: number) => void;
+  MainImageIdx?: number;
 }
 
 export const UploadEverything = ({
   onChange,
   value,
   isMutliple = false,
-  accept = "*",
+  accept = "image/*",
   imageClassName,
   setImagesToDelete,
   children,
   imageContainerClassName,
+  onClick,
+  MainImageIdx,
 }: Props) => {
   const [deletePedning, startDeleteTransition] = useTransition();
   const [shouldRenderIframe, setShouldRenderIframe] = useState(false);
@@ -96,7 +100,7 @@ export const UploadEverything = ({
     <ScrollArea className="w-full max-w-3xl md:!max-w-2xl">
       <div className="flex items-center gap-2 ">
         {!!value?.length &&
-          value?.map((file: { id: string; type: string }) =>
+          value?.map((file: { id: string; type: string }, idx) =>
             file?.type === "image" ? (
               <div
                 key={file.id}
@@ -114,11 +118,29 @@ export const UploadEverything = ({
                     imageClassName
                   )}
                 />
-
-                <XIcon
-                  className="h-8 w-8 text-[#ED2323] bg-[#EB16194A] rounded-full p-1.5 cursor-pointer absolute top-2 right-2"
-                  onClick={() => mutate(file)}
-                />
+                <div className="flex items-center gap-2 absolute top-2 right-2">
+                  {MainImageIdx !== undefined && (
+                    <div
+                      onClick={() => onClick?.(idx)}
+                      className={cn(
+                        "h-7 w-7 rounded-full flex items-center justify-center cursor-pointer",
+                        MainImageIdx === idx
+                          ? "border border-white bg-white text-[#FFD428]"
+                          : "border border-white bg-transparent text-white"
+                      )}>
+                      <Star
+                        className={cn(
+                          "h-4 w-4",
+                          MainImageIdx === idx && "fill-[#FFD428]"
+                        )}
+                      />
+                    </div>
+                  )}
+                  <XIcon
+                    className="h-6 w-6 text-[#ED2323] bg-[#EB16194A] rounded-full p-1.5 cursor-pointer"
+                    onClick={() => mutate(file)}
+                  />
+                </div>
               </div>
             ) : file?.type === "video" ? (
               <div className="relative">

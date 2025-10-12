@@ -6,22 +6,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User } from "@prisma/client";
+import { DemandStage, OrderStage, User } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import qs from "query-string";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
   url: string;
+  stages: OrderStage[] | DemandStage[];
 }
 
-function StatusFilter({ searchParams, url: pathname }: Props) {
+function StatusFilter({ searchParams, url: pathname, stages }: Props) {
   const router = useRouter();
 
   return (
     <Select
       onValueChange={(status) => {
-        const { status: curr, ...rest } = searchParams;
+        const { status: curr, page, ...rest } = searchParams;
 
         const url = qs.stringifyUrl(
           {
@@ -40,9 +41,11 @@ function StatusFilter({ searchParams, url: pathname }: Props) {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="default">Par Default</SelectItem>
-        <SelectItem value="en-cours">En Cours</SelectItem>
-        <SelectItem value="termine">Terminé</SelectItem>
-        <SelectItem value="en-attente">En Attente</SelectItem>
+        {stages.map((stage) => (
+          <SelectItem key={stage.id} value={stage.id}>
+            {stage.name}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );

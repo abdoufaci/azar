@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Product } from "@/types/types";
 import ProductCard from "./product-card";
+import { Product } from "@prisma/client";
+import Link from "next/link";
 
 interface Props {
   products: Product[];
@@ -21,7 +22,9 @@ function CategoryProducts({ products, title }: Props) {
       </div>
       <div className="grid grid-cols-1 md:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-4 gap-6 w-full">
         {products.map((product) => (
-          <ProductCard product={product} key={product.id} />
+          <Link href={`/store/product/${product.id}`}>
+            <ProductCard product={product} key={product.id} />
+          </Link>
         ))}
       </div>
     </div>

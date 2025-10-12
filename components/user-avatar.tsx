@@ -15,7 +15,11 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { logout } from "@/actions/auth/logout";
 
-function UserAvatar() {
+interface Props {
+  isHeader?: boolean;
+}
+
+function UserAvatar({ isHeader = false }: Props) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const user = useCurrentUser();
@@ -24,9 +28,11 @@ function UserAvatar() {
     <DropdownMenu>
       <DropdownMenuTrigger className="cursor-pointer" asChild>
         <div className="flex items-center gap-4">
-          <h1 className="text-[#373434] max-md:!hidden font-medium">
-            {user?.name}
-          </h1>
+          {!isHeader && (
+            <h1 className="text-[#373434] max-md:!hidden font-medium">
+              {user?.name}
+            </h1>
+          )}
           <Avatar className="w-10 h-10">
             <AvatarImage
               className="object-cover"

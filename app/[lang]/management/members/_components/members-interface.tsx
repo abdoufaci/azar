@@ -5,8 +5,8 @@ import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmployeesTable } from "./employees-table";
 import { ClientsTable } from "./clients-table";
-import { AddClientForm } from "@/components/forms/add-client-form";
-import { AddEmployeeForm } from "@/components/forms/add-employee-form";
+import { ManageClientForm } from "@/components/forms/manage-client-form";
+import { ManageEmployeeForm } from "@/components/forms/manage-employee-form";
 import { User, WorkShop } from "@prisma/client";
 import { UserWithWorkshop } from "@/types/types";
 
@@ -21,6 +21,9 @@ interface Props {
 export function MembersInterface({ workshops, clients, employees }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>("client");
   const [isAdd, setIsAdd] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserWithWorkshop | null>(
+    null
+  );
 
   return (
     <div className="space-y-5">
@@ -99,39 +102,59 @@ export function MembersInterface({ workshops, clients, employees }: Props) {
       </div>
       {activeTab === "client" && (
         <>
-          {isAdd ? (
+          {isAdd || !!selectedUser ? (
             <div className="w-full max-w-xl mx-auto space-y-5">
               <div className="space-y-1">
-                <h5 className="text-sm text-brand">Ajouter un client</h5>
+                <h5 className="text-sm text-brand">
+                  {!!selectedUser ? "Modifier" : "Ajouter"} un client
+                </h5>
                 <h1 className="text-3xl font-medium text-[#06191D]">
                   Les Informations de <span className="text-brand">Client</span>
                 </h1>
               </div>
-              <AddClientForm onCancel={() => setIsAdd(false)} />
+              <ManageClientForm
+                onCancel={() => {
+                  setSelectedUser(null);
+                  setIsAdd(false);
+                }}
+                user={selectedUser}
+              />
             </div>
           ) : (
-            <ClientsTable clients={clients} />
+            <ClientsTable
+              clients={clients}
+              onEdit={(user) => setSelectedUser(user)}
+            />
           )}
         </>
       )}
       {activeTab === "employees" && (
         <>
-          {isAdd ? (
+          {isAdd || !!selectedUser ? (
             <div className="w-full max-w-xl mx-auto space-y-5">
               <div className="space-y-1">
-                <h5 className="text-sm text-brand">Ajouter un employée</h5>
+                <h5 className="text-sm text-brand">
+                  {!!selectedUser ? "Modifier" : "Ajouter"} un employée
+                </h5>
                 <h1 className="text-3xl font-medium text-[#06191D]">
                   Les Informations de{" "}
                   <span className="text-brand">Employée</span>
                 </h1>
               </div>
-              <AddEmployeeForm
+              <ManageEmployeeForm
                 workshops={workshops}
-                onCancel={() => setIsAdd(false)}
+                onCancel={() => {
+                  setSelectedUser(null);
+                  setIsAdd(false);
+                }}
+                user={selectedUser}
               />
             </div>
           ) : (
-            <EmployeesTable employees={employees} />
+            <EmployeesTable
+              employees={employees}
+              onEdit={(user) => setSelectedUser(user)}
+            />
           )}
         </>
       )}

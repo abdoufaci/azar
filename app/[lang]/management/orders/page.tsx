@@ -5,6 +5,13 @@ import PriorityFilter from "@/components/filters/priority-filter";
 import StatusFilter from "@/components/filters/status-filter";
 import { OpenDialogButton } from "@/components/open-dialog-button";
 import { OrdersTable } from "./_components/orders-table";
+import { getOrders } from "@/actions/queries/order/get-orders";
+import { getProductSubTypes } from "@/actions/queries/products/get-product-sub-types";
+import { getProductVariants } from "@/actions/queries/products/get-product-variants";
+import { getOrdersCount } from "@/actions/queries/order/get-orders-count";
+import VariantsFilter from "@/components/filters/variant-filter";
+import { OrdersSwitch } from "./_components/orders-switch";
+import { redirect } from "next/navigation";
 
 export default async function DemandesPage({
   searchParams,
@@ -12,14 +19,24 @@ export default async function DemandesPage({
   params: any;
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
+  if (!(await searchParams).client) {
+    redirect("/management/orders?client=B2B");
+  }
+  const currentPage = (await searchParams).page;
+  const ordersPerPage = 8;
+  const types = await getProductSubTypes();
+  const variants = await getProductVariants();
+  const orders = await getOrders(
+    Number(currentPage || "1"),
+    ordersPerPage,
+    searchParams
+  );
+  const totalOrders = await getOrdersCount(searchParams);
+
   return (
     <div className="min-h-screen p-6">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-medium text-[#06191D]">
-            Command De Client
-          </h1>
-        </div>
+        <OrdersSwitch searchParams={await searchParams} />
         <div className="flex items-center justify-between gap-5 flex-wrap">
           <div className="flex items-center gap-4 flex-1">
             <SearchFilter
@@ -28,25 +45,25 @@ export default async function DemandesPage({
             />
           </div>
           <div className="flex items-center gap-3">
-            <WorkShopFilter
-              url="/management/orders"
-              searchParams={await searchParams}
-            />
             <TypeFilter
               url="/management/orders"
               searchParams={await searchParams}
+              types={types}
             />
-            <PriorityFilter
+            <VariantsFilter
               url="/management/orders"
               searchParams={await searchParams}
-            />
-            <StatusFilter
-              url="/management/orders"
-              searchParams={await searchParams}
+              variants={variants}
             />
           </div>
         </div>
-        <OrdersTable />
+        <OrdersTable
+          orders={orders}
+          currentPage={Number(currentPage || "1")}
+          ordersPerPage={ordersPerPage}
+          searchParams={await searchParams}
+          totalOrders={totalOrders}
+        />
       </div>
     </div>
   );

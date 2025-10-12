@@ -1,6 +1,8 @@
 "use client";
 
+import { ChooseTissuModal } from "@/components/modals/choose-tissu-modal";
 import { ManageWorkShopModal } from "@/components/modals/manage-work-shop-modal";
+import { ThankyouModal } from "@/components/modals/thankyou-modal";
 import { useEffect, useState } from "react";
 
 export const ModalProvider = () => {
@@ -19,6 +21,8 @@ export const ModalProvider = () => {
   return (
     <>
       <ManageWorkShopModal />
+      <ThankyouModal />
+      <ChooseTissuModal />
     </>
   );
 };

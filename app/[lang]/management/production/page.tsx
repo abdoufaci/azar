@@ -1,55 +1,51 @@
-import SearchFilter from "@/components/filters/search-filter";
-import WorkShopFilter from "@/components/filters/workshop-filter";
-import TypeFilter from "@/components/filters/type-filter";
-import PriorityFilter from "@/components/filters/priority-filter";
-import StatusFilter from "@/components/filters/status-filter";
-import { OpenDialogButton } from "@/components/open-dialog-button";
-import { ProductionsTable } from "./_components/productions-table";
+import { getProductSubTypes } from "@/actions/queries/products/get-product-sub-types";
+import { getProductVariants } from "@/actions/queries/products/get-product-variants";
+import { getProducts } from "@/actions/queries/products/get-products";
+import { getTissues } from "@/actions/queries/products/get-tissues";
+import ProductionInterface from "./_components/production-interface";
+import { getEmployeesAndClients } from "@/actions/queries/users/get-employees-clients";
+import { getWorkshops } from "@/actions/queries/workshop/get-workshops";
+import { getProductions } from "@/actions/queries/order/get-productions";
+import { getOrderStages } from "@/actions/queries/order/get-order-stages";
+import { getProductionsCount } from "@/actions/queries/order/get-productions-count";
 
-export default async function DemandesPage({
+export default async function ProductionPage({
   searchParams,
 }: {
   params: any;
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
+  const currentPage = (await searchParams).page;
+  const productionsPerPage = 8;
+  const types = await getProductSubTypes();
+  const variants = await getProductVariants();
+  const tissues = await getTissues();
+  const { clients, employees } = await getEmployeesAndClients();
+  const workshops = await getWorkshops();
+  const productions = await getProductions(
+    Number(currentPage || "1"),
+    productionsPerPage,
+    searchParams
+  );
+  const totalProductions = await getProductionsCount(searchParams);
+  const orderStages = await getOrderStages();
+
   return (
-    <div className="min-h-screen p-6">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-medium text-[#06191D]">Production</h1>
-        </div>
-        <div className="flex items-center justify-between gap-5 flex-wrap">
-          <div className="flex items-center gap-4 flex-1">
-            <OpenDialogButton
-              title="Ajouter une production"
-              type="manageProduction"
-            />
-            <SearchFilter
-              url="/management/production"
-              searchParams={await searchParams}
-            />
-          </div>
-          <div className="flex items-center gap-3">
-            <WorkShopFilter
-              url="/management/production"
-              searchParams={await searchParams}
-            />
-            <TypeFilter
-              url="/management/production"
-              searchParams={await searchParams}
-            />
-            <PriorityFilter
-              url="/management/production"
-              searchParams={await searchParams}
-            />
-            <StatusFilter
-              url="/management/production"
-              searchParams={await searchParams}
-            />
-          </div>
-        </div>
-        <ProductionsTable />
-      </div>
+    <div className="p-8">
+      <ProductionInterface
+        searchParams={await searchParams}
+        types={types}
+        variants={variants}
+        tissues={tissues}
+        clients={clients}
+        employees={employees}
+        workShops={workshops}
+        productions={productions}
+        orderStages={orderStages}
+        currentPage={Number(currentPage || "1")}
+        productionsPerPage={productionsPerPage}
+        totalProductions={totalProductions}
+      />
     </div>
   );
 }

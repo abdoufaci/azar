@@ -6,9 +6,11 @@ import z from "zod";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { AddClientformSchema } from "@/components/forms/add-client-form";
+import { ManageClientformSchema } from "@/components/forms/manage-client-form";
 
-export const addClient = async (data: z.infer<typeof AddClientformSchema>) => {
+export const addClient = async (
+  data: z.infer<typeof ManageClientformSchema>
+) => {
   await checkIsAdmin();
   const existingUser = await getUserByEmail(data.email);
 

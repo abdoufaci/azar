@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { SessionProvider } from "next-auth/react";
 import { ModalProvider } from "@/providers/modal-provider";
 import { Toaster } from "sonner";
+import { QClientProvider } from "@/providers/query-client-provider";
 
 export const metadata: Metadata = {
   title: "Azar",
@@ -20,11 +21,13 @@ export default async function RootLayout({
   return (
     <html lang="ar" data-arp="">
       <SessionProvider session={session}>
-        <body className={montserrat.className}>
-          <ModalProvider />
-          <Toaster richColors />
-          {children}
-        </body>
+        <QClientProvider>
+          <body className={montserrat.className}>
+            <ModalProvider />
+            <Toaster richColors />
+            {children}
+          </body>
+        </QClientProvider>
       </SessionProvider>
     </html>
   );

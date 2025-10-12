@@ -15,7 +15,10 @@ import { getTwoFactorTokenByEmail } from "@/data/two-factor-token";
 import { db } from "@/lib/db";
 import { getTwoFactorConfirmationByUserId } from "@/data/two-factor-confirmation";
 
-export const login = async (values: z.infer<typeof LoginSchema>) => {
+export const login = async (
+  values: z.infer<typeof LoginSchema>,
+  cartId: string | null
+) => {
   const validatedFields = LoginSchema.safeParse(values);
 
   if (!validatedFields.success) {
@@ -87,6 +90,13 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
   }
 
   try {
+    if (!!cartId) {
+      await db.cart.delete({
+        where: {
+          id: cartId,
+        },
+      });
+    }
     await signIn("credentials", {
       username,
       password,

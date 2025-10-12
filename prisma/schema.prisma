@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum UserRole {
@@ -18,6 +19,7 @@ enum EmplyeeRole {
   CHEF
   CUTTER
   TAILOR
+  TAPISIER
 }
 
 model User {
@@ -36,9 +38,21 @@ model User {
   accounts              Account[]
   isTwoFactorEnabled    Boolean                @default(false)
   twoFactorConfirmation TwoFactorConfirmation?
+  deviceToken           String?
 
   workShopId String?
-  workShop   WorkShop? @relation(fields: [workShopId], references: [id], onDelete: Cascade)
+  workShop   WorkShop? @relation(fields: [workShopId], references: [id], onDelete: NoAction)
+
+  products        Product[]
+  creatorOrders   Order[]        @relation(name: "creator")
+  clientOrders    Order[]        @relation(name: "client")
+  cutterOrders    Order[]        @relation(name: "cutter")
+  tailorOrders    Order[]        @relation(name: "tailor")
+  tapisierOrders  Order[]        @relation(name: "tapisier")
+  history         OrderHistory[] @relation(name: "creator")
+  employeeHistory OrderHistory[] @relation(name: "employee")
+  carts           Cart[]
+  demands         Demand[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -60,7 +74,7 @@ model Account {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: NoAction)
 
   @@id([provider, providerAccountId])
 }
@@ -96,7 +110,7 @@ model TwoFactorConfirmation {
   id String @id @default(cuid())
 
   userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: NoAction)
 
   @@unique([userId])
 }
@@ -107,6 +121,311 @@ model WorkShop {
   image String
 
   employees User[]
+  orders    Order[]
+  demands   Demand[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ProductCategory {
+  SALON
+  CHAIR
+  TABLE
+}
+
+enum ProductAudience {
+  B2B
+  B2C
+}
+
+model ProductSubtype {
+  id       String          @id @default(cuid())
+  name     String
+  category ProductCategory
+
+  pricings ProductPricing[]
+  orders   Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProductVariant {
+  id       String          @id @default(cuid())
+  name     String
+  color    String
+  category ProductCategory
+
+  pricings ProductPricing[]
+  products Product[]
+  orders   Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProductPricing {
+  id            String @id @default(cuid())
+  cutterPrice   Int
+  tailorPrice   Int
+  tapisierPrice Int
+
+  subtypeId String
+  subtype   ProductSubtype @relation(fields: [subtypeId], references: [id], onDelete: NoAction)
+
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: NoAction)
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tissu {
+  id   String @id @default(cuid())
+  name String
+
+  products  Product[]
+  orders    Order[]
+  cartItems CartItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id           String          @id @default(cuid())
+  category     ProductCategory
+  price        Int
+  mainImageIdx Int
+
+  frName        String
+  frDescription String
+  arName        String
+  arDescription String
+  images        Json[]
+  audience      ProductAudience
+
+  pricingId String
+  pricing   ProductPricing @relation(fields: [pricingId], references: [id], onDelete: NoAction)
+
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: NoAction)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: NoAction)
+
+  tissues   Tissu[]
+  cartItems CartItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum OrderStatus {
+  ACCEPTED
+  REJECTED
+  PENDING
+}
+
+model OrderStage {
+  id    String @id @default(cuid())
+  name  String
+  color String
+
+  orders     Order[]
+  oldHistory OrderHistory[] @relation(name: "old")
+  newHistory OrderHistory[] @relation(name: "new")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrderPricing {
+  id String @id @default(cuid())
+
+  cutterPrice   Int
+  tailorPrice   Int
+  tapisierPrice Int
+
+  orders Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Guest {
+  id     String @id @default(cuid())
+  name   String
+  phone  String
+  adress String
+  wilaya String
+  note   String @default("")
+
+  orders Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id      String      @id @default(cuid())
+  orderId String
+  status  OrderStatus @default(PENDING)
+  price   Int?
+  barCode String?
+  note    String      @default("")
+
+  guestId String?
+  guest   Guest?  @relation(fields: [guestId], references: [id], onDelete: NoAction)
+
+  orderStageId String?
+  orderStage   OrderStage? @relation(fields: [orderStageId], references: [id], onDelete: NoAction)
+
+  pricingId String?
+  pricing   OrderPricing? @relation(fields: [pricingId], references: [id], onDelete: NoAction)
+
+  subtypeId String
+  subType   ProductSubtype @relation(fields: [subtypeId], references: [id], onDelete: NoAction)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: NoAction, name: "creator")
+
+  clientId String?
+  client   User?   @relation(fields: [clientId], references: [id], onDelete: NoAction, name: "client")
+
+  cutterId String?
+  cutter   User?   @relation(fields: [cutterId], references: [id], onDelete: NoAction, name: "cutter")
+
+  tailorId String?
+  tailor   User?   @relation(fields: [tailorId], references: [id], onDelete: NoAction, name: "tailor")
+
+  tapisierId String?
+  tapisier   User?   @relation(fields: [tapisierId], references: [id], onDelete: NoAction, name: "tapisier")
+
+  workShopId String?
+  workShop   WorkShop? @relation(fields: [workShopId], references: [id], onDelete: NoAction)
+
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: NoAction)
+
+  tissuId String?
+  tissu   Tissu?  @relation(fields: [tissuId], references: [id], onDelete: NoAction)
+
+  history OrderHistory[]
+
+  acceptedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+enum OrderHistoryType {
+  EMPLOYEE
+  STAGE
+  INFORMATION
+}
+
+model OrderHistory {
+  id   String           @id @default(cuid())
+  text String?
+  type OrderHistoryType
+
+  oldOrderStageId String?
+  oldStage        OrderStage? @relation(fields: [oldOrderStageId], references: [id], onDelete: NoAction, name: "old")
+
+  newOrderStageId String?
+  newStage        OrderStage? @relation(fields: [newOrderStageId], references: [id], onDelete: NoAction, name: "new")
+
+  employeeId String?
+  employee   User?   @relation(fields: [employeeId], references: [id], onDelete: NoAction, name: "employee")
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: NoAction, name: "creator")
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Cart {
+  id String @id @default(cuid())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items CartItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CartItem {
+  id String @id @default(cuid())
+
+  cartId String
+  cart   Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  quantity Int @default(1)
+
+  tissuId String?
+  tissu   Tissu?  @relation(fields: [tissuId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum DemandPriority {
+  NORMAL
+  URGENT
+  WEAK
+}
+
+model DemandMaterial {
+  id    String @id @default(cuid())
+  name  String
+  color String
+
+  demands Demand[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DemandStage {
+  id    String @id @default(cuid())
+  name  String
+  color String
+
+  demands Demand[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Demand {
+  id       String         @id @default(cuid())
+  priority DemandPriority
+  demand   String
+  demandId String         @unique
+
+  materialId String
+  material   DemandMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  workShopId String
+  workshop   WorkShop @relation(fields: [workShopId], references: [id], onDelete: Cascade)
+
+  stageId String
+  stage   DemandStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

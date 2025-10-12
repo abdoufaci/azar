@@ -14,9 +14,10 @@ import { UserWithWorkshop } from "@/types/types";
 
 interface Props {
   clients: UserWithWorkshop[];
+  onEdit: (user: UserWithWorkshop) => void;
 }
 
-export function ClientsTable({ clients }: Props) {
+export function ClientsTable({ clients, onEdit }: Props) {
   const handleEdit = (id: string) => {
     console.log("Edit client:", id);
   };
@@ -82,7 +83,7 @@ export function ClientsTable({ clients }: Props) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleEdit(client.id)}
+                      onClick={() => onEdit(client)}
                       className="h-8 w-8 p-0 text-[#8E8E8E] hover:text-[#8E8E8E]">
                       <PenLine className="h-4 w-4" />
                       <span className="sr-only">Edit client</span>

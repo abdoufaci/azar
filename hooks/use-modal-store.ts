@@ -1,9 +1,19 @@
+import { ProductWithPricing, UserWithWorkshop } from "@/types/types";
+import { Tissu } from "@prisma/client";
 import { create } from "zustand";
 
-export type ModalType = "manageDemand" | "manageProduction" | "manageWorkShop";
+export type ModalType =
+  | "manageDemand"
+  | "manageProduction"
+  | "manageWorkShop"
+  | "thankyou"
+  | "chooseTissu";
 
 export interface ModalData {
   isEdit?: boolean;
+  employees?: UserWithWorkshop[];
+  product?: ProductWithPricing;
+  tissues?: Tissu[];
 }
 
 interface ModalStore {

@@ -1,6 +1,10 @@
+import { getProducts } from "@/actions/queries/products/get-products";
 import CategoryProducts from "./category-products";
+import { getStoreProducts } from "@/actions/queries/products/get-store-products";
 
-function Categories() {
+async function Categories() {
+  const products = await getStoreProducts();
+
   return (
     <div className="container mx-auto space-y-16 !mb-40">
       {/* Header Section */}
@@ -14,105 +18,8 @@ function Categories() {
         </p>
       </div>
       <div className="space-y-12">
-        <CategoryProducts
-          title="صالونات"
-          products={[
-            {
-              id: 1,
-              name: "Florence",
-              image: "/product.png",
-              price: "140 000 Da",
-              startingFrom: "ابتداءً من",
-            },
-            {
-              id: 2,
-              name: "Milano",
-              image: "/product.png",
-              price: "140 000 Da",
-              startingFrom: "ابتداءً من",
-            },
-            {
-              id: 3,
-              name: "Roma",
-              image: "/product.png",
-              price: "140 000 Da",
-              startingFrom: "ابتداءً من",
-            },
-            {
-              id: 4,
-              name: "Venice",
-              image: "/product.png",
-              price: "140 000 Da",
-              startingFrom: "ابتداءً من",
-            },
-          ]}
-        />
-        <CategoryProducts
-          title="طاولات"
-          products={[
-            {
-              id: 1,
-              name: "Florence",
-              image: "/product.png",
-              price: "140 000 Da",
-              startingFrom: "ابتداءً من",
-            },
-            {
-              id: 2,
-              name: "Milano",
-              image: "/product.png",
-              price: "140 000 Da",
-              startingFrom: "ابتداءً من",
-            },
-            {
-              id: 3,
-              name: "Roma",
-              image: "/product.png",
-              price: "140 000 Da",
-              startingFrom: "ابتداءً من",
-            },
-            {
-              id: 4,
-              name: "Venice",
-              image: "/product.png",
-              price: "140 000 Da",
-              startingFrom: "ابتداءً من",
-            },
-          ]}
-        />
-        <CategoryProducts
-          title="كراسي"
-          products={[
-            {
-              id: 1,
-              name: "Florence",
-              image: "/product.png",
-              price: "140 000 Da",
-              startingFrom: "ابتداءً من",
-            },
-            {
-              id: 2,
-              name: "Milano",
-              image: "/product.png",
-              price: "140 000 Da",
-              startingFrom: "ابتداءً من",
-            },
-            {
-              id: 3,
-              name: "Roma",
-              image: "/product.png",
-              price: "140 000 Da",
-              startingFrom: "ابتداءً من",
-            },
-            {
-              id: 4,
-              name: "Venice",
-              image: "/product.png",
-              price: "140 000 Da",
-              startingFrom: "ابتداءً من",
-            },
-          ]}
-        />
+        <CategoryProducts title="صالونات" products={products} />
+        <CategoryProducts title="كراسي" products={products} />
       </div>
     </div>
   );

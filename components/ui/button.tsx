@@ -20,7 +20,7 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         brand: "bg-brand text-white hover:bg-brand/90",
-        yellow_brand: "bg-yellow-brand text-white hover:bg-yellow-brand/90",
+        yellow_brand: "bg-yellow-brand text-black hover:bg-yellow-brand/90",
         brand_link: "text-brand underline-offset-4 hover:underline",
         delete:
           "bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 ease-out ",

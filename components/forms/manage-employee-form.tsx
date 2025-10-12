@@ -48,25 +48,51 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { ScrollArea } from "../ui/scroll-area";
-import { addClient } from "@/actions/mutations/users/add-client";
+import { EmplyeeRole, WorkShop } from "@prisma/client";
+import { addEmployee } from "@/actions/mutations/users/add-employee";
+import { UserWithWorkshop } from "@/types/types";
+import { updateEmployee } from "@/actions/mutations/users/update-employee";
 
-export const AddClientformSchema = z.object({
+export const ManageEmployeeformSchema = z.object({
   name: z.string(),
   email: z.string(),
   phone: z.string(),
   address: z.string(),
   password: z.string().optional(),
   username: z.string(),
-  wilaya: z.string(),
+  role: z.enum([
+    EmplyeeRole.CHEF,
+    EmplyeeRole.CUTTER,
+    EmplyeeRole.TAILOR,
+    EmplyeeRole.TAPISIER,
+  ]),
+  workshop: z.object({
+    name: z.string(),
+    id: z.string(),
+  }),
 });
 
 interface Props {
   onCancel: () => void;
+  workshops: WorkShop[];
+  user: UserWithWorkshop | null;
 }
 
-export function AddClientForm({ onCancel }: Props) {
-  const form = useForm<z.infer<typeof AddClientformSchema>>({
-    resolver: zodResolver(AddClientformSchema),
+export function ManageEmployeeForm({ onCancel, workshops, user }: Props) {
+  const form = useForm<z.infer<typeof ManageEmployeeformSchema>>({
+    resolver: zodResolver(ManageEmployeeformSchema),
+    defaultValues: {
+      address: user?.address,
+      email: user?.email,
+      name: user?.name,
+      phone: user?.phone,
+      role: user?.employeeRole,
+      username: user?.username,
+      workshop: {
+        id: user?.workShopId || "",
+        name: user?.workShop?.name || "",
+      },
+    },
   });
   const [isPending, startTransition] = useTransition();
   const [isUsernamePending, startUsernameTransition] = useTransition();
@@ -121,19 +147,26 @@ export function AddClientForm({ onCancel }: Props) {
     return null;
   };
 
-  async function onSubmit(data: z.infer<typeof AddClientformSchema>) {
+  async function onSubmit(data: z.infer<typeof ManageEmployeeformSchema>) {
     startTransition(() => {
-      addClient(data)
-        .then((res) => {
-          if (res.error) {
-            toast.error(res.error);
-          }
-          if (res.success) {
-            toast.success("Client est crée avec succès");
-            onCancel();
-          }
-        })
-        .catch(() => toast.error("Erreur"));
+      user
+        ? updateEmployee(data, user)
+            .then((res) => {
+              toast.success("Employé est modifier avec succès");
+              onCancel();
+            })
+            .catch(() => toast.error("Erreur"))
+        : addEmployee(data)
+            .then((res) => {
+              if (res.error) {
+                toast.error(res.error);
+              }
+              if (res.success) {
+                toast.success("Employeé est crée avec succès");
+                onCancel();
+              }
+            })
+            .catch(() => toast.error("Erreur"));
     });
   }
 
@@ -143,6 +176,118 @@ export function AddClientForm({ onCancel }: Props) {
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-8 flex flex-col items-center justify-center">
         <div className="space-y-6 w-full">
+          <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem className="flex flex-col items-start w-full text-[#15091B]">
+                <FormLabel
+                  htmlFor="slogan"
+                  className="text-[#182233] text-lg font-normal">
+                  Rôle
+                </FormLabel>
+                <FormControl className="w-full">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="flex items-center justify-between w-full rounded-lg h-fit border border-[#A2ABBD] px-4 py-3 focus:outline-none">
+                      <div className="flex flex-col text-start">
+                        {field.value ? (
+                          <p className="text-sm">
+                            {field.value === "CHEF"
+                              ? "chef"
+                              : field.value === "CUTTER"
+                              ? "Decoupeur"
+                              : field.value === "TAILOR"
+                              ? "Couteur"
+                              : "Tapisier"}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-[#A2ABBD]">
+                            Rôle d'employée
+                          </p>
+                        )}
+                      </div>
+                      <ChevronDown className="size-4 text-[#A7ABAF]" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[350px] sm:!w-[576px]">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          field.onChange(EmplyeeRole.CHEF);
+                        }}
+                        className="hover:cursor-pointer w-full">
+                        chef
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          field.onChange(EmplyeeRole.CUTTER);
+                        }}
+                        className="hover:cursor-pointer w-full">
+                        Decoupeur
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          field.onChange(EmplyeeRole.TAILOR);
+                        }}
+                        className="hover:cursor-pointer w-full">
+                        Couteur
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          field.onChange(EmplyeeRole.TAPISIER);
+                        }}
+                        className="hover:cursor-pointer w-full">
+                        Tapisier
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="workshop"
+            render={({ field }) => (
+              <FormItem className="flex flex-col items-start w-full text-[#15091B]">
+                <FormLabel
+                  htmlFor="slogan"
+                  className="text-[#182233] text-lg font-normal">
+                  L’atelier
+                </FormLabel>
+                <FormControl className="w-full">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="flex items-center justify-between w-full rounded-lg h-fit border border-[#A2ABBD] px-4 py-3 focus:outline-none">
+                      <div className="flex flex-col text-start">
+                        {field.value ? (
+                          <p className="text-sm">{field.value.name}</p>
+                        ) : (
+                          <p className="text-sm text-[#A2ABBD]">
+                            L’atelier assigné
+                          </p>
+                        )}
+                      </div>
+                      <ChevronDown className="size-4 text-[#A7ABAF]" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[350px] sm:!w-[576px]">
+                      {workshops.map((workshop) => (
+                        <DropdownMenuItem
+                          onClick={() => {
+                            field.onChange({
+                              id: workshop.id,
+                              name: workshop.name,
+                            });
+                          }}
+                          className="hover:cursor-pointer w-full">
+                          {workshop.name}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="name"
@@ -318,48 +463,6 @@ export function AddClientForm({ onCancel }: Props) {
           />
           <FormField
             control={form.control}
-            name="wilaya"
-            render={({ field }) => (
-              <FormItem className="flex flex-col items-start w-full text-[#15091B]">
-                <FormLabel
-                  htmlFor="slogan"
-                  className="text-[#182233] text-lg font-normal">
-                  Wilaya
-                </FormLabel>
-                <FormControl className="w-full">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="flex items-center justify-between w-full rounded-lg h-fit border border-[#A2ABBD] px-4 py-3 focus:outline-none">
-                      <div className="flex flex-col text-start">
-                        {field.value ? (
-                          <p className="text-sm">{field.value}</p>
-                        ) : (
-                          <p className="text-sm text-[#A2ABBD]">wilaya</p>
-                        )}
-                      </div>
-                      <ChevronDown className="size-4 text-[#A7ABAF]" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[350px]">
-                      <ScrollArea className="h-52">
-                        {wilayas.map((wilaya: string, idx) => (
-                          <DropdownMenuItem
-                            key={idx}
-                            onClick={() => {
-                              field.onChange(wilaya);
-                            }}
-                            className="hover:cursor-pointer w-full">
-                            {wilaya}
-                          </DropdownMenuItem>
-                        ))}
-                      </ScrollArea>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
             name="address"
             render={({ field }) => (
               <FormItem className="flex flex-col items-start w-full text-[#15091B]">
@@ -394,12 +497,14 @@ export function AddClientForm({ onCancel }: Props) {
             Cancel
           </Button>
           <Button
-            disabled={isPending || availabilityStatus !== "available"}
+            disabled={
+              isPending || (availabilityStatus !== "available" && !user)
+            }
             type="submit"
             variant={"brand"}
             size={"lg"}
             className="rounded-full">
-            créer un Client
+            {user ? "mise a jour" : "créer"} un employée
           </Button>
         </div>
       </form>

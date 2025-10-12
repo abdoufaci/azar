@@ -10,131 +10,104 @@ import {
 } from "@/components/ui/table";
 import { badgeVariant } from "@/constants/badge-var";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import qs from "query-string";
+import { DemandInTable } from "@/types/types";
+import { truncate } from "@/lib/truncate";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { DemandStage } from "@prisma/client";
+import { addDemandStage } from "@/actions/mutations/demand/add-demand-stage";
+import { updateDemandStage } from "@/actions/mutations/demand/update-demand-stage";
+import { Plus } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import Link from "next/link";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
-const demandes = [
-  {
-    id: "654677",
-    demande: "Bois de quelque chose",
-    atelier: "Ouled Belhadj",
-    type: "Bois",
-    priorite: "Normal",
-    statut: "En Cours",
-    creation: {
-      avatar: "/man.png",
-      time: "12 fevr",
-    },
-  },
-  {
-    id: "654677",
-    demande: "Bois de quelque chose",
-    atelier: "Ouled Belhadj",
-    type: "Tissu",
-    priorite: "Urgent",
-    statut: "En Cours",
-    creation: {
-      avatar: "/man.png",
-      time: "12 fevr",
-    },
-  },
-  {
-    id: "654677",
-    demande: "Bois de quelque chose",
-    atelier: "Ouled Belhadj",
-    type: "Tissu",
-    priorite: "Faible",
-    statut: "En Cours",
-    creation: {
-      avatar: "/man.png",
-      time: "12 fevr",
-    },
-  },
-  {
-    id: "654677",
-    demande: "Bois de quelque chose",
-    atelier: "Ouled Belhadj",
-    type: "Bois",
-    priorite: "Urgent",
-    statut: "En Cours",
-    creation: {
-      avatar: "/man.png",
-      time: "12 fevr",
-    },
-  },
-  {
-    id: "654677",
-    demande: "Bois de quelque chose",
-    atelier: "Ouled Belhadj",
-    type: "Tissu",
-    priorite: "Normal",
-    statut: "En Cours",
-    creation: {
-      avatar: "/man.png",
-      time: "12 fevr",
-    },
-  },
-  {
-    id: "654677",
-    demande: "Bois de quelque chose",
-    atelier: "Ouled Belhadj",
-    type: "Tissu",
-    priorite: "Urgent",
-    statut: "En Cours",
-    creation: {
-      avatar: "/man.png",
-      time: "12 fevr",
-    },
-  },
-  {
-    id: "654677",
-    demande: "Bois de quelque chose",
-    atelier: "Ouled Belhadj",
-    type: "Bois",
-    priorite: "Normal",
-    statut: "En Cours",
-    creation: {
-      avatar: "/man.png",
-      time: "12 fevr",
-    },
-  },
-  {
-    id: "654677",
-    demande: "Bois de quelque chose",
-    atelier: "Ouled Belhadj",
-    type: "Tissu",
-    priorite: "Faible",
-    statut: "En Cours",
-    creation: {
-      avatar: "/man.png",
-      time: "12 fevr",
-    },
-  },
-];
-
-function getPriorityVariant(priorite: string) {
-  switch (priorite) {
-    case "Urgent":
-      return "bg-[#BA000026] text-[#BA0000] hover:bg-[#BA000026]";
-    case "Normal":
-      return "bg-[#21D95426] text-[#21D954] hover:bg-[#21D95426]";
-    case "Faible":
-      return "bg-[#FFD12E26] text-[#FFD12E] hover:bg-[#FFD12E26]";
-    default:
-      return "bg-secondary text-secondary-foreground hover:bg-secondary";
-  }
+interface Props {
+  currentPage: number;
+  totalDemands: number;
+  demandsPerPage: number;
+  searchParams: Record<string, string | string[] | undefined>;
+  demands: DemandInTable[];
+  stages: DemandStage[];
 }
 
-function getTypeVariant(type: string) {
-  switch (type) {
-    case "Bois":
-      return "bg-[#DEEDFF] text-[#056BE4] hover:bg-[#DEEDFF]";
-    case "Tissu":
-      return "bg-[#F3732324] text-[#F37323] hover:bg-[#F3732324]";
-    default:
-      return "bg-secondary text-secondary-foreground hover:bg-secondary";
-  }
-}
+export function DemandesTable({
+  currentPage,
+  demandsPerPage,
+  searchParams,
+  totalDemands,
+  demands,
+  stages,
+}: Props) {
+  const [newDemandStageInput, setNewDemandStageInput] = useState("");
+  const [showAdd, setShowAdd] = useState(false);
+  const [isAddingDemandStagePending, startAddingDemandStage] = useTransition();
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
-export function DemandesTable() {
+  const totalPages = Math.ceil(totalDemands / demandsPerPage);
+
+  const { page, ...rest } = searchParams;
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      const url = qs.stringifyUrl(
+        {
+          url: "/management/demands",
+          query: {
+            page: currentPage + 1,
+            ...rest,
+          },
+        },
+        { skipNull: true }
+      );
+      router.push(url);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      const url = qs.stringifyUrl(
+        {
+          url: "/management/demands",
+          query: {
+            page: currentPage === 2 ? null : currentPage - 1,
+            ...rest,
+          },
+        },
+        { skipNull: true }
+      );
+      router.push(url);
+    }
+  };
+
+  const handleAddDemandStage = () => {
+    startAddingDemandStage(() => {
+      addDemandStage(newDemandStageInput)
+        .then(() => {
+          setNewDemandStageInput("");
+          setShowAdd(false);
+          toast.success("created !");
+        })
+        .catch(() => toast.error("Erreur ."));
+    });
+  };
+
   return (
     <div className="rounded-lg border border-border bg-card">
       <Table>
@@ -164,74 +137,233 @@ export function DemandesTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {demandes.map((demande, index) => (
+          {demands.map((demande, index) => (
             <TableRow
               key={index}
               className="border-border hover:bg-muted/30 cursor-pointer">
               <TableCell className="text-[#576070] p-5">
-                {demande.demande}
+                <HoverCard>
+                  <HoverCardTrigger>
+                    {truncate(demande.demand, 15)}
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-full">
+                    <p className="w-full max-w-sm font-medium">
+                      {demande.demand}
+                    </p>
+                  </HoverCardContent>
+                </HoverCard>
               </TableCell>
               <TableCell className="text-[#06191D] font-medium p-5 text-center">
                 <div className="flex items-start justify-center gap-1.5">
                   <Image
                     alt="workshop"
-                    src={"/workshop2.svg"}
+                    src={demande.workshop?.image || "/workshop2.svg"}
                     width={25}
                     height={25}
                     className="rounded-lg object-cover"
                   />
-                  <h1>{demande.atelier}</h1>
+                  <h1>{demande.workshop.name}</h1>
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center justify-center">
-                  <Badge
-                    //@ts-ignore
-                    variant={badgeVariant[demande.type]}
-                    className="rounded-full px-10 py-1">
-                    {demande.type}
-                  </Badge>
+                  <div
+                    style={{
+                      backgroundColor: `${demande.material.color}33`,
+                      color: `${demande.material.color}`,
+                    }}
+                    className="rounded-full px-4 py-1.5 text-xs font-medium">
+                    {demande.material.name}
+                  </div>
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center justify-center">
-                  <Badge
-                    //@ts-ignore
-                    variant={badgeVariant[demande.priorite]}
-                    className="rounded-full px-10 py-1">
-                    {demande.priorite}
-                  </Badge>
+                  <div
+                    className={cn(
+                      "rounded-full px-4 py-1.5 text-xs font-medium",
+                      demande.priority === "NORMAL"
+                        ? "text-[#21D954] bg-[#21D95426]"
+                        : demande.priority === "URGENT"
+                        ? "text-[#BA0000] bg-[#BA000026]"
+                        : "text-[#FFD12E] bg-[#FFD12E26]"
+                    )}>
+                    {demande.priority === "NORMAL"
+                      ? "Normal"
+                      : demande.priority === "URGENT"
+                      ? "Urgent"
+                      : "faible"}
+                  </div>
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center justify-center">
-                  <Badge variant={"blue"} className="px-10 py-1">
-                    {demande.statut}
-                  </Badge>
+                  <Popover>
+                    <PopoverTrigger
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}>
+                      <div
+                        style={{
+                          backgroundColor: `${demande.stage?.color}33`,
+                          color: `${demande.stage?.color}`,
+                        }}
+                        className="px-3 py-1.5 rounded-[3.96px] font-medium text-xs">
+                        {demande.stage?.name}
+                      </div>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0 w-fit">
+                      <div className="space-y-2">
+                        <div className="space-y-1">
+                          {stages.map((stage) => (
+                            <div className="px-4 pt-3 flex items-center justify-center">
+                              <div
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  startTransition(() => {
+                                    toast.loading("mise a jour...", {
+                                      id: "loading",
+                                    });
+                                    updateDemandStage({
+                                      demandId: demande.id,
+                                      stageId: stage.id,
+                                    })
+                                      .then(() => {
+                                        toast.success("Success !");
+                                      })
+                                      .catch(() => toast.error("Erreur ."))
+                                      .finally(() => toast.dismiss("loading"));
+                                  });
+                                }}
+                                style={{
+                                  backgroundColor: `${stage?.color}33`,
+                                  color: `${stage?.color}`,
+                                }}
+                                className="px-3 py-1.5 rounded-[3.96px] font-medium text-xs cursor-pointer w-full max-w-32 flex items-center justify-center">
+                                {stage?.name}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="px-4 pb-2">
+                          {showAdd ? (
+                            <Input
+                              className="mb-2"
+                              disabled={isAddingDemandStagePending}
+                              type="text"
+                              placeholder="ex: en cours.."
+                              value={newDemandStageInput}
+                              onChange={(e) =>
+                                setNewDemandStageInput(e.target.value)
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault(); // Prevent form submission on Enter for this input
+                                  handleAddDemandStage();
+                                }
+                              }}
+                            />
+                          ) : (
+                            <Button
+                              type="button"
+                              onClick={() => setShowAdd(true)}
+                              variant="brand_link"
+                              className="!p-0">
+                              <Plus className="h-4 w-4" />
+                              Ajouter Etat
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </TableCell>
               <TableCell>
-                <div className="flex justify-center items-center gap-2">
+                <div className="flex items-center justify-center gap-2">
                   <Avatar className="h-6 w-6">
                     <AvatarImage
-                      src={demande.creation.avatar || "/placeholder.svg"}
+                      src={`https://${
+                        process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME
+                      }/
+                                      
+                                      ${
+                                        //@ts-ignore
+                                        demande?.user?.image?.id
+                                      }`}
                     />
-                    <AvatarFallback className="text-xs bg-muted text-muted-foreground">
-                      U
+                    <AvatarFallback className="text-xs text-white bg-brand">
+                      {demande.user?.name?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>
                   <span className="text-sm text-[#95A1B1]">
-                    {demande.creation.time}
+                    {format(demande.createdAt || new Date(), "d MMM", {
+                      locale: fr,
+                    })}
                   </span>
                 </div>
               </TableCell>
               <TableCell className="text-[#95A1B1] text-center">
-                {demande.id}
+                {demande.demandId}
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+      <div className="flex flex-col md:!flex-row md:!items-center justify-between gap-4 p-5">
+        <div className="text-sm text-gray-400">
+          Showing {(currentPage - 1) * demandsPerPage + 1} to{" "}
+          {Math.min(currentPage * demandsPerPage, totalDemands)} of{" "}
+          {totalDemands} entries
+        </div>
+        <div className="flex flex-wrap items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePrevPage}
+            disabled={currentPage === 1}
+            className="border-[#B9BEC7] hover:bg-gray-800">
+            Previous
+          </Button>
+          {Array.from(Array(totalPages).keys()).map((_, idx) => {
+            const url = qs.stringifyUrl(
+              {
+                url: "/management/demand",
+                query: {
+                  page: idx === 0 ? null : idx + 1,
+                  ...rest,
+                },
+              },
+              { skipNull: true }
+            );
+
+            return (
+              <Button
+                key={idx}
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "",
+                  idx + 1 === currentPage
+                    ? "bg-brand border-brand hover:bg-brand/90 text-white hover:text-white"
+                    : "border-[#B9BEC7] hover:bg-gray-800"
+                )}
+                asChild>
+                <Link href={url}>{idx + 1}</Link>
+              </Button>
+            );
+          })}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages}
+            className="border-[#B9BEC7] hover:bg-gray-800">
+            Next
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

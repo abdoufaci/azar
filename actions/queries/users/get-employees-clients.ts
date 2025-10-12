@@ -13,6 +13,9 @@ export const getEmployeesAndClients = async () => {
     include: {
       workShop: true,
     },
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
   const clients = users.filter((user) => user.role === "CLIENT");

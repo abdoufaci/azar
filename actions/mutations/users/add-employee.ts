@@ -1,7 +1,7 @@
 "use server";
 
 import { checkIsAdmin } from "@/actions/security/admin-check";
-import { AddEmployeeformSchema } from "@/components/forms/add-employee-form";
+import { ManageEmployeeformSchema } from "@/components/forms/manage-employee-form";
 import { getUserByEmail } from "@/data/user";
 import z from "zod";
 import bcrypt from "bcryptjs";
@@ -9,7 +9,7 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 export const addEmployee = async (
-  data: z.infer<typeof AddEmployeeformSchema>
+  data: z.infer<typeof ManageEmployeeformSchema>
 ) => {
   await checkIsAdmin();
   const existingUser = await getUserByEmail(data.email);

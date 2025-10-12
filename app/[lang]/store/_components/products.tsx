@@ -1,67 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Product } from "@/types/types";
 import { ArrowUpLeft } from "lucide-react";
 import ProductCard from "./product-card";
+import Link from "next/link";
+import { getStoreProducts } from "@/actions/queries/products/get-store-products";
 
-export default function Products() {
-  const products: Product[] = [
-    {
-      id: 1,
-      name: "Florence",
-      image: "/product.png",
-      price: "140 000 Da",
-      startingFrom: "ابتداءً من",
-    },
-    {
-      id: 2,
-      name: "Milano",
-      image: "/product.png",
-      price: "140 000 Da",
-      startingFrom: "ابتداءً من",
-    },
-    {
-      id: 3,
-      name: "Roma",
-      image: "/product.png",
-      price: "140 000 Da",
-      startingFrom: "ابتداءً من",
-    },
-    {
-      id: 4,
-      name: "Venice",
-      image: "/product.png",
-      price: "140 000 Da",
-      startingFrom: "ابتداءً من",
-    },
-    {
-      id: 5,
-      name: "Napoli",
-      image: "/product.png",
-      price: "140 000 Da",
-      startingFrom: "ابتداءً من",
-    },
-    {
-      id: 6,
-      name: "Torino",
-      image: "/product.png",
-      price: "140 000 Da",
-      startingFrom: "ابتداءً من",
-    },
-    {
-      id: 7,
-      name: "Palermo",
-      image: "/product.png",
-      price: "140 000 Da",
-      startingFrom: "ابتداءً من",
-    },
-    {
-      id: 8,
-      name: "Bologna",
-      image: "/product.png",
-      price: "140 000 Da",
-      startingFrom: "ابتداءً من",
-    },
-  ];
+export default async function Products() {
+  const products = await getStoreProducts();
 
   return (
     <div className="max-md:!px-4 md:!w-[90%] container mx-auto">
@@ -78,7 +22,9 @@ export default function Products() {
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-4 gap-6 mb-12">
         {products.map((product) => (
-          <ProductCard product={product} key={product.id} />
+          <Link href={`/store/product/${product.id}`}>
+            <ProductCard product={product} key={product.id} />
+          </Link>
         ))}
       </div>
 

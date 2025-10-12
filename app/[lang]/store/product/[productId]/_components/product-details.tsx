@@ -3,23 +3,70 @@
 import { ShoppingCart, ChevronRight, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Product,
+  ProductPricing,
+  ProductSubtype,
+  ProductVariant,
+  Tissu,
+} from "@prisma/client";
+import DOMPurify from "dompurify";
+import { cn } from "@/lib/utils";
+import { ProductWithPricing } from "@/types/types";
+import { manageCart } from "@/actions/mutations/cart/manage-cart";
+import { toast } from "sonner";
+import { useCartQuery } from "@/hooks/use-cart-query";
+import { useModal } from "@/hooks/use-modal-store";
 
-function ProductDetails() {
+interface Props {
+  product: ProductWithPricing | null;
+  tissues: Tissu[];
+}
+
+function ProductDetails({ product, tissues }: Props) {
   const [selectedImage, setSelectedImage] = useState(0);
   const router = useRouter();
+  const cartId = localStorage.getItem("cart_Id");
+  const [isPending, startTransition] = useTransition();
+  const { refetch } = useCartQuery();
+  const { onOpen } = useModal();
 
-  const images = [
-    "/product-image-1.png",
-    "/product-image-2.png",
-    "/product-image-3.png",
-    "/product-image-4.png",
-    "/product-image-5.png",
-  ];
+  const images = (product?.images as { id: string; type: string }[]).map(
+    (image) =>
+      `https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}/${image?.id}`
+  );
+  const sanitizedDescription = DOMPurify.sanitize(
+    //@ts-ignore
+    product?.arDescription
+  );
+  const isArabic = (text: string) => /[\u0600-\u06FF]/.test(text);
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = sanitizedDescription;
+
+  const descriptionText = tempDiv.textContent || tempDiv.innerText || "";
+
+  const onAddProduct = () => {
+    if (!product) return;
+    startTransition(() => {
+      manageCart({
+        product,
+        cartId,
+      })
+        .then((res) => {
+          if (res.status === "guest_cart_created" && !!res?.cart) {
+            localStorage.setItem("cart_Id", res.cart.id);
+          }
+          refetch();
+          toast.success("Produit ajouter !");
+        })
+        .catch(() => toast.error("Erreur"));
+    });
+  };
 
   return (
-    <div className="min-h-screen mt-32 bg-[#ffffff]">
+    <div className="min-h-screen mt-32 bg-[#ffffff] w-full md:!w-[90%] mx-auto">
       {/* Breadcrumb */}
 
       {/* Main Content */}
@@ -64,7 +111,14 @@ function ProductDetails() {
           <div className="space-y-6">
             <nav className="container mx-auto py-4">
               <div className="flex items-center justify-end gap-2 text-sm text-[#767676]">
-                <span>صالون / كومفورتو" ثلاثية </span>
+                <span>
+                  {product?.pricing.variant.category === "SALON"
+                    ? "صالون"
+                    : product?.pricing.variant.category === "CHAIR"
+                    ? "كراسي"
+                    : "طاولات"}{" "}
+                  / {product?.arName}{" "}
+                </span>
                 <ArrowRight
                   onClick={() => router.back()}
                   className="h-6 w-6 cursor-pointer"
@@ -73,77 +127,35 @@ function ProductDetails() {
             </nav>
             {/* Title */}
             <h1 className="text-6xl text-right text-[#17183B]">
-              كومفورتو" ثلاثية
+              {product?.arName}
             </h1>
 
             {/* Price */}
             <div className="text-5xl font-bold text-[#f2ba05] text-right">
-              140 000
+              {product?.price}
             </div>
 
             {/* Description */}
-            <div className="space-y-4 text-[#272626] leading-relaxed">
-              <p className="text-sm text-[#767676] text-right">
-                الوصف التفصيلي (لصفحة المنتج):
-              </p>
-              <p className="text-right">
-                استمتع بأعلى مستويات الراحة مع أريكة "كومفورتو" الثلاثية.
-                المصممة بعناية لتمنحك تجربة جلوس مريحة وأسلوباً يضيف لمسة فاخرة
-                إلى غرفة المعيشة.
-              </p>
-
-              {/* Features */}
-              <div className="space-y-3">
-                <p className="font-semibold text-[#212121] text-right">
-                  : المميزات
-                </p>
-                <ul className="space-y-2 text-[#272626]">
-                  <li className="flex justify-end items-start gap-2">
-                    <span>
-                      خامات عالية الجودة: هيكل خشبي متين مع إسفنج عالي الكثافة
-                      للحفاظ على الشكل والراحة
-                    </span>
-                    <span className="text-[#212121]">•</span>
-                  </li>
-                  <li className="flex justify-end items-start gap-2">
-                    <span>
-                      قماش فاخر: بأعم الملمس، مقاوم للبقع وسهل التنظيف
-                    </span>
-                    <span className="text-[#212121]">•</span>
-                  </li>
-                  <li className="flex justify-end items-start gap-2">
-                    <span>
-                      تصميم عصري: مساند ظهر وأذرع مصممة لدعم كامل للجسم
-                    </span>
-                    <span className="text-[#212121]">•</span>
-                  </li>
-                  <li className="flex justify-end items-start gap-2">
-                    <span>
-                      ألوان متعددة: اختر اللون الذي يناسب ذوقك وديكور منزلك
-                    </span>
-                    <span className="text-[#212121]">•</span>
-                  </li>
-                  <li className="flex justify-end items-start gap-2">
-                    <span>
-                      ضمان الجودة: ضمان لمدة [عدد السنوات] ضد عيوب الصناعة
-                    </span>
-                    <span className="text-[#212121]">•</span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Dimensions */}
-              <div className="">
-                <p className="text-right text-[#272626] mb-2">: الأبعاد</p>
-                <p className="text-[#272626] text-right">
-                  العرض: 220 سم | العمق: 90 سم | الارتفاع: 85
-                </p>
-              </div>
-            </div>
+            <div
+              dir="rtl"
+              className={cn(
+                "text-[#272626] text-lg whitespace-break-spaces [&_ol]:list-decimal [&_ul]:list-disc",
+                isArabic(descriptionText) && "rtl"
+              )}
+              dangerouslySetInnerHTML={{
+                //@ts-ignore
+                __html: sanitizedDescription,
+              }}></div>
 
             {/* Add to Cart Button */}
             <div className="flex items-center justify-end">
               <Button
+                disabled={isPending}
+                onClick={() =>
+                  product?.audience === "B2B"
+                    ? onOpen("chooseTissu", { product, tissues })
+                    : onAddProduct()
+                }
                 variant={"yellow_brand"}
                 size="lg"
                 className="text-[#212121] p-4 rounded-[10px] px-10 font-medium flex items-center gap-7 text-lg h-fit">

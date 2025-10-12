@@ -6,22 +6,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User } from "@prisma/client";
+import { User, WorkShop } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import qs from "query-string";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
   url: string;
+  workShops: WorkShop[];
 }
 
-function WorkShopFilter({ searchParams, url: pathname }: Props) {
+function WorkShopFilter({ searchParams, url: pathname, workShops }: Props) {
   const router = useRouter();
 
   return (
     <Select
       onValueChange={(workshop) => {
-        const { workshop: curr, ...rest } = searchParams;
+        const { workshop: curr, page, ...rest } = searchParams;
 
         const url = qs.stringifyUrl(
           {
@@ -40,8 +41,11 @@ function WorkShopFilter({ searchParams, url: pathname }: Props) {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="default">Par Default</SelectItem>
-        <SelectItem value="ouled-belhadj">Ouled Belhadj</SelectItem>
-        <SelectItem value="autre-atelier">Autre Atelier</SelectItem>
+        {workShops.map((workshop) => (
+          <SelectItem key={workshop.id} value={workshop.id}>
+            {workshop.name}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );

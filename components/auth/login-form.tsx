@@ -31,6 +31,7 @@ export function LoginForm() {
       : "";
 
   const router = useRouter();
+  const cartId = localStorage.getItem("cart_Id");
 
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   const [error, setError] = useState<string | undefined>("");
@@ -49,8 +50,11 @@ export function LoginForm() {
     setError("");
     setSuccess("");
     startTransition(() => {
-      login(values)
+      login(values, cartId)
         .then((data) => {
+          if (cartId) {
+            localStorage.removeItem("cart_Id");
+          }
           if (data?.error) {
             form.reset();
             setError(data?.error);

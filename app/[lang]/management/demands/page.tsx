@@ -15,6 +15,12 @@ import TypeFilter from "@/components/filters/type-filter";
 import PriorityFilter from "@/components/filters/priority-filter";
 import StatusFilter from "@/components/filters/status-filter";
 import { OpenDialogButton } from "@/components/open-dialog-button";
+import { getWorkshops } from "@/actions/queries/workshop/get-workshops";
+import { getDemands } from "@/actions/queries/demands/get-demands";
+import { getDemandsCount } from "@/actions/queries/demands/get-demands-count";
+import { getDemandStages } from "@/actions/queries/demands/get-demand-stages";
+import DemandsInterface from "./_components/demands-interface";
+import { getDemandMaterials } from "@/actions/queries/demands/get-demand-materials";
 
 export default async function DemandesPage({
   searchParams,
@@ -22,41 +28,30 @@ export default async function DemandesPage({
   params: any;
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
+  const currentPage = (await searchParams).page;
+  const demandsPerPage = 8;
+  const workshops = await getWorkshops();
+  const demands = await getDemands(
+    Number(currentPage || "1"),
+    demandsPerPage,
+    searchParams
+  );
+  const totalDemands = await getDemandsCount(searchParams);
+  const stages = await getDemandStages();
+  const materials = await getDemandMaterials();
+
   return (
-    <div className="min-h-screen p-6">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-medium text-[#06191D]">Les Demandes</h1>
-        </div>
-        <div className="flex items-center justify-between gap-5 flex-wrap">
-          <div className="flex items-center gap-4 flex-1">
-            <OpenDialogButton title="Ajouter Demande" type="manageDemand" />
-            <SearchFilter
-              url="/management/demands"
-              searchParams={await searchParams}
-            />
-          </div>
-          <div className="flex items-center gap-3">
-            <WorkShopFilter
-              url="/management/demands"
-              searchParams={await searchParams}
-            />
-            <TypeFilter
-              url="/management/demands"
-              searchParams={await searchParams}
-            />
-            <PriorityFilter
-              url="/management/demands"
-              searchParams={await searchParams}
-            />
-            <StatusFilter
-              url="/management/demands"
-              searchParams={await searchParams}
-            />
-          </div>
-        </div>
-        <DemandesTable />
-      </div>
+    <div className="p-8">
+      <DemandsInterface
+        currentPage={Number(currentPage || "1")}
+        demandsPerPage={demandsPerPage}
+        demands={demands}
+        searchParams={await searchParams}
+        stages={stages}
+        totalDemands={totalDemands}
+        workShops={workshops}
+        materials={materials}
+      />
     </div>
   );
 }

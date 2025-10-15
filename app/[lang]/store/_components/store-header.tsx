@@ -13,7 +13,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
-function StoreHeader() {
+interface Props {
+  lang: any;
+  dict: any;
+}
+
+function StoreHeader({ dict, lang }: Props) {
   const user = useCurrentUser();
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
@@ -30,7 +35,7 @@ function StoreHeader() {
 
   return (
     <header
-      dir="rtl"
+      dir={lang === "ar" ? "rtl" : "ltr"}
       className={cn(
         "h-[70px] sticky top-0 left-0 z-50 w-full px-6 py-4 transition-all duration-200 ease-out border-b border-b-[#D1D1D8]",
         tajawal.className,
@@ -53,35 +58,39 @@ function StoreHeader() {
         </Link>
 
         {/* Navigation */}
-        <nav className="hidden md:flex items-center space-x-8 space-x-reverse">
+        <nav
+          className={cn(
+            "hidden md:flex items-center space-x-8",
+            lang === "ar" && "space-x-reverse"
+          )}>
           <Link
             href="/store"
             className="text-[#f2ba05] hover:text-[#f1ba05] transition-colors font-medium">
-            الرئيسية
+            {dict?.storeHeader.home}
           </Link>
           <Link
-            href="#"
+            href="/store/salon"
             className={cn(
               "hover:text-[#f2ba05] transition-colors font-medium",
               scrolled || pathname.length > 9 ? "text-black" : "text-white"
             )}>
-            منتجات
+            {dict?.storeHeader.salon}
           </Link>
           <Link
-            href="#"
+            href="/store/table"
             className={cn(
               "hover:text-[#f2ba05] transition-colors font-medium",
               scrolled || pathname.length > 9 ? "text-black" : "text-white"
             )}>
-            الطاولات
+            {dict?.storeHeader.table}
           </Link>
           <Link
-            href="#"
+            href="/store/chair"
             className={cn(
               "hover:text-[#f2ba05] transition-colors font-medium",
               scrolled || pathname.length > 9 ? "text-black" : "text-white"
             )}>
-            الكراسي
+            {dict?.storeHeader.chair}
           </Link>
         </nav>
 

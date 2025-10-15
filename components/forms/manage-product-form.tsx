@@ -377,6 +377,7 @@ export default function ManageProductForm({
                               )
                               .map((model) => (
                                 <div
+                                  key={model.id}
                                   onClick={() =>
                                     field.onChange({
                                       name: model.name,
@@ -444,7 +445,7 @@ export default function ManageProductForm({
                         {variants
                           .find((variant) => variant.id === selectedVariant?.id)
                           ?.pricings.map((price) => (
-                            <SelectItem value={price.id}>
+                            <SelectItem key={price.id} value={price.id}>
                               {price.subtype.name}
                             </SelectItem>
                           ))}

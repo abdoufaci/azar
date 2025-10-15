@@ -36,6 +36,8 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import DemandDetails from "./demand-details";
 
 interface Props {
   currentPage: number;
@@ -138,176 +140,186 @@ export function DemandesTable({
         </TableHeader>
         <TableBody>
           {demands.map((demande, index) => (
-            <TableRow
-              key={index}
-              className="border-border hover:bg-muted/30 cursor-pointer">
-              <TableCell className="text-[#576070] p-5">
-                <HoverCard>
-                  <HoverCardTrigger>
-                    {truncate(demande.demand, 15)}
-                  </HoverCardTrigger>
-                  <HoverCardContent className="w-full">
-                    <p className="w-full max-w-sm font-medium">
-                      {demande.demand}
-                    </p>
-                  </HoverCardContent>
-                </HoverCard>
-              </TableCell>
-              <TableCell className="text-[#06191D] font-medium p-5 text-center">
-                <div className="flex items-start justify-center gap-1.5">
-                  <Image
-                    alt="workshop"
-                    src={demande.workshop?.image || "/workshop2.svg"}
-                    width={25}
-                    height={25}
-                    className="rounded-lg object-cover"
-                  />
-                  <h1>{demande.workshop.name}</h1>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center justify-center">
-                  <div
-                    style={{
-                      backgroundColor: `${demande.material.color}33`,
-                      color: `${demande.material.color}`,
-                    }}
-                    className="rounded-full px-4 py-1.5 text-xs font-medium">
-                    {demande.material.name}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center justify-center">
-                  <div
-                    className={cn(
-                      "rounded-full px-4 py-1.5 text-xs font-medium",
-                      demande.priority === "NORMAL"
-                        ? "text-[#21D954] bg-[#21D95426]"
-                        : demande.priority === "URGENT"
-                        ? "text-[#BA0000] bg-[#BA000026]"
-                        : "text-[#FFD12E] bg-[#FFD12E26]"
-                    )}>
-                    {demande.priority === "NORMAL"
-                      ? "Normal"
-                      : demande.priority === "URGENT"
-                      ? "Urgent"
-                      : "faible"}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center justify-center">
-                  <Popover>
-                    <PopoverTrigger
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}>
+            <Sheet key={demande.id}>
+              <SheetTrigger asChild>
+                <TableRow className="border-border hover:bg-muted/30 cursor-pointer">
+                  <TableCell className="text-[#576070] p-5">
+                    <HoverCard>
+                      <HoverCardTrigger>
+                        {truncate(demande.demand, 15)}
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-full">
+                        <p className="w-full max-w-sm font-medium">
+                          {demande.demand}
+                        </p>
+                      </HoverCardContent>
+                    </HoverCard>
+                  </TableCell>
+                  <TableCell className="text-[#06191D] font-medium p-5 text-center">
+                    <div className="flex items-start justify-center gap-1.5">
+                      <Image
+                        alt="workshop"
+                        src={demande.workshop?.image || "/workshop2.svg"}
+                        width={25}
+                        height={25}
+                        className="rounded-lg object-cover"
+                      />
+                      <h1>{demande.workshop.name}</h1>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center justify-center">
                       <div
                         style={{
-                          backgroundColor: `${demande.stage?.color}33`,
-                          color: `${demande.stage?.color}`,
+                          backgroundColor: `${demande.material.color}33`,
+                          color: `${demande.material.color}`,
                         }}
-                        className="px-3 py-1.5 rounded-[3.96px] font-medium text-xs">
-                        {demande.stage?.name}
+                        className="rounded-full px-4 py-1.5 text-xs font-medium">
+                        {demande.material.name}
                       </div>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0 w-fit">
-                      <div className="space-y-2">
-                        <div className="space-y-1">
-                          {stages.map((stage) => (
-                            <div className="px-4 pt-3 flex items-center justify-center">
-                              <div
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  startTransition(() => {
-                                    toast.loading("mise a jour...", {
-                                      id: "loading",
-                                    });
-                                    updateDemandStage({
-                                      demandId: demande.id,
-                                      stageId: stage.id,
-                                    })
-                                      .then(() => {
-                                        toast.success("Success !");
-                                      })
-                                      .catch(() => toast.error("Erreur ."))
-                                      .finally(() => toast.dismiss("loading"));
-                                  });
-                                }}
-                                style={{
-                                  backgroundColor: `${stage?.color}33`,
-                                  color: `${stage?.color}`,
-                                }}
-                                className="px-3 py-1.5 rounded-[3.96px] font-medium text-xs cursor-pointer w-full max-w-32 flex items-center justify-center">
-                                {stage?.name}
-                              </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center justify-center">
+                      <div
+                        className={cn(
+                          "rounded-full px-4 py-1.5 text-xs font-medium",
+                          demande.priority === "NORMAL"
+                            ? "text-[#21D954] bg-[#21D95426]"
+                            : demande.priority === "URGENT"
+                            ? "text-[#BA0000] bg-[#BA000026]"
+                            : "text-[#FFD12E] bg-[#FFD12E26]"
+                        )}>
+                        {demande.priority === "NORMAL"
+                          ? "Normal"
+                          : demande.priority === "URGENT"
+                          ? "Urgent"
+                          : "faible"}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center justify-center">
+                      <Popover>
+                        <PopoverTrigger
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}>
+                          <div
+                            style={{
+                              backgroundColor: `${demande.stage?.color}33`,
+                              color: `${demande.stage?.color}`,
+                            }}
+                            className="px-3 py-1.5 rounded-[3.96px] font-medium text-xs">
+                            {demande.stage?.name}
+                          </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="p-0 w-fit">
+                          <div className="space-y-2">
+                            <div className="space-y-1">
+                              {stages.map((stage) => (
+                                <div
+                                  key={stage.id}
+                                  className="px-4 pt-3 flex items-center justify-center">
+                                  <div
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      startTransition(() => {
+                                        toast.loading("mise a jour...", {
+                                          id: "loading",
+                                        });
+                                        updateDemandStage({
+                                          demandId: demande.id,
+                                          stageId: stage.id,
+                                          oldStageId: demande.stageId,
+                                        })
+                                          .then(() => {
+                                            toast.success("Success !");
+                                          })
+                                          .catch(() => toast.error("Erreur ."))
+                                          .finally(() =>
+                                            toast.dismiss("loading")
+                                          );
+                                      });
+                                    }}
+                                    style={{
+                                      backgroundColor: `${stage?.color}33`,
+                                      color: `${stage?.color}`,
+                                    }}
+                                    className="px-3 py-1.5 rounded-[3.96px] font-medium text-xs cursor-pointer w-full max-w-32 flex items-center justify-center">
+                                    {stage?.name}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
 
-                        <div className="px-4 pb-2">
-                          {showAdd ? (
-                            <Input
-                              className="mb-2"
-                              disabled={isAddingDemandStagePending}
-                              type="text"
-                              placeholder="ex: en cours.."
-                              value={newDemandStageInput}
-                              onChange={(e) =>
-                                setNewDemandStageInput(e.target.value)
-                              }
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  e.preventDefault(); // Prevent form submission on Enter for this input
-                                  handleAddDemandStage();
-                                }
-                              }}
-                            />
-                          ) : (
-                            <Button
-                              type="button"
-                              onClick={() => setShowAdd(true)}
-                              variant="brand_link"
-                              className="!p-0">
-                              <Plus className="h-4 w-4" />
-                              Ajouter Etat
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center justify-center gap-2">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage
-                      src={`https://${
-                        process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME
-                      }/
+                            <div className="px-4 pb-2">
+                              {showAdd ? (
+                                <Input
+                                  className="mb-2"
+                                  disabled={isAddingDemandStagePending}
+                                  type="text"
+                                  placeholder="ex: en cours.."
+                                  value={newDemandStageInput}
+                                  onChange={(e) =>
+                                    setNewDemandStageInput(e.target.value)
+                                  }
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault(); // Prevent form submission on Enter for this input
+                                      handleAddDemandStage();
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <Button
+                                  type="button"
+                                  onClick={() => setShowAdd(true)}
+                                  variant="brand_link"
+                                  className="!p-0">
+                                  <Plus className="h-4 w-4" />
+                                  Ajouter Etat
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center justify-center gap-2">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage
+                          src={`https://${
+                            process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME
+                          }/
                                       
                                       ${
                                         //@ts-ignore
                                         demande?.user?.image?.id
                                       }`}
-                    />
-                    <AvatarFallback className="text-xs text-white bg-brand">
-                      {demande.user?.name?.charAt(0) || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm text-[#95A1B1]">
-                    {format(demande.createdAt || new Date(), "d MMM", {
-                      locale: fr,
-                    })}
-                  </span>
-                </div>
-              </TableCell>
-              <TableCell className="text-[#95A1B1] text-center">
-                {demande.demandId}
-              </TableCell>
-            </TableRow>
+                        />
+                        <AvatarFallback className="text-xs text-white bg-brand">
+                          {demande.user?.name?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm text-[#95A1B1]">
+                        {format(demande.createdAt || new Date(), "d MMM", {
+                          locale: fr,
+                        })}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-[#95A1B1] text-center">
+                    {demande.demandId}
+                  </TableCell>
+                </TableRow>
+              </SheetTrigger>
+              <SheetContent>
+                <DemandDetails demand={demande} stages={stages} />
+              </SheetContent>
+            </Sheet>
           ))}
         </TableBody>
       </Table>

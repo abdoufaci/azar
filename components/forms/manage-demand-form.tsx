@@ -143,7 +143,7 @@ export default function ManageDemandForm({
                     </FormControl>
                     <SelectContent>
                       {workShops.map((workshop) => (
-                        <SelectItem value={workshop.id}>
+                        <SelectItem key={workshop.id} value={workshop.id}>
                           {workshop.name}
                         </SelectItem>
                       ))}
@@ -184,6 +184,7 @@ export default function ManageDemandForm({
                           <div className="space-y-1">
                             {materials.map((material) => (
                               <div
+                                key={material.id}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   field.onChange({

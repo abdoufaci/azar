@@ -64,7 +64,7 @@ export function EmployeesTable({ employees, onEdit }: Props) {
           </TableHeader>
           <TableBody>
             {employees.map((employee) => (
-              <Sheet>
+              <Sheet key={employee.id}>
                 <SheetTrigger asChild>
                   <TableRow
                     key={employee.id}

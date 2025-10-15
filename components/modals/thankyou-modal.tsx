@@ -9,6 +9,8 @@ import {
 import { ScrollArea } from "../ui/scroll-area";
 import { useModal } from "@/hooks/use-modal-store";
 import { ManageWorkShopForm } from "../forms/manage-work-shop-form";
+import { cn } from "@/lib/utils";
+import { tajawal } from "@/app/fonts";
 
 export const ThankyouModal = () => {
   const { isOpen, onClose, type } = useModal();
@@ -17,7 +19,11 @@ export const ThankyouModal = () => {
 
   return (
     <Dialog open={isModalOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white text-black w-full max-w-xl">
+      <DialogContent
+        className={cn(
+          "bg-white text-black w-full max-w-5xl",
+          tajawal.className
+        )}>
         <DialogHeader className="py-2 ">
           <DialogTitle className="text-xl text-[#25201C] font-semibold text-left hidden">
             Ajouter un atelier

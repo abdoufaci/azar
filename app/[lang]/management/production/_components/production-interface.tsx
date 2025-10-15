@@ -61,6 +61,9 @@ function ProductionInterface({
   const [isAdd, setIsAdd] = useState(false);
   const [productionToEdit, setProductionToEdit] =
     useState<ProductionInTable | null>(null);
+  const [motherOrder, setMotherOrder] = useState<ProductionInTable | null>(
+    null
+  );
 
   return (
     <div className="space-y-5">
@@ -80,7 +83,7 @@ function ProductionInterface({
                 searchParams={searchParams}
               />
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <WorkShopFilter
                 url="/management/production"
                 searchParams={searchParams}
@@ -107,6 +110,7 @@ function ProductionInterface({
       )}
       {isAdd ? (
         <ManageProductionForm
+          motherOrder={motherOrder}
           onCancel={() => {
             setIsAdd(false);
             setProductionToEdit(null);
@@ -126,6 +130,10 @@ function ProductionInterface({
           employees={employees}
           onClick={(item) => {
             setProductionToEdit(item);
+            setIsAdd(true);
+          }}
+          onSubOrderClick={(item) => {
+            setMotherOrder(item);
             setIsAdd(true);
           }}
           currentPage={currentPage}

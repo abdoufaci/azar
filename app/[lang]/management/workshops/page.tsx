@@ -10,7 +10,9 @@ export default async function WorkShopsPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="flex items-center gap-2 mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">L'ateliers</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">
+          L&apos;ateliers
+        </h1>
         <AddWorkshopButton data={{ employees }} />
       </div>
 

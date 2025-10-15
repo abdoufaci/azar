@@ -2,7 +2,12 @@ import { getProducts } from "@/actions/queries/products/get-products";
 import CategoryProducts from "./category-products";
 import { getStoreProducts } from "@/actions/queries/products/get-store-products";
 
-async function Categories() {
+interface Props {
+  dict: any;
+  lang: any;
+}
+
+async function Categories({ dict, lang }: Props) {
   const products = await getStoreProducts();
 
   return (
@@ -10,16 +15,25 @@ async function Categories() {
       {/* Header Section */}
       <div className="text-center space-y-3">
         <h1 className="text-2xl font-bold text-[#272727]">
-          القطعة المناسبة لكل ركن في منزلك
+          {dict.categories.title}
         </h1>
         <p className="text-lg md:text-xl text-[#747474] max-w-4xl mx-auto leading-relaxed">
-          من الأرائك الأنيقة إلى طاولات الطعام المتينة، نقدم مجموعات تناسب جميع
-          الأذواق وأنماط الحياة.
+          {dict.categories.subTitle}
         </p>
       </div>
       <div className="space-y-12">
-        <CategoryProducts title="صالونات" products={products} />
-        <CategoryProducts title="كراسي" products={products} />
+        <CategoryProducts
+          title={lang === "ar" ? "صالونات" : "Salons"}
+          products={products}
+          dict={dict}
+          lang={lang}
+        />
+        <CategoryProducts
+          title={lang === "ar" ? "كراسي" : "Chaises"}
+          products={products}
+          dict={dict}
+          lang={lang}
+        />
       </div>
     </div>
   );

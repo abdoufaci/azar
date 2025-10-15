@@ -62,6 +62,13 @@ export const getDemands = async (
       stage: true,
       workshop: true,
       user: true,
+      history: {
+        include: {
+          user: true,
+          newStage: true,
+          oldStage: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",

@@ -40,6 +40,7 @@ export default async function ProductionPage({
         clients={clients}
         employees={employees}
         workShops={workshops}
+        //@ts-ignore
         productions={productions}
         orderStages={orderStages}
         currentPage={Number(currentPage || "1")}

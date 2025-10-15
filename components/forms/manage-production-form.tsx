@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, ArrowRight, Upload, Plus, ChevronDown } from "lucide-react";
+import {
+  Check,
+  ArrowRight,
+  Upload,
+  Plus,
+  ChevronDown,
+  Search,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -63,6 +70,7 @@ interface Props {
   types: ProductSubtype[];
   variants: ProductVariantWithPricing[];
   production: ProductionInTable | null;
+  motherOrder: ProductionInTable | null;
   tissues: Tissu[];
   clients: UserWithWorkshop[];
   workShops: WorkShop[];
@@ -76,6 +84,7 @@ export default function ManageProductionForm({
   tissues,
   clients,
   workShops,
+  motherOrder,
 }: Props) {
   const [step, setStep] = useState<1 | 2 | 3>(production ? 2 : 1);
   const [typesToRemove, setTypesToRemove] = useState<
@@ -88,6 +97,7 @@ export default function ManageProductionForm({
   const [newTissuInput, setNewTissuInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [isAddingTissuePending, startAddingTissue] = useTransition();
+  const [searchTerm, setSearchTerm] = useState("");
 
   const foundVariant = variants.find(
     (variant) => variant.id === production?.variantId
@@ -185,6 +195,7 @@ export default function ManageProductionForm({
             selectedVariant: variants.find(
               (vari) => vari.id === data.variant.id
             ),
+            subOrderId: motherOrder?.id,
           })
             .then(() => {
               toast.success("Created !");
@@ -288,7 +299,15 @@ export default function ManageProductionForm({
       <div className="w-full max-w-xl">
         {/* Header */}
         <div className="mb-8">
-          <div className="text-brand text-sm font-medium mb-2">Production</div>
+          <div className="text-brand text-sm font-medium mb-2">
+            Production{" "}
+            {!!motherOrder && (
+              <span className="text-xs text-black">
+                Sous command de{" "}
+                <span className="text-brand">{motherOrder.orderId}</span>
+              </span>
+            )}
+          </div>
           <h1 className="text-3xl font-medium text-[#000000]">
             Les Informations de{" "}
             <span className="text-brand">{categoryLabel}</span>
@@ -314,7 +333,7 @@ export default function ManageProductionForm({
                     </FormControl>
                     <SelectContent>
                       {workShops.map((workshop) => (
-                        <SelectItem value={workshop.id}>
+                        <SelectItem key={workshop.id} value={workshop.id}>
                           {workshop.name}
                         </SelectItem>
                       ))}
@@ -368,6 +387,7 @@ export default function ManageProductionForm({
                               )
                               .map((model) => (
                                 <div
+                                  key={model.id}
                                   onClick={() =>
                                     field.onChange({
                                       name: model.name,
@@ -435,7 +455,7 @@ export default function ManageProductionForm({
                         {variants
                           .find((variant) => variant.id === selectedVariant?.id)
                           ?.pricings.map((price) => (
-                            <SelectItem value={price.subtypeId}>
+                            <SelectItem key={price.id} value={price.subtypeId}>
                               {price.subtype.name}
                             </SelectItem>
                           ))}
@@ -473,8 +493,27 @@ export default function ManageProductionForm({
                         className="p-0 sm:!w-[280px] w-full"
                         align="start">
                         <div className="space-y-2">
+                          <div className="px-4 pt-4">
+                            <div className="relative w-full flex-1 max-w-md border border-[#E7F1F8] bg-transparent rounded-lg">
+                              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5A5A5A]" />
+                              <Input
+                                value={searchTerm}
+                                onChange={(e) => {
+                                  setSearchTerm(e.currentTarget.value);
+                                }}
+                                placeholder="Recherche"
+                                className="pl-10 border-none text-[#5A5A5A] placeholder:text-[#5A5A5A] w-full"
+                              />
+                            </div>
+                          </div>
                           <div className="space-y-1">
                             {tissues
+                              .filter((tissu) =>
+                                tissu.name
+                                  .toLowerCase()
+                                  .trim()
+                                  .includes(searchTerm.toLowerCase().trim())
+                              )
                               .map((tissu) => ({
                                 id: tissu.id,
                                 name: tissu.name,
@@ -576,7 +615,9 @@ export default function ManageProductionForm({
                     </FormControl>
                     <SelectContent>
                       {clients.map((client) => (
-                        <SelectItem value={client.id}>{client.name}</SelectItem>
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

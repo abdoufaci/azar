@@ -10,9 +10,11 @@ import ShortUniqueId from "short-unique-id";
 export const addProduction = async ({
   data,
   selectedVariant,
+  subOrderId,
 }: {
   data: ProductionFormData;
   selectedVariant?: ProductVariantWithPricing;
+  subOrderId?: string;
 }) => {
   const user = await currentUser();
 
@@ -41,6 +43,9 @@ export const addProduction = async ({
           acceptedAt: new Date(),
           barCode: "",
           orderStageId: "cmgfnausl0000kpfk6hf6653l",
+          ...(subOrderId && {
+            subOrderId,
+          }),
         },
       },
     },

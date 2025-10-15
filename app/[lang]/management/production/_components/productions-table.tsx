@@ -43,6 +43,7 @@ interface Props {
   productionsPerPage: number;
   searchParams: Record<string, string | string[] | undefined>;
   employees: UserWithWorkshop[];
+  onSubOrderClick: (production: ProductionInTable) => void;
 }
 
 export function ProductionsTable({
@@ -54,6 +55,7 @@ export function ProductionsTable({
   totalProductions,
   searchParams,
   employees,
+  onSubOrderClick,
 }: Props) {
   const [newOrderStageInput, setNewOrderStageInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
@@ -195,7 +197,9 @@ export function ProductionsTable({
                           <div className="space-y-2">
                             <div className="space-y-1">
                               {orderStages.map((stage) => (
-                                <div className="px-4 pt-3 flex items-center justify-center">
+                                <div
+                                  key={stage.id}
+                                  className="px-4 pt-3 flex items-center justify-center">
                                   <div
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -206,6 +210,7 @@ export function ProductionsTable({
                                         updateOrderStage({
                                           orderId: order.id,
                                           orderStageId: stage.id,
+                                          oldStageId: order.orderStageId || "",
                                         })
                                           .then(() => {
                                             toast.success("Success !");
@@ -263,9 +268,26 @@ export function ProductionsTable({
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-center">
-                      <div className="rounded-full flex items-center justify-center px-5 py-1.5 w-fit border border-[#95A1B14F] text-[#182233]">
-                        {order.client?.name}
-                      </div>
+                      {!order.clientId && !order.guestId ? (
+                        <h1>/</h1>
+                      ) : (
+                        <div className="rounded-full flex items-center justify-center gap-3 px-5 py-1.5 w-fit border border-[#95A1B14F] text-[#182233]">
+                          <h1>{order.client?.name || order.guest?.name}</h1>
+                          {!!order.clientId && (
+                            <svg
+                              width="11"
+                              height="11"
+                              viewBox="0 0 11 11"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M1.34268 10.1498C1.06099 10.1498 0.819933 10.0496 0.619508 9.84913C0.419084 9.64871 0.318701 9.40748 0.318359 9.12545V7.07682H3.90347V8.10113H6.97642V7.07682H10.5615V9.12545C10.5615 9.40714 10.4613 9.64836 10.2609 9.84913C10.0605 10.0499 9.81923 10.1501 9.53721 10.1498H1.34268ZM4.92778 7.07682V6.0525H5.9521V7.07682H4.92778ZM0.318359 6.0525V3.49171C0.318359 3.21002 0.418742 2.96897 0.619508 2.76854C0.820274 2.56812 1.06133 2.46774 1.34268 2.46739H3.39131V1.44308C3.39131 1.16139 3.49169 0.920336 3.69246 0.719911C3.89322 0.519487 4.13428 0.419104 4.41562 0.418762H6.46426C6.74594 0.418762 6.98717 0.519145 7.18794 0.719911C7.3887 0.920677 7.48891 1.16173 7.48857 1.44308V2.46739H9.53721C9.81889 2.46739 10.0601 2.56778 10.2609 2.76854C10.4617 2.96931 10.5619 3.21037 10.5615 3.49171V6.0525H6.97642V5.02819H3.90347V6.0525H0.318359ZM4.41562 2.46739H6.46426V1.44308H4.41562V2.46739Z"
+                                fill="#15C847"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -293,16 +315,23 @@ export function ProductionsTable({
                     </div>
                   </TableCell>
                   <TableCell className="text-[#95A1B1] text-center">
-                    {order.orderId}
+                    <div className="space-y-0.5">
+                      <h1>{order.orderId}</h1>
+                      {order.subOrderId && (
+                        <h5 className="text-xs">Sub-Order</h5>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               </SheetTrigger>
-              <SheetContent showX={false}>
+              <SheetContent className="overflow-y-auto" showX={false}>
                 <ProductionDetails
                   onClick={() => onClick(order)}
                   orderStages={orderStages}
                   employees={employees}
-                  order={order}
+                  //@ts-ignore
+                  order={order.subOrderId ? order.subOrder : order}
+                  onSubOrderClick={() => onSubOrderClick(order)}
                 />
               </SheetContent>
             </Sheet>

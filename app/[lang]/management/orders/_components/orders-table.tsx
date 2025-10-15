@@ -3,6 +3,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import {
   Table,
   TableBody,
   TableCell,
@@ -11,9 +16,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { badgeVariant } from "@/constants/badge-var";
+import { useModal } from "@/hooks/use-modal-store";
 import { truncate } from "@/lib/truncate";
 import { cn } from "@/lib/utils";
-import { OrderInTable } from "@/types/types";
+import {
+  OrderInTable,
+  OrderWithRelations,
+  ProductionInTable,
+} from "@/types/types";
+import { WorkShop } from "@prisma/client";
 import { format } from "date-fns";
 import { Check, X } from "lucide-react";
 import Link from "next/link";
@@ -26,6 +37,8 @@ interface Props {
   totalOrders: number;
   ordersPerPage: number;
   searchParams: Record<string, string | string[] | undefined>;
+  availableProductions: OrderWithRelations[];
+  workshops: WorkShop[];
 }
 
 export function OrdersTable({
@@ -34,8 +47,11 @@ export function OrdersTable({
   ordersPerPage,
   searchParams,
   totalOrders,
+  availableProductions,
+  workshops,
 }: Props) {
   const router = useRouter();
+  const { onOpen } = useModal();
 
   const totalPages = Math.ceil(totalOrders / ordersPerPage);
   const { page, ...rest } = searchParams;
@@ -143,7 +159,16 @@ export function OrdersTable({
                 </div>
               </TableCell>
               <TableCell className="text-[#95A1B1] text-center">
-                {truncate(order.note || "-", 15)}
+                <HoverCard>
+                  <HoverCardTrigger>
+                    {truncate(order.note || "-", 15)}
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-full">
+                    <p className="w-full max-w-sm font-medium text-left">
+                      {order.note}
+                    </p>
+                  </HoverCardContent>
+                </HoverCard>
               </TableCell>
               <TableCell>
                 {order.status === "ACCEPTED" ? (
@@ -160,7 +185,13 @@ export function OrdersTable({
                       size="sm"
                       variant="ghost"
                       className="h-8 w-8 rounded-full p-0 bg-[#21D954]/20 hover:bg-[#21D954]/30 text-[#21D954] hover:text-[#21D954]"
-                      onClick={() => {}}>
+                      onClick={() =>
+                        onOpen("acceptOrder", {
+                          productions: availableProductions,
+                          workShops: workshops,
+                          order,
+                        })
+                      }>
                       <Check className="h-4 w-4" />
                     </Button>
                     <Button

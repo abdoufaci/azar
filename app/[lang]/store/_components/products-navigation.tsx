@@ -1,6 +1,8 @@
-import React from "react";
+interface Props {
+  dict: any;
+}
 
-function ProductsNavigation() {
+function ProductsNavigation({ dict }: Props) {
   return (
     <section className="flex items-center justify-center transform md:!-translate-y-3/4 w-full z-40">
       <div className="max-w-7xl mx-auto px-6">
@@ -17,7 +19,7 @@ function ProductsNavigation() {
             </div>
             <div className="absolute bottom-6 right-6">
               <h3 className="text-2xl font-bold text-white drop-shadow-lg">
-                صالون
+                {dict?.storeHeader.salon}
               </h3>
             </div>
           </div>
@@ -34,7 +36,7 @@ function ProductsNavigation() {
             </div>
             <div className="absolute bottom-6 right-6">
               <h3 className="text-2xl font-bold text-white drop-shadow-lg">
-                طاولات
+                {dict?.storeHeader.table}
               </h3>
             </div>
           </div>
@@ -51,7 +53,7 @@ function ProductsNavigation() {
             </div>
             <div className="absolute bottom-6 right-6">
               <h3 className="text-2xl font-bold text-white drop-shadow-lg">
-                كراسي
+                {dict?.storeHeader.chair}
               </h3>
             </div>
           </div>

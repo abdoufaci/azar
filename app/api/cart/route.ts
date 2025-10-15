@@ -10,17 +10,18 @@ export async function GET(req: Request) {
     const user = await currentUser();
     const { searchParams } = new URL(req.url);
 
-    const cartId = searchParams.get("cart_Id");
+    const cartId = searchParams.get("cartId");
 
     const cart = await db.cart.findFirst({
       where: {
-        ...(!!user && {
-          userId: user.id || "",
-        }),
-        ...(cartId &&
-          !user && {
-            id: cartId,
-          }),
+        OR: [
+          {
+            userId: user?.id || "",
+          },
+          {
+            id: cartId || "",
+          },
+        ],
       },
       include: {
         items: {

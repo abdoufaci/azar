@@ -1,5 +1,6 @@
 "use server";
 
+import { currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { EmplyeeRole } from "@prisma/client";
 import { revalidatePath } from "next/cache";
@@ -13,6 +14,8 @@ export const updateOrderWorkers = async ({
   orderId: string;
   userId: string;
 }) => {
+  const curr = await currentUser();
+
   await db.order.update({
     where: {
       id: orderId,
@@ -27,6 +30,13 @@ export const updateOrderWorkers = async ({
       ...(type === "TAPISIER" && {
         tapisierId: userId,
       }),
+      history: {
+        create: {
+          userId: curr?.id || "",
+          type: "EMPLOYEE",
+          employeeId: userId,
+        },
+      },
     },
   });
 

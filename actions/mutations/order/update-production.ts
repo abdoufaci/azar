@@ -27,7 +27,7 @@ export const updateProduction = async ({
     const oldVal = (oldData as any)?.[field];
     const newVal = (data as any)?.[field];
     if (oldVal !== newVal) {
-      changes.push(`${label} from "${oldVal ?? "—"}" to "${newVal ?? "—"}"`);
+      changes.push(`${label} de "${oldVal ?? "—"}" à "${newVal ?? "—"}"`);
     }
   };
 
@@ -40,20 +40,20 @@ export const updateProduction = async ({
 
   // Category
   if (oldData.category !== data.category) {
-    changes.push(`category from "${oldData.category}" to "${data.category}"`);
+    changes.push(`la catégorie de "${oldData.category}" à "${data.category}"`);
   }
 
   // Variant
   if (oldData.variant.id !== data.variant.id) {
     changes.push(
-      `variant from "${oldData.variant.name}" (${oldData.variant.color}) to "${data.variant.name}" (${data.variant.color})`
+      `la variante de "${oldData.variant.name}" à "${data.variant.name}"`
     );
   }
 
   // Tissu
   if (oldData.tissu?.id !== data.tissu?.id) {
     changes.push(
-      `tissu from "${oldData.tissu?.name ?? "none"}" to "${
+      `le tissu de "${oldData.tissu?.name ?? "none"}" à "${
         data.tissu?.name ?? "none"
       }"`
     );
@@ -62,8 +62,8 @@ export const updateProduction = async ({
   // Build the final text
   const text =
     changes.length > 0
-      ? `changed ${changes.join(" and ")}.`
-      : "No changes made.";
+      ? `a modifié ${changes.join(" et ")}.`
+      : "Aucun changement effectué.";
 
   await db.order.update({
     where: {
@@ -74,7 +74,6 @@ export const updateProduction = async ({
       tissuId: tissu?.id,
       variantId: data.variant.id,
       status: "ACCEPTED",
-      acceptedAt: new Date(),
       barCode: "",
       history: {
         create: {

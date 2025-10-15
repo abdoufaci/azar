@@ -13,6 +13,8 @@ import {
   Demand,
   DemandMaterial,
   DemandStage,
+  OrderHistory,
+  DemandHistory,
 } from "@prisma/client";
 
 export type DemandInTable = Demand & {
@@ -20,9 +22,14 @@ export type DemandInTable = Demand & {
   workshop: WorkShop;
   stage: DemandStage;
   user: User;
+  history: (DemandHistory & {
+    user: User;
+    newStage: DemandStage | null;
+    oldStage: DemandStage | null;
+  })[];
 };
 
-export type ProductionInTable = Order & {
+export type OrderWithRelations = Order & {
   client: User | null;
   tissu: Tissu | null;
   orderStage: OrderStage | null;
@@ -35,6 +42,36 @@ export type ProductionInTable = Order & {
   variant: ProductVariant;
   workShop: WorkShop | null;
   guest: Guest | null;
+};
+
+type OrderWithRelationsWithHistory = Order & {
+  client: User | null;
+  tissu: Tissu | null;
+  orderStage: OrderStage | null;
+  pricing: OrderPricing | null;
+  subType: ProductSubtype;
+  cutter: User | null;
+  tailor: User | null;
+  tapisier: User | null;
+  user: User | null;
+  variant: ProductVariant;
+  workShop: WorkShop | null;
+  guest: Guest | null;
+  history: (OrderHistory & {
+    employee: User | null;
+    newStage: OrderStage | null;
+    oldStage: OrderStage | null;
+    user: User;
+  })[];
+};
+
+export type ProductionInTable = OrderWithRelationsWithHistory & {
+  subOrders: OrderWithRelationsWithHistory[];
+  subOrder:
+    | (OrderWithRelationsWithHistory & {
+        subOrders: OrderWithRelationsWithHistory[];
+      })
+    | null;
 };
 
 export type OrderInTable = Order & {

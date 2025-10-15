@@ -40,6 +40,15 @@ const main = async () => {
     //   ],
     // });
 
+    await db.order.updateMany({
+      where: {
+        status: "ACCEPTED",
+      },
+      data: {
+        orderStageId: "cmgfnausl0000kpfk6hf6653l",
+      },
+    });
+
     console.log("adding finished");
   } catch (error) {
     console.log(error);

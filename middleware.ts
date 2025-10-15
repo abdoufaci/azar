@@ -14,7 +14,7 @@ import Negotiator from "negotiator";
 export const { auth } = NextAuth(authConfig);
 
 let locales = ["fr", "ar"];
-let defaultLocale = "fr";
+let defaultLocale = "ar";
 
 function getLocale(request: any) {
   const normalizedHeaders = Object.fromEntries(request.headers);

@@ -12,6 +12,8 @@ import { getOrdersCount } from "@/actions/queries/order/get-orders-count";
 import VariantsFilter from "@/components/filters/variant-filter";
 import { OrdersSwitch } from "./_components/orders-switch";
 import { redirect } from "next/navigation";
+import { getAvailableProductions } from "@/actions/queries/order/get-available-productions";
+import { getWorkshops } from "@/actions/queries/workshop/get-workshops";
 
 export default async function DemandesPage({
   searchParams,
@@ -32,6 +34,8 @@ export default async function DemandesPage({
     searchParams
   );
   const totalOrders = await getOrdersCount(searchParams);
+  const availableProductions = await getAvailableProductions();
+  const workshops = await getWorkshops();
 
   return (
     <div className="min-h-screen p-6">
@@ -44,7 +48,7 @@ export default async function DemandesPage({
               searchParams={await searchParams}
             />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <TypeFilter
               url="/management/orders"
               searchParams={await searchParams}
@@ -63,6 +67,8 @@ export default async function DemandesPage({
           ordersPerPage={ordersPerPage}
           searchParams={await searchParams}
           totalOrders={totalOrders}
+          availableProductions={availableProductions}
+          workshops={workshops}
         />
       </div>
     </div>

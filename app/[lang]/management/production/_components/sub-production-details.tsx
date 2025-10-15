@@ -14,7 +14,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { SheetClose } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { ProductionInTable, UserWithWorkshop } from "@/types/types";
+import {
+  OrderWithRelationsWithHistory,
+  ProductionInTable,
+  UserWithWorkshop,
+} from "@/types/types";
 import { OrderStage } from "@prisma/client";
 import { format } from "date-fns";
 import {
@@ -27,23 +31,14 @@ import {
 import Image from "next/image";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import SubProductionDetails from "./sub-production-details";
 
 interface Props {
-  order: ProductionInTable;
+  order: OrderWithRelationsWithHistory;
   orderStages: OrderStage[];
-  onClick: (production: ProductionInTable) => void;
   employees: UserWithWorkshop[];
-  onSubOrderClick: () => void;
 }
 
-function ProductionDetails({
-  onClick,
-  orderStages,
-  order,
-  employees,
-  onSubOrderClick,
-}: Props) {
+function SubProductionDetails({ order, employees, orderStages }: Props) {
   const [newOrderStageInput, setNewOrderStageInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [isAddingOrderStagePending, startAddingOrderStage] = useTransition();
@@ -77,27 +72,6 @@ function ProductionDetails({
   );
   return (
     <div className="space-y-10">
-      <div className="flex items-center justify-between gap-5">
-        <SheetClose>
-          <div className="flex items-center gap-1">
-            <ChevronLeft className="h-5 w-5 text-[#576070]" />
-            <div className="flex items-center justify-start gap-1.5">
-              <Image
-                alt="workshop"
-                src={order.workShop?.image || "/workshop2.svg"}
-                width={25}
-                height={25}
-                className="rounded-lg object-cover mt-1"
-              />
-              <h1 className="text-[#182233]">{order.workShop?.name}</h1>
-            </div>
-          </div>
-        </SheetClose>
-        <Button variant={"ghost"} onClick={() => onClick(order)}>
-          <PenLine className="h-5 w-5" />
-        </Button>
-      </div>
-      <Image alt="barCode" src={"/bar-code.png"} height={200} width={250} />
       <div className="space-y-5">
         <div className="space-y-2">
           <h3 className="text-[#95A1B1] font-medium text-xs">
@@ -119,7 +93,6 @@ function ProductionDetails({
               </h5>
             )}
           </div>
-          <p className="text-[#576070] text-sm">{order.note}</p>
         </div>
         <Separator className="w-full" />
       </div>
@@ -604,30 +577,8 @@ function ProductionDetails({
           ))}
         </div>
       </div>
-      {!order.subOrderId && (
-        <div className="space-y-5">
-          <div className="flex items-center gap-2">
-            <h1 className="text-[#182233] font-semibold text-xl">Sub Order</h1>
-            <div
-              onClick={onSubOrderClick}
-              className={cn(
-                "h-4 w-4 rounded-md border  flex items-center justify-center cursor-pointer border-[#5A5A5A]"
-              )}>
-              <Plus className={cn("h-3 w-3 text-[#5A5A5A]")} />
-            </div>
-          </div>
-          {order.subOrders.map((order) => (
-            <SubProductionDetails
-              key={order.id}
-              order={order}
-              employees={employees}
-              orderStages={orderStages}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
 
-export default ProductionDetails;
+export default SubProductionDetails;

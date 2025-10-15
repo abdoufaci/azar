@@ -26,6 +26,8 @@ const buttonVariants = cva(
           "bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 ease-out ",
         blackOutline:
           "border border-[#25201C] hover:bg-[#25201C] hover:text-white text-[#25201C] bg-transparent",
+        brandOutline:
+          "border border-brand hover:bg-brand hover:text-white text-brand bg-transparent",
       },
       size: {
         default: "h-9 px-4 py-2",

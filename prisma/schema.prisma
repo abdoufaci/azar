@@ -44,15 +44,16 @@ model User {
   workShop   WorkShop? @relation(fields: [workShopId], references: [id], onDelete: NoAction)
 
   products        Product[]
-  creatorOrders   Order[]        @relation(name: "creator")
-  clientOrders    Order[]        @relation(name: "client")
-  cutterOrders    Order[]        @relation(name: "cutter")
-  tailorOrders    Order[]        @relation(name: "tailor")
-  tapisierOrders  Order[]        @relation(name: "tapisier")
-  history         OrderHistory[] @relation(name: "creator")
-  employeeHistory OrderHistory[] @relation(name: "employee")
+  creatorOrders   Order[]         @relation(name: "creator")
+  clientOrders    Order[]         @relation(name: "client")
+  cutterOrders    Order[]         @relation(name: "cutter")
+  tailorOrders    Order[]         @relation(name: "tailor")
+  tapisierOrders  Order[]         @relation(name: "tapisier")
+  history         OrderHistory[]  @relation(name: "creator")
+  employeeHistory OrderHistory[]  @relation(name: "employee")
   carts           Cart[]
   demands         Demand[]
+  demandHistory   DemandHistory[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -278,6 +279,11 @@ model Order {
   barCode String?
   note    String      @default("")
 
+  subOrderId String?
+  subOrder   Order?  @relation(fields: [subOrderId], references: [id], onDelete: Cascade, name: "motherOrder")
+
+  subOrders Order[] @relation(name: "motherOrder")
+
   guestId String?
   guest   Guest?  @relation(fields: [guestId], references: [id], onDelete: NoAction)
 
@@ -403,7 +409,9 @@ model DemandStage {
   name  String
   color String
 
-  demands Demand[]
+  demands    Demand[]
+  oldHistory DemandHistory[] @relation(name: "old")
+  newHistory DemandHistory[] @relation(name: "new")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -426,6 +434,27 @@ model Demand {
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  history DemandHistory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DemandHistory {
+  id String @id @default(cuid())
+
+  oldStageId String?
+  oldStage   DemandStage? @relation(fields: [oldStageId], references: [id], onDelete: NoAction, name: "old")
+
+  newStageId String?
+  newStage   DemandStage? @relation(fields: [newStageId], references: [id], onDelete: NoAction, name: "new")
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: NoAction)
+
+  demandId String
+  demand   Demand @relation(fields: [demandId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

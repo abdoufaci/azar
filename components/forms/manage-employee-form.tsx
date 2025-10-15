@@ -202,7 +202,7 @@ export function ManageEmployeeForm({ onCancel, workshops, user }: Props) {
                           </p>
                         ) : (
                           <p className="text-sm text-[#A2ABBD]">
-                            Rôle d'employée
+                            Rôle d&apos;employée
                           </p>
                         )}
                       </div>
@@ -271,6 +271,7 @@ export function ManageEmployeeForm({ onCancel, workshops, user }: Props) {
                     <DropdownMenuContent className="w-[350px] sm:!w-[576px]">
                       {workshops.map((workshop) => (
                         <DropdownMenuItem
+                          key={workshop.id}
                           onClick={() => {
                             field.onChange({
                               id: workshop.id,

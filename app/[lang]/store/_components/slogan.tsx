@@ -1,9 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { ArrowUpLeft } from "lucide-react";
 import Image from "next/image";
-import React from "react";
 
-function Slogan() {
+interface Props {
+  dict: any;
+}
+
+function Slogan({ dict }: Props) {
   return (
     <div className="w-full max-w-7xl mx-auto px-5 flex items-center justify-between flex-wrap gap-10">
       <Image
@@ -15,9 +18,7 @@ function Slogan() {
       />
       <div className="space-y-7 flex flex-col items-end">
         <h1 className="text-[#3B3B3B] font-medium w-full max-w-xl text-right">
-          كل قطعة أثاث تحمل قصة — من اختيار أجود الأخشاب والأقمشة، إلى اللمسات
-          الأخيرة في ورشنا. نعمل مع حرفيين محترفين في عدة أماكن لنقدم لك أثاثًا
-          مصنوعًا بدقة وشغف واهتمام.
+          {dict?.slogan.title}
         </h1>
         <Button
           variant={"yellow_brand"}
@@ -26,7 +27,7 @@ function Slogan() {
           <div className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-black">
             <ArrowUpLeft className="w-5 h-5" />
           </div>
-          <span className="text-[#272727]">اكتشف منتجاتنا</span>
+          <span className="text-[#272727]">{dict?.all.discoverButton}</span>
         </Button>
       </div>
     </div>

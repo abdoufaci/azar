@@ -10,6 +10,32 @@ export const getProductions = async (
 
   const { workshop, type, variant, status, search } = await searchParams;
 
+  const baseOrderInclude = {
+    client: true,
+    tissu: true,
+    orderStage: true,
+    pricing: true,
+    subType: true,
+    cutter: true,
+    tailor: true,
+    tapisier: true,
+    user: true,
+    variant: true,
+    workShop: true,
+    guest: true,
+    history: {
+      include: {
+        employee: true,
+        newStage: true,
+        oldStage: true,
+        user: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    },
+  };
+
   return await db.order.findMany({
     where: {
       status: "ACCEPTED",
@@ -71,21 +97,23 @@ export const getProductions = async (
       }),
     },
     include: {
-      client: true,
-      tissu: true,
-      orderStage: true,
-      pricing: true,
-      subType: true,
-      cutter: true,
-      tailor: true,
-      tapisier: true,
-      user: true,
-      variant: true,
-      workShop: true,
-      guest: true,
+      ...baseOrderInclude,
+      subOrders: {
+        //@ts-ignore
+        include: baseOrderInclude,
+      },
+      subOrder: {
+        include: {
+          ...baseOrderInclude,
+          subOrders: {
+            //@ts-ignore
+            include: baseOrderInclude,
+          },
+        },
+      },
     },
     orderBy: {
-      createdAt: "desc",
+      acceptedAt: "desc",
     },
     skip: productionsPerPage * (currentPage - 1),
     take: productionsPerPage,

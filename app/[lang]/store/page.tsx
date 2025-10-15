@@ -19,14 +19,14 @@ async function StorePage({ params }: any) {
   return (
     <div className={cn("space-y-20", tajawal.className)}>
       <div className="md:!-mb-40">
-        <Banner />
-        <ProductsNavigation />
+        <Banner dict={dict} lang={lang} />
+        <ProductsNavigation dict={dict} />
       </div>
-      <Products />
-      <Categories />
+      <Products dict={dict} lang={lang} />
+      <Categories dict={dict} lang={lang} />
       <div className="-space-y-20">
         <FurnitureShowcase />
-        <Slogan />
+        <Slogan dict={dict} />
       </div>
       <Footer />
     </div>

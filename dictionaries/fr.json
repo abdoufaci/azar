@@ -1,4 +1,30 @@
 {
+  "banner": {
+    "title": "De notre atelier… au cœur de votre maison",
+    "subTitle": "Nous fabriquons chaque pièce avec soin, conçue pour votre confort, et garantissons sa qualité pour qu’elle dure des années. Découvrez notre collection qui apporte élégance et chaleur à votre maison."
+  },
+  "storeHeader": {
+    "home": "Accueil",
+    "salon": "Salons",
+    "table": "Tables",
+    "chair": "Chaises"
+  },
+  "all": {
+    "discoverButton": "Découvrez nos produits",
+    "seeMoreButton": "Voir plus"
+  },
+  "products": {
+    "title": "Produits les plus vendus",
+    "subTitle": "Découvrez les pièces appréciées par nos clients – des designs intemporels et une qualité garantie",
+    "starting": "À partir de"
+  },
+  "categories": {
+    "title": "La pièce parfaite pour chaque coin de votre maison",
+    "subTitle": "Des canapés élégants aux tables à manger robustes, nous proposons des collections qui s’adaptent à tous les goûts et à tous les styles de vie"
+  },
+  "slogan": {
+    "title": "Chaque pièce de mobilier raconte une histoire — du choix des bois et des tissus les plus raffinés jusqu’aux dernières finitions dans nos ateliers. Nous collaborons avec des artisans qualifiés à divers endroits pour vous offrir des meubles conçus avec précision, passion et attention."
+  },
   "home": {
     "title": "French"
   }

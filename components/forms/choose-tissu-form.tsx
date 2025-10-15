@@ -114,7 +114,9 @@ export function ChooseTissuForm() {
                   </FormControl>
                   <SelectContent>
                     {tissues?.map((tissu) => (
-                      <SelectItem value={tissu.id}>{tissu.name}</SelectItem>
+                      <SelectItem key={tissu.id} value={tissu.id}>
+                        {tissu.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

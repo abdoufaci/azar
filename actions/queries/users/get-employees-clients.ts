@@ -12,6 +12,36 @@ export const getEmployeesAndClients = async () => {
     },
     include: {
       workShop: true,
+      cutterOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      tailorOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      tapisierOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",

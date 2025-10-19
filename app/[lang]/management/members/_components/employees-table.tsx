@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Image from "next/image";
-import { UserWithWorkshop } from "@/types/types";
+import { UserInTable } from "@/types/types";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import EmployeeDetails from "./employee-details";
 
@@ -25,8 +25,8 @@ interface Employee {
 }
 
 interface Props {
-  employees: UserWithWorkshop[];
-  onEdit: (user: UserWithWorkshop) => void;
+  employees: UserInTable[];
+  onEdit: (user: UserInTable) => void;
 }
 
 export function EmployeesTable({ employees, onEdit }: Props) {
@@ -123,7 +123,7 @@ export function EmployeesTable({ employees, onEdit }: Props) {
                     </TableCell>
                   </TableRow>
                 </SheetTrigger>
-                <SheetContent showX={false}>
+                <SheetContent className="overflow-y-auto" showX={false}>
                   <EmployeeDetails employee={employee} />
                 </SheetContent>
               </Sheet>

@@ -28,7 +28,7 @@ async function StorePage({ params }: any) {
         <FurnitureShowcase />
         <Slogan dict={dict} />
       </div>
-      <Footer />
+      <Footer dict={dict} lang={lang} />
     </div>
   );
 }

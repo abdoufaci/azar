@@ -17,6 +17,25 @@ import {
   DemandHistory,
 } from "@prisma/client";
 
+export type UserInTable = User & {
+  workShop: WorkShop | null;
+  cutterOrders: (Order & {
+    variant: ProductVariant | null;
+    subType: ProductSubtype | null;
+    pricing: OrderPricing | null;
+  })[];
+  tailorOrders: (Order & {
+    variant: ProductVariant | null;
+    subType: ProductSubtype | null;
+    pricing: OrderPricing | null;
+  })[];
+  tapisierOrders: (Order & {
+    variant: ProductVariant | null;
+    subType: ProductSubtype | null;
+    pricing: OrderPricing | null;
+  })[];
+};
+
 export type DemandInTable = Demand & {
   material: DemandMaterial;
   workshop: WorkShop;

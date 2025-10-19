@@ -35,6 +35,7 @@ import {
   EyeOff,
   Loader2,
   RefreshCcw,
+  Search,
   XIcon,
 } from "lucide-react";
 import { useDebounce } from "@uidotdev/usehooks";
@@ -60,6 +61,7 @@ export const ChooseTissuformSchema = z.object({
 
 export function ChooseTissuForm() {
   const { data, onClose } = useModal();
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { product, tissues } = data;
 
@@ -113,11 +115,31 @@ export function ChooseTissuForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {tissues?.map((tissu) => (
-                      <SelectItem key={tissu.id} value={tissu.id}>
-                        {tissu.name}
-                      </SelectItem>
-                    ))}
+                    <div className="p-2">
+                      <div className="relative w-full flex-1 border border-[#E7F1F8] bg-transparent rounded-lg">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5A5A5A]" />
+                        <Input
+                          value={searchTerm}
+                          onChange={(e) => {
+                            setSearchTerm(e.currentTarget.value);
+                          }}
+                          placeholder="Recherche"
+                          className="pl-10 border-none text-[#5A5A5A] placeholder:text-[#5A5A5A] w-full"
+                        />
+                      </div>
+                    </div>
+                    {tissues
+                      ?.filter((tissu) =>
+                        tissu.name
+                          .toLowerCase()
+                          .trim()
+                          .includes(searchTerm.toLowerCase().trim())
+                      )
+                      ?.map((tissu) => (
+                        <SelectItem key={tissu.id} value={tissu.id}>
+                          {tissu.name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />

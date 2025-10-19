@@ -7,8 +7,8 @@ export const getAvailableProductions = async () => {
       orderStage: {
         name: "Fini",
       },
-      userId: undefined,
-      guestId: undefined,
+      clientId: null,
+      guestId: null,
     },
     include: {
       client: true,

@@ -8,22 +8,20 @@ import { ClientsTable } from "./clients-table";
 import { ManageClientForm } from "@/components/forms/manage-client-form";
 import { ManageEmployeeForm } from "@/components/forms/manage-employee-form";
 import { User, WorkShop } from "@prisma/client";
-import { UserWithWorkshop } from "@/types/types";
+import { UserInTable } from "@/types/types";
 
 type TabType = "client" | "employees";
 
 interface Props {
   workshops: WorkShop[];
-  clients: UserWithWorkshop[];
-  employees: UserWithWorkshop[];
+  clients: UserInTable[];
+  employees: UserInTable[];
 }
 
 export function MembersInterface({ workshops, clients, employees }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>("client");
   const [isAdd, setIsAdd] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserWithWorkshop | null>(
-    null
-  );
+  const [selectedUser, setSelectedUser] = useState<UserInTable | null>(null);
 
   return (
     <div className="space-y-5">

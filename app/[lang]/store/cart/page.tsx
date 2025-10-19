@@ -2,9 +2,17 @@
 
 import { addOrder } from "@/actions/mutations/cart/add-order";
 import { removeCartItem } from "@/actions/mutations/cart/remove-cart-item";
+import { updateItemQuantity } from "@/actions/mutations/cart/update-item-quantity";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useCartQuery } from "@/hooks/use-cart-query";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -15,7 +23,11 @@ import Image from "next/image";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
-function CartPage() {
+interface Props {
+  params: { lang: string; productId: string };
+}
+
+function CartPage({ params: { lang } }: Props) {
   const [name, setName] = useState("");
   const [wilaya, setWilaya] = useState("");
   const [phone, setPhone] = useState("");
@@ -34,14 +46,16 @@ function CartPage() {
   return (
     <div className="w-[90%] mx-auto flex flex-wrap items-start justify-center gap-14 bg-[#FAFAFA] pt-20">
       <div
-        dir="rtl"
+        dir={lang === "ar" ? "rtl" : "ltr"}
         className={cn(
           "bg-white w-full shadow-sm space-y-5 p-4",
           !!user ? "" : "max-w-xl"
         )}>
-        <h1 className="text-xl text-[#1D1D1F] font-medium">السلة</h1>
+        <h1 className="text-xl text-[#1D1D1F] font-medium">
+          {lang === "ar" ? "السلة" : "Panier"}
+        </h1>
         <ScrollArea
-          dir="rtl"
+          dir={lang === "ar" ? "rtl" : "ltr"}
           className={cn(cart?.items?.length > 2 ? "h-64" : "h-56")}>
           <div className="space-y-5">
             {cart?.items?.map((item) => (
@@ -62,8 +76,47 @@ function CartPage() {
                   <div className="space-y-2">
                     <h3 className="text-[#17183B]">{item.product.arName}</h3>
                     <h5 className="text-[#46464A]">
-                      القماش : {item.tissu.name}{" "}
+                      {lang === "ar" ? "القماش" : "Tissu"} : {item.tissu.name}{" "}
                     </h5>
+                    <div className="flex items-center gap-2">
+                      <h5 className="text-[#46464A]">
+                        {lang === "ar" ? "الكمية" : "Quantité"} :
+                      </h5>
+                      <Select
+                        onValueChange={async (quantity) => {
+                          startTransition(() => {
+                            toast.loading("En cour...", { id: "loading" });
+                            updateItemQuantity({
+                              itemId: item.id,
+                              quantity: Number(quantity),
+                            })
+                              .then(() => {
+                                toast.success("Success");
+                                refetch();
+                              })
+                              .catch(() => toast.error("Erreur"))
+                              .finally(() => toast.dismiss("loading"));
+                          });
+                        }}
+                        defaultValue={`${item.quantity}`}
+                        disabled={isPending}>
+                        <SelectTrigger className="w-12 bg-transparent border-[#CCCCCC] text-[#CECECE]">
+                          <SelectValue placeholder="الكمية" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={"1"}>1</SelectItem>
+                          <SelectItem value={"2"}>2</SelectItem>
+                          <SelectItem value={"3"}>3</SelectItem>
+                          <SelectItem value={"4"}>4</SelectItem>
+                          <SelectItem value={"5"}>5</SelectItem>
+                          <SelectItem value={"6"}>6</SelectItem>
+                          <SelectItem value={"7"}>7</SelectItem>
+                          <SelectItem value={"8"}>8</SelectItem>
+                          <SelectItem value={"9"}>9</SelectItem>
+                          <SelectItem value={"10"}>10</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
                 <div
@@ -92,7 +145,9 @@ function CartPage() {
         </ScrollArea>
         <Separator className="w-full" />
         <div className="flex items-center justify-between gap-5">
-          <h1 className="text-[#1D1D1F] font-medium text-xl">المجموع</h1>
+          <h1 className="text-[#1D1D1F] font-medium text-xl">
+            {lang === "ar" ? "المجموع" : "Total"}
+          </h1>
           <h3 dir="ltr" className="text-[#1D1D1F] font-medium text-xl">
             {total} DA
           </h3>
@@ -125,7 +180,7 @@ function CartPage() {
             variant={"yellow_brand"}
             size={"lg"}
             className="w-full">
-            الدفع
+            {lang === "ar" ? "الدفع" : "Paiment"}
           </Button>
         )}
         <div className="flex items-center justify-center gap-4">
@@ -155,16 +210,18 @@ function CartPage() {
               stroke-linejoin="round"
             />
           </svg>
-          <h1 className="text-[#1D1D1F] font-bold">دفع عن الاستلام</h1>
+          <h1 className="text-[#1D1D1F] font-bold">
+            {lang === "ar" ? "دفع عن الاستلام" : "Paiment a la livraison"}
+          </h1>
         </div>
       </div>
       {!user && (
         <div
-          dir="rtl"
+          dir={lang === "ar" ? "rtl" : "ltr"}
           className="bg-white space-y-8 w-full max-w-3xl shadow-sm p-10">
           <div className="flex items-center justify-between gap-5">
             <h1 className="text-[#222222] text-2xl font-bold">
-              المعلومات الشخصية
+              {lang === "ar" ? "المعلومات الشخصية" : "Information personnel"}
             </h1>
             {!isEdit && (
               <Button
@@ -172,25 +229,31 @@ function CartPage() {
                 variant={"blackOutline"}
                 size={"lg"}
                 className="rounded-full">
-                تغيير
+                {lang === "ar" ? "تغيير" : "Changer"}
               </Button>
             )}
           </div>
           {isEdit ? (
             <div className="space-y-5">
               <div className="space-y-3">
-                <h1 className="w-full">الاسم الكامل</h1>
+                <h1 className="w-full">
+                  {lang === "ar" ? "الاسم الكامل" : "nom et prénom"}
+                </h1>
                 <Input value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div className="space-y-3">
-                <h1 className="w-full">الولاية</h1>
+                <h1 className="w-full">
+                  {lang === "ar" ? "الولاية" : "wilaya"}
+                </h1>
                 <Input
                   value={wilaya}
                   onChange={(e) => setWilaya(e.target.value)}
                 />
               </div>
               <div className="space-y-3">
-                <h1 className="w-full">الهاتف</h1>
+                <h1 className="w-full">
+                  {lang === "ar" ? "الهاتف" : "Telephone"}
+                </h1>
                 <Input
                   type="number"
                   value={phone}
@@ -198,37 +261,51 @@ function CartPage() {
                 />
               </div>
               <div className="space-y-3">
-                <h1 className="w-full">عنوان الاقامة</h1>
+                <h1 className="w-full">
+                  {lang === "ar" ? "عنوان الاقامة" : "Adresse de résidence"}
+                </h1>
                 <Input
                   value={adress}
                   onChange={(e) => setAdress(e.target.value)}
                 />
               </div>
               <div className="space-y-3">
-                <h1 className="w-full">ملاحظات</h1>
+                <h1 className="w-full">
+                  {lang === "ar" ? "ملاحظات" : "Notes"}
+                </h1>
                 <Input value={note} onChange={(e) => setNote(e.target.value)} />
               </div>
             </div>
           ) : (
             <div className="space-y-5">
               <div className="flex items-center gap-1">
-                <h3 className="text-[#676767]">الاسم الكامل :</h3>
+                <h3 className="text-[#676767]">
+                  {lang === "ar" ? "الاسم الكامل" : "nom et prénom"} :
+                </h3>
                 <h1 className="font-medium text-[#121111]">{name}</h1>
               </div>
               <div className="flex items-center gap-1">
-                <h3 className="text-[#676767]">الهاتف :</h3>
+                <h3 className="text-[#676767]">
+                  {lang === "ar" ? "الهاتف" : "Telephone"} :
+                </h3>
                 <h1 className="font-medium text-[#121111]">{phone}</h1>
               </div>
               <div className="flex items-center gap-1">
-                <h3 className="text-[#676767]">العنوان :</h3>
+                <h3 className="text-[#676767]">
+                  {lang === "ar" ? "عنوان الاقامة" : "Adresse de résidence"} :
+                </h3>
                 <h1 className="font-medium text-[#121111]">{adress}</h1>
               </div>
               <div className="flex items-center gap-1">
-                <h3 className="text-[#676767]">الولاية :</h3>
+                <h3 className="text-[#676767]">
+                  {lang === "ar" ? "الولاية" : "wilaya"} :
+                </h3>
                 <h1 className="font-medium text-[#121111]">{wilaya}</h1>
               </div>
               <div className="flex items-center gap-1">
-                <h3 className="text-[#676767]">الملاحظات :</h3>
+                <h3 className="text-[#676767]">
+                  {lang === "ar" ? "ملاحظات" : "Notes"} :
+                </h3>
                 <h1 className="font-medium text-[#121111]">{note || "-"}</h1>
               </div>
             </div>
@@ -239,7 +316,7 @@ function CartPage() {
             variant={"yellow_brand"}
             size={"lg"}
             className="w-full">
-            تأكيد
+            {lang === "ar" ? "تأكيد" : "Confirmer"}
           </Button>
         </div>
       )}

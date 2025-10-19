@@ -23,9 +23,11 @@ import { useModal } from "@/hooks/use-modal-store";
 interface Props {
   product: ProductWithPricing | null;
   tissues: Tissu[];
+  lang: any;
+  dict: any;
 }
 
-function ProductDetails({ product, tissues }: Props) {
+function ProductDetails({ product, tissues, lang, dict }: Props) {
   const [selectedImage, setSelectedImage] = useState(0);
   const router = useRouter();
   const cartId = localStorage.getItem("cart_Id");
@@ -39,7 +41,7 @@ function ProductDetails({ product, tissues }: Props) {
   );
   const sanitizedDescription = DOMPurify.sanitize(
     //@ts-ignore
-    product?.arDescription
+    lang === "ar" ? product?.arDescription : product?.frDescription
   );
   const isArabic = (text: string) => /[\u0600-\u06FF]/.test(text);
   const tempDiv = document.createElement("div");
@@ -110,14 +112,18 @@ function ProductDetails({ product, tissues }: Props) {
           {/* Right Side - Product Details */}
           <div className="space-y-6">
             <nav className="container mx-auto py-4">
-              <div className="flex items-center justify-end gap-2 text-sm text-[#767676]">
+              <div
+                className={cn(
+                  "flex items-center gap-2 text-sm text-[#767676]",
+                  lang === "ar" && "justify-end"
+                )}>
                 <span>
                   {product?.pricing.variant.category === "SALON"
-                    ? "صالون"
+                    ? dict?.storeHeader.salon
                     : product?.pricing.variant.category === "CHAIR"
-                    ? "كراسي"
-                    : "طاولات"}{" "}
-                  / {product?.arName}{" "}
+                    ? dict?.storeHeader.chair
+                    : dict?.storeHeader.table}{" "}
+                  / {lang === "ar" ? product?.arName : product?.frName}{" "}
                 </span>
                 <ArrowRight
                   onClick={() => router.back()}
@@ -126,18 +132,26 @@ function ProductDetails({ product, tissues }: Props) {
               </div>
             </nav>
             {/* Title */}
-            <h1 className="text-6xl text-right text-[#17183B]">
-              {product?.arName}
+            <h1
+              className={cn(
+                "text-6xl text-[#17183B]",
+                lang === "ar" ? "text-right" : "text-left"
+              )}>
+              {lang === "ar" ? product?.arName : product?.frName}
             </h1>
 
             {/* Price */}
-            <div className="text-5xl font-bold text-[#f2ba05] text-right">
+            <div
+              className={cn(
+                "text-5xl font-bold text-[#f2ba05]",
+                lang === "ar" ? "text-right" : "text-left"
+              )}>
               {product?.price}
             </div>
 
             {/* Description */}
             <div
-              dir="rtl"
+              dir={lang === "ar" ? "rtl" : "ltr"}
               className={cn(
                 "text-[#272626] text-lg whitespace-break-spaces [&_ol]:list-decimal [&_ul]:list-disc",
                 isArabic(descriptionText) && "rtl"
@@ -148,7 +162,11 @@ function ProductDetails({ product, tissues }: Props) {
               }}></div>
 
             {/* Add to Cart Button */}
-            <div className="flex items-center justify-end">
+            <div
+              className={cn(
+                "flex items-center",
+                lang === "ar" && "justify-end"
+              )}>
               <Button
                 disabled={isPending}
                 onClick={() =>
@@ -158,7 +176,10 @@ function ProductDetails({ product, tissues }: Props) {
                 }
                 variant={"yellow_brand"}
                 size="lg"
-                className="text-[#212121] p-4 rounded-[10px] px-10 font-medium flex items-center gap-7 text-lg h-fit">
+                className={cn(
+                  "text-[#212121] p-4 rounded-[10px] px-10 font-medium flex items-center gap-7 text-lg h-fit",
+                  lang === "fr" && "flex-row-reverse"
+                )}>
                 <svg
                   width="20"
                   height="20"
@@ -187,7 +208,7 @@ function ProductDetails({ product, tissues }: Props) {
                     strokeLinejoin="round"
                   />
                 </svg>
-                <h3>اضف الى السلة</h3>
+                <h3>{lang === "ar" ? "اضف الى السلة" : "Ajouter au panier"}</h3>
               </Button>
             </div>
           </div>

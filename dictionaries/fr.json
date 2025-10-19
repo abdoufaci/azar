@@ -25,6 +25,15 @@
   "slogan": {
     "title": "Chaque pièce de mobilier raconte une histoire — du choix des bois et des tissus les plus raffinés jusqu’aux dernières finitions dans nos ateliers. Nous collaborons avec des artisans qualifiés à divers endroits pour vous offrir des meubles conçus avec précision, passion et attention."
   },
+  "footer": {
+    "col1Title": "Nous créons des meubles alliant savoir-faire et qualité, pour vous offrir des pièces durables qui embellissent chaque recoin de votre maison.",
+    "shop": "achats",
+    "contactUs": "Contactez-nous",
+    "col2Chair": "Canapés et fauteuils.",
+    "col2Table": "Tables à manger.",
+    "col2Salon": "Lits et armoires.",
+    "col3Adress": "Dali brahim, alger"
+  },
   "home": {
     "title": "French"
   }

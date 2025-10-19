@@ -10,11 +10,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserWithWorkshop } from "@/types/types";
+import { UserInTable } from "@/types/types";
 
 interface Props {
-  clients: UserWithWorkshop[];
-  onEdit: (user: UserWithWorkshop) => void;
+  clients: UserInTable[];
+  onEdit: (user: UserInTable) => void;
 }
 
 export function ClientsTable({ clients, onEdit }: Props) {

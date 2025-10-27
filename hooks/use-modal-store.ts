@@ -3,6 +3,7 @@ import {
   OrderWithRelations,
   ProductionInTable,
   ProductWithPricing,
+  UserInTable,
   UserWithWorkshop,
 } from "@/types/types";
 import { Tissu, WorkShop } from "@prisma/client";
@@ -14,7 +15,8 @@ export type ModalType =
   | "manageWorkShop"
   | "thankyou"
   | "chooseTissu"
-  | "acceptOrder";
+  | "acceptOrder"
+  | "manageInvoice";
 
 export interface ModalData {
   isEdit?: boolean;
@@ -24,6 +26,7 @@ export interface ModalData {
   workShops?: WorkShop[];
   order?: OrderInTable;
   productions?: OrderWithRelations[] | OrderInTable[];
+  user?: UserInTable;
 }
 
 interface ModalStore {

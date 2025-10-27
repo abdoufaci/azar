@@ -46,6 +46,7 @@ interface Props {
   searchParams: Record<string, string | string[] | undefined>;
   demands: DemandInTable[];
   stages: DemandStage[];
+  url?: string;
 }
 
 export function DemandesTable({
@@ -55,6 +56,7 @@ export function DemandesTable({
   totalDemands,
   demands,
   stages,
+  url = "/management/demands",
 }: Props) {
   const [newDemandStageInput, setNewDemandStageInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
@@ -68,9 +70,9 @@ export function DemandesTable({
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
-      const url = qs.stringifyUrl(
+      const path = qs.stringifyUrl(
         {
-          url: "/management/demands",
+          url,
           query: {
             page: currentPage + 1,
             ...rest,
@@ -78,15 +80,15 @@ export function DemandesTable({
         },
         { skipNull: true }
       );
-      router.push(url);
+      router.push(path);
     }
   };
 
   const handlePrevPage = () => {
     if (currentPage > 1) {
-      const url = qs.stringifyUrl(
+      const path = qs.stringifyUrl(
         {
-          url: "/management/demands",
+          url,
           query: {
             page: currentPage === 2 ? null : currentPage - 1,
             ...rest,
@@ -94,7 +96,7 @@ export function DemandesTable({
         },
         { skipNull: true }
       );
-      router.push(url);
+      router.push(path);
     }
   };
 
@@ -339,9 +341,9 @@ export function DemandesTable({
             Previous
           </Button>
           {Array.from(Array(totalPages).keys()).map((_, idx) => {
-            const url = qs.stringifyUrl(
+            const path = qs.stringifyUrl(
               {
-                url: "/management/demand",
+                url,
                 query: {
                   page: idx === 0 ? null : idx + 1,
                   ...rest,
@@ -362,7 +364,7 @@ export function DemandesTable({
                     : "border-[#B9BEC7] hover:bg-gray-800"
                 )}
                 asChild>
-                <Link href={url}>{idx + 1}</Link>
+                <Link href={path}>{idx + 1}</Link>
               </Button>
             );
           })}

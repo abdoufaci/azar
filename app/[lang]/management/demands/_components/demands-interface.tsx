@@ -42,6 +42,7 @@ interface Props {
   totalDemands: number;
   demandsPerPage: number;
   materials: DemandMaterial[];
+  url?: string;
 }
 
 function DemandsInterface({
@@ -53,6 +54,7 @@ function DemandsInterface({
   totalDemands,
   materials,
   stages,
+  url = "/management/demands",
 }: Props) {
   const [isAdd, setIsAdd] = useState(false);
 
@@ -69,28 +71,24 @@ function DemandsInterface({
                 className="px-4">
                 Ajouter une demande
               </Button>
-              <SearchFilter
-                url="/management/demands"
-                searchParams={searchParams}
-              />
+              <SearchFilter url={url} searchParams={searchParams} />
             </div>
             <div className="flex items-center gap-3">
-              <WorkShopFilter
-                url="/management/demands"
-                searchParams={searchParams}
-                workShops={workShops}
-              />
+              {url === "/management/demands" && (
+                <WorkShopFilter
+                  url={url}
+                  searchParams={searchParams}
+                  workShops={workShops}
+                />
+              )}
               <MaterialFilter
-                url="/management/demands"
+                url={url}
                 searchParams={searchParams}
                 materials={materials}
               />
-              <PriorityFilter
-                url="/management/demands"
-                searchParams={searchParams}
-              />
+              <PriorityFilter url={url} searchParams={searchParams} />
               <StatusFilter
-                url="/management/demands"
+                url={url}
                 searchParams={searchParams}
                 stages={stages}
               />
@@ -112,6 +110,7 @@ function DemandsInterface({
           searchParams={searchParams}
           stages={stages}
           totalDemands={totalDemands}
+          url={url}
         />
       )}
     </div>

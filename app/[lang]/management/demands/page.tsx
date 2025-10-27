@@ -31,12 +31,12 @@ export default async function DemandesPage({
   const currentPage = (await searchParams).page;
   const demandsPerPage = 8;
   const workshops = await getWorkshops();
-  const demands = await getDemands(
-    Number(currentPage || "1"),
+  const demands = await getDemands({
+    currentPage: Number(currentPage || "1"),
     demandsPerPage,
-    searchParams
-  );
-  const totalDemands = await getDemandsCount(searchParams);
+    searchParams,
+  });
+  const totalDemands = await getDemandsCount({ searchParams });
   const stages = await getDemandStages();
   const materials = await getDemandMaterials();
 

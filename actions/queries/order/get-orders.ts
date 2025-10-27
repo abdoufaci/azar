@@ -1,17 +1,24 @@
 import { checkIsAdmin } from "@/actions/security/admin-check";
 import { db } from "@/lib/db";
 
-export const getOrders = async (
-  currentPage: number,
-  ordersPerPage: number,
-  searchParams: Promise<{ [key: string]: string | undefined }>
-) => {
+export const getOrders = async ({
+  currentPage,
+  ordersPerPage,
+  searchParams,
+  clientId,
+}: {
+  currentPage: number;
+  ordersPerPage: number;
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+  clientId?: string;
+}) => {
   await checkIsAdmin();
 
-  const { type, variant, status, search, client } = await searchParams;
+  const { type, variant, search, client } = await searchParams;
 
   return await db.order.findMany({
     where: {
+      ...(clientId && { clientId }),
       ...(search && {
         OR: [
           {
@@ -72,9 +79,6 @@ export const getOrders = async (
       ...(variant && {
         variantId: variant,
       }),
-      ...(status && {
-        orderStageId: status,
-      }),
     },
     include: {
       client: true,
@@ -83,6 +87,9 @@ export const getOrders = async (
       user: true,
       variant: true,
       guest: true,
+      ...(clientId && {
+        orderStage: true,
+      }),
     },
     orderBy: {
       createdAt: "desc",

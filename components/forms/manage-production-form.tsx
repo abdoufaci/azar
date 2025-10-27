@@ -8,6 +8,7 @@ import {
   Plus,
   ChevronDown,
   Search,
+  Pen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,6 +99,8 @@ export default function ManageProductionForm({
   const [showAdd, setShowAdd] = useState(false);
   const [isAddingTissuePending, startAddingTissue] = useTransition();
   const [searchTerm, setSearchTerm] = useState("");
+  const [variantToEdit, setVariantToEdit] =
+    useState<ProductVariantWithPricing | null>(null);
 
   const foundVariant = variants.find(
     (variant) => variant.id === production?.variantId
@@ -290,6 +293,7 @@ export default function ManageProductionForm({
         onContinue={() => setStep(2)}
         types={types}
         setTypesToRemove={setTypesToRemove}
+        variant={variantToEdit}
       />
     );
   }
@@ -383,32 +387,39 @@ export default function ManageProductionForm({
                           <div className="space-y-1">
                             {variants
                               .filter(
-                                (model) => model.category === selectedCategory
+                                (variant) =>
+                                  variant.category === selectedCategory
                               )
-                              .map((model) => (
+                              .map((variant) => (
                                 <div
-                                  key={model.id}
+                                  key={variant.id}
                                   onClick={() =>
                                     field.onChange({
-                                      name: model.name,
-                                      id: model.id,
-                                      color: model.color,
+                                      name: variant.name,
+                                      id: variant.id,
+                                      color: variant.color,
                                     })
                                   }
-                                  className="border-b px-4 py-2 cursor-pointer">
+                                  className="border-b px-4 py-2 cursor-pointer flex items-center gap-5">
                                   <div
                                     style={{
-                                      backgroundColor: `${model.color}33`,
+                                      backgroundColor: `${variant.color}33`,
                                     }}
                                     className=" rounded-full px-5 py-1 w-fit">
                                     <h1
                                       style={{
-                                        color: model.color,
+                                        color: variant.color,
                                       }}
                                       className="font-medium">
-                                      {model.name}
+                                      {variant.name}
                                     </h1>
                                   </div>
+                                  <Pen
+                                    onClick={() => {
+                                      setStep(3);
+                                      setVariantToEdit(variant);
+                                    }}
+                                  />
                                 </div>
                               ))}
                           </div>

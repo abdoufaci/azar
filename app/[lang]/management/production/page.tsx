@@ -8,6 +8,7 @@ import { getWorkshops } from "@/actions/queries/workshop/get-workshops";
 import { getProductions } from "@/actions/queries/order/get-productions";
 import { getOrderStages } from "@/actions/queries/order/get-order-stages";
 import { getProductionsCount } from "@/actions/queries/order/get-productions-count";
+import { getColumns } from "@/actions/queries/order/get-columns";
 
 export default async function ProductionPage({
   searchParams,
@@ -22,13 +23,14 @@ export default async function ProductionPage({
   const tissues = await getTissues();
   const { clients, employees } = await getEmployeesAndClients();
   const workshops = await getWorkshops();
-  const productions = await getProductions(
-    Number(currentPage || "1"),
+  const productions = await getProductions({
+    currentPage: Number(currentPage || "1"),
     productionsPerPage,
-    searchParams
-  );
-  const totalProductions = await getProductionsCount(searchParams);
+    searchParams,
+  });
+  const totalProductions = await getProductionsCount({ searchParams });
   const orderStages = await getOrderStages();
+  const columns = await getColumns();
 
   return (
     <div className="p-8">
@@ -46,6 +48,7 @@ export default async function ProductionPage({
         currentPage={Number(currentPage || "1")}
         productionsPerPage={productionsPerPage}
         totalProductions={totalProductions}
+        columns={columns}
       />
     </div>
   );

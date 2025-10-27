@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { SheetClose } from "@/components/ui/sheet";
+import { useModal } from "@/hooks/use-modal-store";
 import { months } from "@/lib/months";
 import { years } from "@/lib/years";
 import { UserInTable } from "@/types/types";
@@ -32,11 +33,15 @@ function EmployeeDetails({ employee }: Props) {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isPending, startTransition] = useTransition();
 
+  const { onOpen } = useModal();
+
   const employeeOrders =
     employee.employeeRole === "CUTTER"
       ? employee.cutterOrders
       : employee.employeeRole === "TAILOR"
       ? employee.tailorOrders
+      : employee.employeeRole === "MANCHEUR"
+      ? employee.mancheurOrders
       : employee.tapisierOrders;
 
   const selectedOrders = employeeOrders.filter(
@@ -52,6 +57,8 @@ function EmployeeDetails({ employee }: Props) {
         ? order.pricing?.cutterPrice || 0
         : employee.employeeRole === "TAILOR"
         ? order.pricing?.tailorPrice || 0
+        : employee.employeeRole === "MANCHEUR"
+        ? order.pricing?.mancheurPrice || 0
         : order.pricing?.tapisierPrice || 0),
     0
   );
@@ -71,9 +78,15 @@ function EmployeeDetails({ employee }: Props) {
                 ? "Decoupeur"
                 : employee.employeeRole === "TAILOR"
                 ? "Couteur"
+                : employee.employeeRole === "MANCHEUR"
+                ? "Mancheur"
                 : "Tapisier",
             year: selectedYear,
             month: months[selectedMonth],
+            assuranceAmount: employee.assurance,
+            versementAmount: employee.payment,
+            acompteAmount: employee.deposit,
+            autreAmount: employee.other,
             items: selectedOrders.map((order) => ({
               id: order.orderId,
               model: order.variant?.name,
@@ -84,6 +97,8 @@ function EmployeeDetails({ employee }: Props) {
                   ? order.pricing?.cutterPrice || 0
                   : employee.employeeRole === "TAILOR"
                   ? order.pricing?.tailorPrice || 0
+                  : employee.employeeRole === "MANCHEUR"
+                  ? order.pricing?.mancheurPrice || 0
                   : order.pricing?.tapisierPrice || 0,
             })),
           },
@@ -219,38 +234,79 @@ function EmployeeDetails({ employee }: Props) {
             </PopoverContent>
           </Popover>
         </div>
-        <Button
-          disabled={isPending}
-          onClick={generateInvoice}
-          variant={"brandOutline"}
-          className="bg-[#056BE412] hover:bg-[#056BE412] hover:text-brand w-full">
-          Facture
-          <svg
-            width="19"
-            height="19"
-            viewBox="0 0 19 19"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M16.3383 1.14893C15.3892 1.14893 14.6191 3.42615 14.6191 6.23579H16.3383C17.1672 6.23579 17.5808 6.23579 17.8374 5.95177C18.0933 5.66691 18.0489 5.29218 17.9602 4.54356C17.7232 2.56477 17.087 1.14893 16.3383 1.14893Z"
-              stroke="#1E78FF"
-              stroke-width="1.27172"
-            />
-            <path
-              d="M14.6187 6.28157V15.2616C14.6187 16.5426 14.6187 17.1836 14.2247 17.4362C13.5809 17.8483 12.5857 16.9835 12.0851 16.6698C11.6716 16.4104 11.4652 16.2815 11.2358 16.2739C10.9877 16.2654 10.777 16.39 10.3302 16.6698L8.70056 17.6914C8.26054 17.9669 8.04138 18.1051 7.79664 18.1051C7.5519 18.1051 7.33189 17.9669 6.89272 17.6914L5.26396 16.6698C4.84953 16.4104 4.64316 16.2815 4.41377 16.2739C4.16562 16.2654 3.95499 16.39 3.50814 16.6698C3.00758 16.9835 2.01241 17.8483 1.36773 17.4362C0.974609 17.1836 0.974609 16.5435 0.974609 15.2616V6.28157C0.974609 3.86192 0.974609 2.65294 1.72418 1.90093C2.4729 1.14893 3.67955 1.14893 6.09114 1.14893H16.3242M4.38563 4.54017H11.2077M6.09114 7.93141H4.38563"
-              stroke="#1E78FF"
-              stroke-width="1.27172"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M9.92952 8.67323C9.22344 8.67323 8.65039 9.17174 8.65039 9.78641C8.65039 10.4002 9.22344 10.8987 9.92952 10.8987C10.6356 10.8987 11.2087 11.3972 11.2087 12.0119C11.2087 12.6257 10.6356 13.1242 9.92952 13.1242M9.92952 8.67323C10.4864 8.67323 10.9605 8.98268 11.1362 9.41507M9.92952 8.67323V7.9314M9.92952 13.1242C9.37267 13.1242 8.89854 12.8148 8.72287 12.3824M9.92952 13.1242V13.8661"
-              stroke="#1E78FF"
-              stroke-width="1.27172"
-              stroke-linecap="round"
-            />
-          </svg>
-        </Button>
+        <div className="flex items-center">
+          <Button
+            disabled={isPending}
+            onClick={generateInvoice}
+            variant={"brandOutline"}
+            className="bg-[#056BE412] hover:bg-[#056BE412] hover:text-brand w-full relative rounded-none border-r-0 rounded-l-md">
+            Facture
+            <svg
+              width="19"
+              height="19"
+              viewBox="0 0 19 19"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M16.3383 1.14893C15.3892 1.14893 14.6191 3.42615 14.6191 6.23579H16.3383C17.1672 6.23579 17.5808 6.23579 17.8374 5.95177C18.0933 5.66691 18.0489 5.29218 17.9602 4.54356C17.7232 2.56477 17.087 1.14893 16.3383 1.14893Z"
+                stroke="#1E78FF"
+                stroke-width="1.27172"
+              />
+              <path
+                d="M14.6187 6.28157V15.2616C14.6187 16.5426 14.6187 17.1836 14.2247 17.4362C13.5809 17.8483 12.5857 16.9835 12.0851 16.6698C11.6716 16.4104 11.4652 16.2815 11.2358 16.2739C10.9877 16.2654 10.777 16.39 10.3302 16.6698L8.70056 17.6914C8.26054 17.9669 8.04138 18.1051 7.79664 18.1051C7.5519 18.1051 7.33189 17.9669 6.89272 17.6914L5.26396 16.6698C4.84953 16.4104 4.64316 16.2815 4.41377 16.2739C4.16562 16.2654 3.95499 16.39 3.50814 16.6698C3.00758 16.9835 2.01241 17.8483 1.36773 17.4362C0.974609 17.1836 0.974609 16.5435 0.974609 15.2616V6.28157C0.974609 3.86192 0.974609 2.65294 1.72418 1.90093C2.4729 1.14893 3.67955 1.14893 6.09114 1.14893H16.3242M4.38563 4.54017H11.2077M6.09114 7.93141H4.38563"
+                stroke="#1E78FF"
+                stroke-width="1.27172"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M9.92952 8.67323C9.22344 8.67323 8.65039 9.17174 8.65039 9.78641C8.65039 10.4002 9.22344 10.8987 9.92952 10.8987C10.6356 10.8987 11.2087 11.3972 11.2087 12.0119C11.2087 12.6257 10.6356 13.1242 9.92952 13.1242M9.92952 8.67323C10.4864 8.67323 10.9605 8.98268 11.1362 9.41507M9.92952 8.67323V7.9314M9.92952 13.1242C9.37267 13.1242 8.89854 12.8148 8.72287 12.3824M9.92952 13.1242V13.8661"
+                stroke="#1E78FF"
+                stroke-width="1.27172"
+                stroke-linecap="round"
+              />
+            </svg>
+          </Button>
+          <Button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onOpen("manageInvoice", { user: employee });
+            }}
+            disabled={isPending}
+            variant={"brandOutline"}
+            className="bg-[#056BE412] hover:bg-[#056BE412] border-l-0 rounded-none rounded-r-md">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M1 19H19"
+                stroke="#1E78FF"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M5 15V11L15 1L19 5L9 15H5Z"
+                stroke="#1E78FF"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M12 4L16 8"
+                stroke="#1E78FF"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </Button>
+        </div>
+
         {employeeOrders.map((order) => (
           <Card key={order.id} className="space-y-0">
             <CardHeader className="p-4 space-y-2">

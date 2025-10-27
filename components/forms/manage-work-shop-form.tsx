@@ -145,7 +145,7 @@ export function ManageWorkShopForm() {
                                   alt={member.name}
                                   className="object-cover"
                                 />
-                                <AvatarFallback className="bg-[#ebecf2] text-[#182233]">
+                                <AvatarFallback className="bg-brand text-white">
                                   {member.name
                                     .split(" ")
                                     .map((n) => n[0])
@@ -214,7 +214,7 @@ export function ManageWorkShopForm() {
                                         alt={member.name}
                                         className="object-cover"
                                       />
-                                      <AvatarFallback className="bg-[#ebecf2] text-[#182233]">
+                                      <AvatarFallback className="bg-brand text-white">
                                         {member.name
                                           .split(" ")
                                           .map((n) => n[0])
@@ -226,7 +226,13 @@ export function ManageWorkShopForm() {
                                         {member.name}
                                       </div>
                                       <div className="text-sm text-[#576070]">
-                                        {member.role}
+                                        {member.employeeRole === "CUTTER"
+                                          ? "Decoupeur"
+                                          : member.employeeRole === "TAILOR"
+                                          ? "Couteur"
+                                          : member.employeeRole === "MANCHEUR"
+                                          ? "Mancheur"
+                                          : "Tapisier"}
                                       </div>
                                     </div>
                                   </div>

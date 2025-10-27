@@ -1,9 +1,14 @@
 import { checkIsAdmin } from "@/actions/security/admin-check";
 import { db } from "@/lib/db";
 
-export const getProductionsCount = async (
-  searchParams: Promise<{ [key: string]: string | undefined }>
-) => {
+export const getProductionsCount = async ({
+  searchParams,
+  workshopId,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+
+  workshopId?: string;
+}) => {
   await checkIsAdmin();
 
   const { workshop, type, variant, status, search } = await searchParams;
@@ -57,6 +62,9 @@ export const getProductionsCount = async (
       }),
       ...(workshop && {
         workShopId: workshop,
+      }),
+      ...(workshopId && {
+        workShopId: workshopId,
       }),
       ...(type && {
         subtypeId: type,

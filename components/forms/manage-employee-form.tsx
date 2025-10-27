@@ -65,6 +65,7 @@ export const ManageEmployeeformSchema = z.object({
     EmplyeeRole.CUTTER,
     EmplyeeRole.TAILOR,
     EmplyeeRole.TAPISIER,
+    EmplyeeRole.MANCHEUR,
   ]),
   workshop: z.object({
     name: z.string(),
@@ -76,9 +77,15 @@ interface Props {
   onCancel: () => void;
   workshops: WorkShop[];
   user: UserWithWorkshop | null;
+  workshop?: WorkShop | null;
 }
 
-export function ManageEmployeeForm({ onCancel, workshops, user }: Props) {
+export function ManageEmployeeForm({
+  onCancel,
+  workshops,
+  user,
+  workshop,
+}: Props) {
   const form = useForm<z.infer<typeof ManageEmployeeformSchema>>({
     resolver: zodResolver(ManageEmployeeformSchema),
     defaultValues: {
@@ -89,8 +96,8 @@ export function ManageEmployeeForm({ onCancel, workshops, user }: Props) {
       role: user?.employeeRole,
       username: user?.username,
       workshop: {
-        id: user?.workShopId || "",
-        name: user?.workShop?.name || "",
+        id: user?.workShopId || workshop?.id || "",
+        name: user?.workShop?.name || workshop?.name || "",
       },
     },
   });
@@ -198,7 +205,7 @@ export function ManageEmployeeForm({ onCancel, workshops, user }: Props) {
                               ? "Decoupeur"
                               : field.value === "TAILOR"
                               ? "Couteur"
-                              : "Tapisier"}
+                              : field.value === "MANCHEUR" ? "Mancheur" : "Tapisier"}
                           </p>
                         ) : (
                           <p className="text-sm text-[#A2ABBD]">

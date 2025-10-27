@@ -9,6 +9,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "../ui/checkbox";
 import { addProductVariant } from "@/actions/mutations/products/add-product-variant";
+import { ProductVariantWithPricing } from "@/types/types";
+import { updateProductVariant } from "@/actions/mutations/products/update-product-variant";
 
 interface Props {
   selectedCategory: ProductCategory;
@@ -24,6 +26,7 @@ interface Props {
       }[]
     >
   >;
+  variant: ProductVariantWithPricing | null;
 }
 
 function AddProductVariantForm({
@@ -33,22 +36,31 @@ function AddProductVariantForm({
   handleCancel,
   setTypesToRemove,
   onContinue,
+  variant,
 }: Props) {
   const [step, setStep] = useState<1 | 2>(1);
-  const [model, setModel] = useState("");
+  const [model, setModel] = useState(variant ? variant.name : "");
   const [newTypeInput, setNewTypeInput] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<
     {
       id: string;
       name: string;
     }[]
-  >([]);
+  >(
+    variant
+      ? variant.pricings.map((pricing) => ({
+          id: pricing.subtypeId,
+          name: pricing.subtype.name,
+        }))
+      : []
+  );
   const [showAdd, setShowAdd] = useState(false);
   const [isAddingTypePending, startAddingType] = useTransition();
   const [isAddingProductModelPending, startAddingProductModel] =
     useTransition();
   const [prices, setPrices] = useState<
     {
+      id?: string;
       type: {
         id: string;
         name: string;
@@ -56,6 +68,7 @@ function AddProductVariantForm({
       cutterPrice: number;
       tailorPrice: number;
       tapisierPrice: number;
+      mancheurPrice: number;
     }[]
   >([]);
   const handleAddType = (type: ProductCategory) => {
@@ -72,14 +85,23 @@ function AddProductVariantForm({
 
   const onAddProductVariant = async () => {
     startAddingProductModel(() => {
-      addProductVariant({ category: selectedCategory, name: model, prices })
-        .then(() => {
-          setModel("");
-          setStep(1);
-          onContinue();
-          toast.success("created !");
-        })
-        .catch(() => toast.error("Erreur"));
+      variant
+        ? updateProductVariant({ name: model, prices, variant })
+            .then(() => {
+              setModel("");
+              setStep(1);
+              onContinue();
+              toast.success("updated !");
+            })
+            .catch(() => toast.error("Erreur"))
+        : addProductVariant({ category: selectedCategory, name: model, prices })
+            .then(() => {
+              setModel("");
+              setStep(1);
+              onContinue();
+              toast.success("created !");
+            })
+            .catch(() => toast.error("Erreur"));
     });
   };
 
@@ -154,6 +176,25 @@ function AddProductVariantForm({
                     />
                   </div>
                 </div>
+                <div className="space-y-2">
+                  <h3>Mancheur</h3>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="Montant dû de tapisier pour le type 3+2"
+                      value={`${price.mancheurPrice}`}
+                      onChange={(e) => {
+                        const newPrices = [...prices];
+                        newPrices[idx] = {
+                          ...newPrices[idx],
+                          mancheurPrice: e.target.valueAsNumber,
+                        };
+                        setPrices(newPrices);
+                      }}
+                      className=""
+                    />
+                  </div>
+                </div>
               </div>
             ))}
             <div className="flex items-center justify-between w-full gap-5">
@@ -182,7 +223,7 @@ function AddProductVariantForm({
                 }
                 variant={"brand"}
                 className="rounded-full px-12 h-fit py-2">
-                créer le salon
+                {variant ? "mise a jour" : "créer"} le salon
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </div>
@@ -344,12 +385,19 @@ function AddProductVariantForm({
                 e.stopPropagation();
                 e.preventDefault();
                 setPrices(() =>
-                  selectedTypes.map((type) => ({
-                    type,
-                    cutterPrice: 0,
-                    tailorPrice: 0,
-                    tapisierPrice: 0,
-                  }))
+                  selectedTypes.map((type) => {
+                    const found = variant?.pricings.find(
+                      (pricing) => pricing.subtypeId === type.id
+                    );
+                    return {
+                      id: found?.id,
+                      type,
+                      cutterPrice: found?.cutterPrice || 0,
+                      tailorPrice: found?.tailorPrice || 0,
+                      tapisierPrice: found?.tapisierPrice || 0,
+                      mancheurPrice: found?.mancheurPrice || 0,
+                    };
+                  })
                 );
                 setStep(2);
               }}

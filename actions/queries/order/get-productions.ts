@@ -1,11 +1,17 @@
 import { checkIsAdmin } from "@/actions/security/admin-check";
 import { db } from "@/lib/db";
 
-export const getProductions = async (
-  currentPage: number,
-  productionsPerPage: number,
-  searchParams: Promise<{ [key: string]: string | undefined }>
-) => {
+export const getProductions = async ({
+  currentPage,
+  productionsPerPage,
+  searchParams,
+  workshopId,
+}: {
+  currentPage: number;
+  productionsPerPage: number;
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+  workshopId?: string;
+}) => {
   await checkIsAdmin();
 
   const { workshop, type, variant, status, search } = await searchParams;
@@ -19,6 +25,7 @@ export const getProductions = async (
     cutter: true,
     tailor: true,
     tapisier: true,
+    mancheur: true,
     user: true,
     variant: true,
     workShop: true,
@@ -32,6 +39,12 @@ export const getProductions = async (
       },
       orderBy: {
         createdAt: "desc",
+      },
+    },
+    extraCells: {
+      include: {
+        person: true,
+        status: true,
       },
     },
   };
@@ -85,6 +98,9 @@ export const getProductions = async (
       }),
       ...(workshop && {
         workShopId: workshop,
+      }),
+      ...(workshopId && {
+        workShopId: workshopId,
       }),
       ...(type && {
         subtypeId: type,

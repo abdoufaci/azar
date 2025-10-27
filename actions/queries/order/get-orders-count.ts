@@ -1,16 +1,20 @@
 import { checkIsAdmin } from "@/actions/security/admin-check";
 import { db } from "@/lib/db";
 
-export const getOrdersCount = async (
-  searchParams: Promise<{ [key: string]: string | undefined }>
-) => {
+export const getOrdersCount = async ({
+  searchParams,
+  clientId,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+  clientId?: string;
+}) => {
   await checkIsAdmin();
 
-  const { type, variant, status, search } = await searchParams;
+  const { type, variant, search } = await searchParams;
 
   return await db.order.count({
     where: {
-      status: "ACCEPTED",
+      ...(clientId && { clientId }),
       ...(search && {
         OR: [
           {
@@ -60,9 +64,6 @@ export const getOrdersCount = async (
       }),
       ...(variant && {
         variantId: variant,
-      }),
-      ...(status && {
-        orderStageId: status,
       }),
     },
   });

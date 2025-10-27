@@ -28,12 +28,12 @@ export default async function DemandesPage({
   const ordersPerPage = 8;
   const types = await getProductSubTypes();
   const variants = await getProductVariants();
-  const orders = await getOrders(
-    Number(currentPage || "1"),
+  const orders = await getOrders({
+    currentPage: Number(currentPage || "1"),
     ordersPerPage,
-    searchParams
-  );
-  const totalOrders = await getOrdersCount(searchParams);
+    searchParams,
+  });
+  const totalOrders = await getOrdersCount({ searchParams });
   const availableProductions = await getAvailableProductions();
   const workshops = await getWorkshops();
 

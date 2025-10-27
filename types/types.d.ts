@@ -15,6 +15,8 @@ import {
   DemandStage,
   OrderHistory,
   DemandHistory,
+  OrderColumnCell,
+  OrderColumnStatus,
 } from "@prisma/client";
 
 export type UserInTable = User & {
@@ -30,6 +32,11 @@ export type UserInTable = User & {
     pricing: OrderPricing | null;
   })[];
   tapisierOrders: (Order & {
+    variant: ProductVariant | null;
+    subType: ProductSubtype | null;
+    pricing: OrderPricing | null;
+  })[];
+  mancheurOrders: (Order & {
     variant: ProductVariant | null;
     subType: ProductSubtype | null;
     pricing: OrderPricing | null;
@@ -72,6 +79,7 @@ type OrderWithRelationsWithHistory = Order & {
   cutter: User | null;
   tailor: User | null;
   tapisier: User | null;
+  mancheur: User | null;
   user: User | null;
   variant: ProductVariant;
   workShop: WorkShop | null;
@@ -81,6 +89,10 @@ type OrderWithRelationsWithHistory = Order & {
     newStage: OrderStage | null;
     oldStage: OrderStage | null;
     user: User;
+  })[];
+  extraCells: (OrderColumnCell & {
+    person: User | null;
+    status: OrderColumnStatus | null;
   })[];
 };
 
@@ -100,6 +112,7 @@ export type OrderInTable = Order & {
   user: User | null;
   variant: ProductVariant;
   guest: Guest | null;
+  orderStage: OrderStage | null;
 };
 
 export type UserWithWorkshop = User & {

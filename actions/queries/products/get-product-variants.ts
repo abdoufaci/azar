@@ -9,5 +9,8 @@ export const getProductVariants = async () => {
         },
       },
     },
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 };

@@ -1,6 +1,7 @@
 import { Commands } from "@/components/svgs/commands";
 import { Demands } from "@/components/svgs/demands";
 import { Production } from "@/components/svgs/production";
+import { Stock } from "@/components/svgs/stock";
 import { Workshop } from "@/components/svgs/workshop";
 import {
   Building2,
@@ -44,6 +45,11 @@ export const AdminNav = [
     title: "L’atelier",
     url: "/management/workshops",
     icon: Workshop,
+  },
+  {
+    title: "Stock",
+    url: "/management/stock",
+    icon: Stock,
   },
   {
     title: "Members",

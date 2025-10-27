@@ -32,6 +32,7 @@ export const addProduction = async ({
       cutterPrice: pricing?.cutterPrice || 0,
       tailorPrice: pricing?.tailorPrice || 0,
       tapisierPrice: pricing?.tapisierPrice || 0,
+      mancheurPrice: pricing?.mancheurPrice || 0,
       orders: {
         create: {
           ...rest,

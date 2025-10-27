@@ -1,11 +1,17 @@
 import { db } from "@/lib/db";
 import { DemandPriority } from "@prisma/client";
 
-export const getDemands = async (
-  currentPage: number,
-  demandsPerPage: number,
-  searchParams: Promise<{ [key: string]: string | undefined }>
-) => {
+export const getDemands = async ({
+  currentPage,
+  demandsPerPage,
+  searchParams,
+  workshopId,
+}: {
+  currentPage: number;
+  demandsPerPage: number;
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+  workshopId?: string;
+}) => {
   const { workshop, material, status, priority, search } = await searchParams;
 
   return await db.demand.findMany({
@@ -46,6 +52,9 @@ export const getDemands = async (
       }),
       ...(workshop && {
         workShopId: workshop,
+      }),
+      ...(workshopId && {
+        workShopId: workshopId,
       }),
       ...(status && {
         stageId: status,

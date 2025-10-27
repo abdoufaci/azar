@@ -42,6 +42,16 @@ export const getEmployeesAndClients = async () => {
           createdAt: "desc",
         },
       },
+      mancheurOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",

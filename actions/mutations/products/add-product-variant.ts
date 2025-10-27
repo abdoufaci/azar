@@ -12,6 +12,7 @@ export const addProductVariant = async ({
   name: string;
   category: ProductCategory;
   prices: {
+    id?: string;
     type: {
       id: string;
       name: string;
@@ -19,6 +20,7 @@ export const addProductVariant = async ({
     cutterPrice: number;
     tailorPrice: number;
     tapisierPrice: number;
+    mancheurPrice: number;
   }[];
 }) => {
   var randomColor = require("randomcolor"); // import the script
@@ -36,6 +38,7 @@ export const addProductVariant = async ({
             subtypeId: price.type.id,
             tailorPrice: price.tailorPrice,
             tapisierPrice: price.tapisierPrice,
+            mancheurPrice: price.mancheurPrice,
           })),
         },
       },

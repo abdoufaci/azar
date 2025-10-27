@@ -14,7 +14,7 @@ import { ProductionInTable, UserWithWorkshop } from "@/types/types";
 import { format } from "date-fns";
 import Image from "next/image";
 import { fr } from "date-fns/locale";
-import { OrderStage } from "@prisma/client";
+import { OrderColumn, OrderColumnStatus, OrderStage } from "@prisma/client";
 import {
   Popover,
   PopoverContent,
@@ -24,7 +24,7 @@ import { useState, useTransition } from "react";
 import { addOrderStage } from "@/actions/mutations/order/add-order-stage";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Check, ChevronDownIcon, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { updateOrderStage } from "@/actions/mutations/order/update-order-stage";
 import { useRouter } from "next/navigation";
@@ -33,6 +33,11 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ProductionDetails from "./production-details";
+import { updateColumnName } from "@/actions/mutations/order/update-column-name";
+import { Calendar } from "@/components/ui/calendar";
+import { manageCell } from "@/actions/mutations/order/manage-cell";
+import { addColumnStatus } from "@/actions/mutations/order/add-column-status";
+import { truncate } from "@/lib/truncate";
 
 interface Props {
   productions: ProductionInTable[];
@@ -44,6 +49,10 @@ interface Props {
   searchParams: Record<string, string | string[] | undefined>;
   employees: UserWithWorkshop[];
   onSubOrderClick: (production: ProductionInTable) => void;
+  url?: string;
+  columns: (OrderColumn & {
+    statuses: OrderColumnStatus[];
+  })[];
 }
 
 export function ProductionsTable({
@@ -56,12 +65,19 @@ export function ProductionsTable({
   searchParams,
   employees,
   onSubOrderClick,
+  columns,
+  url = "/management/production",
 }: Props) {
   const [newOrderStageInput, setNewOrderStageInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [isAddingOrderStagePending, startAddingOrderStage] = useTransition();
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const [columnToEdit, setColumnToEdit] = useState("");
+  const [cellTextToEdit, setCellTextToEdit] = useState<number | null>(null);
+  const [columnName, setColumnName] = useState("");
+  const [cellText, setCellText] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const totalPages = Math.ceil(totalProductions / productionsPerPage);
 
@@ -69,9 +85,9 @@ export function ProductionsTable({
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
-      const url = qs.stringifyUrl(
+      const path = qs.stringifyUrl(
         {
-          url: "/management/production",
+          url,
           query: {
             page: currentPage + 1,
             ...rest,
@@ -79,15 +95,15 @@ export function ProductionsTable({
         },
         { skipNull: true }
       );
-      router.push(url);
+      router.push(path);
     }
   };
 
   const handlePrevPage = () => {
     if (currentPage > 1) {
-      const url = qs.stringifyUrl(
+      const path = qs.stringifyUrl(
         {
-          url: "/management/production",
+          url,
           query: {
             page: currentPage === 2 ? null : currentPage - 1,
             ...rest,
@@ -95,7 +111,7 @@ export function ProductionsTable({
         },
         { skipNull: true }
       );
-      router.push(url);
+      router.push(path);
     }
   };
 
@@ -111,9 +127,24 @@ export function ProductionsTable({
     });
   };
 
+  const handleAddOrderColumnStatus = (columnId: string) => {
+    startAddingOrderStage(() => {
+      addColumnStatus({
+        columnId,
+        name: newOrderStageInput,
+      })
+        .then(() => {
+          setNewOrderStageInput("");
+          setShowAdd(false);
+          toast.success("created !");
+        })
+        .catch(() => toast.error("Erreur ."));
+    });
+  };
+
   return (
     <div className="rounded-lg border border-border bg-card">
-      <Table>
+      <Table className="overflow-x-auto">
         <TableHeader>
           <TableRow className="border-border hover:bg-muted/50">
             <TableHead className="text-[#64748B] font-normal p-5">
@@ -140,13 +171,54 @@ export function ProductionsTable({
             <TableHead className="text-[#64748B] font-normal text-center">
               ID
             </TableHead>
+            {columns?.map((column) => (
+              <TableHead
+                key={column.id}
+                onDoubleClick={() => {
+                  setColumnToEdit(column.id);
+                  setColumnName(column.name);
+                }}
+                className="text-[#64748B] font-normal text-center">
+                {columnToEdit === column.id ? (
+                  <Input
+                    className="w-full max-w-28"
+                    disabled={isPending}
+                    autoFocus
+                    value={columnName}
+                    onChange={(e) => setColumnName(e.target.value)}
+                    onBlur={() => {
+                      setColumnToEdit("");
+                      setColumnName("");
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        startTransition(() => {
+                          updateColumnName({
+                            id: column.id,
+                            name: columnName,
+                          })
+                            .then(() => {
+                              toast.success("Success !");
+                              setColumnToEdit("");
+                              setColumnName("");
+                            })
+                            .catch(() => toast.error("Erreur ."));
+                        });
+                      }
+                    }}
+                  />
+                ) : (
+                  `${column.name}`
+                )}
+              </TableHead>
+            ))}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {productions.map((order) => (
+          {productions.map((order, idx) => (
             <Sheet key={order.id}>
               <SheetTrigger asChild>
-                <TableRow className="border-border hover:bg-muted/30 cursor-pointer">
+                <TableRow className="border-border hover:bg-muted/30 cursor-pointer max-w-screen-md">
                   <TableCell className="p-5">
                     <div className="flex items-start justify-start gap-1.5">
                       <Image
@@ -166,7 +238,7 @@ export function ProductionsTable({
                           backgroundColor: `${order.variant.color}33`,
                           color: `${order.variant.color}`,
                         }}
-                        className="rounded-full px-4 py-1.5 text-xs font-medium">
+                        className="rounded-full px-4 py-1.5 text-xs font-medium whitespace-nowrap">
                         {order.variant.name}
                       </div>
                     </div>
@@ -189,7 +261,7 @@ export function ProductionsTable({
                               backgroundColor: `${order.orderStage?.color}33`,
                               color: `${order.orderStage?.color}`,
                             }}
-                            className="px-3 py-1.5 rounded-[3.96px] font-medium text-xs">
+                            className="px-3 py-1.5 rounded-[3.96px] font-medium text-xs whitespace-nowrap">
                             {order.orderStage?.name}
                           </div>
                         </PopoverTrigger>
@@ -225,7 +297,8 @@ export function ProductionsTable({
                                       backgroundColor: `${stage?.color}33`,
                                       color: `${stage?.color}`,
                                     }}
-                                    className="px-3 py-1.5 rounded-[3.96px] font-medium text-xs cursor-pointer w-full max-w-32 flex items-center justify-center">
+                                    className="px-3 py-1.5 rounded-[3.96px] font-medium text-xs cursor-pointer w-full max-w-32 
+                                    flex items-center justify-center whitespace-nowrap">
                                     {stage?.name}
                                   </div>
                                 </div>
@@ -322,6 +395,370 @@ export function ProductionsTable({
                       )}
                     </div>
                   </TableCell>
+                  {columns?.map((column) => {
+                    const cell = order.extraCells.find(
+                      (cell) => cell.orderColumnId === column.id
+                    );
+                    return (
+                      <TableCell
+                        key={column.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                        }}
+                        className="text-[#95A1B1] text-center">
+                        {column.type === "TEXT" && (
+                          <>
+                            {cellTextToEdit === idx ? (
+                              <Input
+                                className="w-full max-w-28"
+                                disabled={isPending}
+                                autoFocus
+                                value={cellText}
+                                onChange={(e) => setCellText(e.target.value)}
+                                onBlur={() => {
+                                  setCellTextToEdit(null);
+                                  setCellText("");
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    startTransition(() => {
+                                      manageCell({
+                                        columnId: column.id,
+                                        orderId: order.id,
+                                        cellId: cell?.id,
+                                        text: cellText,
+                                      })
+                                        .then(() => {
+                                          toast.success("Success !");
+                                          setCellTextToEdit(null);
+                                          setCellText("");
+                                        })
+                                        .catch(() => toast.error("Erreur ."));
+                                    });
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <p
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                }}
+                                onDoubleClick={(e) => {
+                                  e.stopPropagation();
+                                  setCellTextToEdit(idx);
+                                  setCellText(cell?.text || "");
+                                }}>
+                                {truncate(cell?.text || "-", 20)}
+                              </p>
+                            )}
+                          </>
+                        )}
+                        {column.type === "PERSON" && (
+                          <Popover>
+                            <PopoverTrigger
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                              asChild>
+                              {cell?.person ? (
+                                <div className="flex items-center justify-center gap-2">
+                                  <Avatar className="h-6 w-6">
+                                    <AvatarImage
+                                      src={`https://${
+                                        process.env
+                                          .NEXT_PUBLIC_BUNNY_CDN_HOSTNAME
+                                      }/${
+                                        //@ts-ignore
+                                        cell?.person?.image?.id
+                                      }`}
+                                    />
+                                    <AvatarFallback className="text-xs text-white bg-brand">
+                                      {cell?.person?.name?.charAt(0) || "U"}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="text-sm text-[#95A1B1]">
+                                    {format(
+                                      cell?.createdAt || new Date(),
+                                      "d MMM",
+                                      {
+                                        locale: fr,
+                                      }
+                                    )}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div>-</div>
+                              )}
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="overflow-hidden !min-w-[350px]"
+                              align="start">
+                              <div className="space-y-6 w-full">
+                                <div className="relative">
+                                  <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#576070]" />
+                                  <Input
+                                    value={searchTerm}
+                                    onChange={(e) =>
+                                      setSearchTerm(e.target.value)
+                                    }
+                                    type="text"
+                                    placeholder="Search for members..."
+                                    className="h-14 rounded-[5.46px] border border-[#E7F1F8] bg-[#ffffff] pl-12 text-base text-[#182233] shadow-sm placeholder:text-[#576070]"
+                                  />
+                                </div>
+
+                                {/* Members List */}
+                                <div className="space-y-3">
+                                  {employees
+                                    .filter(
+                                      (item) =>
+                                        item.workShopId === order.workShopId
+                                    )
+                                    ?.filter((item) =>
+                                      item.name
+                                        .toLowerCase()
+                                        .trim()
+                                        .includes(
+                                          searchTerm.trim().toLowerCase()
+                                        )
+                                    )
+                                    .map((member) => {
+                                      const isSelected =
+                                        member.id === cell?.personId;
+                                      return (
+                                        <div
+                                          key={member.id}
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            startTransition(() => {
+                                              toast.loading("mise a jour...", {
+                                                id: "loading",
+                                              });
+                                              manageCell({
+                                                orderId: order.id,
+                                                columnId: column.id,
+                                                cellId: cell?.id,
+                                                personId: isSelected
+                                                  ? null
+                                                  : member.id,
+                                              })
+                                                .then(() => {
+                                                  toast.success("Success !");
+                                                })
+                                                .catch(() =>
+                                                  toast.error("Erreur .")
+                                                )
+                                                .finally(() =>
+                                                  toast.dismiss("loading")
+                                                );
+                                            });
+                                          }}
+                                          className="flex cursor-pointer w-full items-center justify-between rounded-[5.46px] bg-[#f3f6f8] p-4 py-2 transition-colors hover:bg-[#ebecf2]">
+                                          <div className="flex items-center gap-4">
+                                            <Avatar className="h-12 w-12">
+                                              <AvatarImage
+                                                src={""}
+                                                alt={member.name}
+                                                className="object-cover"
+                                              />
+                                              <AvatarFallback className="bg-brand text-white">
+                                                {member.name
+                                                  .split(" ")
+                                                  .map((n) => n[0])
+                                                  .join("")}
+                                              </AvatarFallback>
+                                            </Avatar>
+                                            <div className="text-left">
+                                              <div className="text-lg font-semibold text-[#182233]">
+                                                {member.name}
+                                              </div>
+                                              <div className="text-sm text-[#576070]">
+                                                {member.employeeRole ===
+                                                "CUTTER"
+                                                  ? "Decoupeur"
+                                                  : member.employeeRole ===
+                                                    "TAILOR"
+                                                  ? "Couteur"
+                                                  : member.employeeRole ===
+                                                    "MANCHEUR"
+                                                  ? "Mancheur"
+                                                  : "Tapisier"}
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div
+                                            className={`flex h-6 w-6 items-center justify-center rounded-full ${
+                                              isSelected
+                                                ? "bg-[#1e78ff]"
+                                                : "border-2 border-[#d9d9d9] bg-[#ffffff]"
+                                            }`}>
+                                            {isSelected && (
+                                              <Check className="h-4 w-4 text-[#ffffff]" />
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        )}
+
+                        {column.type === "STATUS" && (
+                          <div className="flex items-center justify-center">
+                            <Popover>
+                              <PopoverTrigger
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}>
+                                <div
+                                  style={{
+                                    backgroundColor: `${
+                                      cell?.status?.color || "#1E78FF"
+                                    }33`,
+                                    color: `${
+                                      cell?.status?.color || "#1E78FF"
+                                    }`,
+                                  }}
+                                  className="px-3 py-1.5 rounded-[3.96px] font-medium text-xs whitespace-nowrap">
+                                  {cell?.status?.name || "En Cours.."}
+                                </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="p-0 w-fit">
+                                <div className="space-y-2">
+                                  <div className="space-y-1">
+                                    {column.statuses.map((status) => (
+                                      <div
+                                        key={status.id}
+                                        className="px-4 pt-3 flex items-center justify-center">
+                                        <div
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            startTransition(() => {
+                                              toast.loading("mise a jour...", {
+                                                id: "loading",
+                                              });
+                                              manageCell({
+                                                orderId: order.id,
+                                                columnId: column.id,
+                                                cellId: cell?.id,
+                                                statusId: status.id,
+                                              })
+                                                .then(() => {
+                                                  toast.success("Success !");
+                                                })
+                                                .catch(() =>
+                                                  toast.error("Erreur .")
+                                                )
+                                                .finally(() =>
+                                                  toast.dismiss("loading")
+                                                );
+                                            });
+                                          }}
+                                          style={{
+                                            backgroundColor: `${status?.color}33`,
+                                            color: `${status?.color}`,
+                                          }}
+                                          className="px-3 py-1.5 rounded-[3.96px] font-medium text-xs cursor-pointer w-full 
+                                          max-w-32 flex items-center justify-center whitespace-nowrap">
+                                          {status?.name}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  <div className="px-4 pb-2">
+                                    {showAdd ? (
+                                      <Input
+                                        className="mb-2"
+                                        disabled={isAddingOrderStagePending}
+                                        type="text"
+                                        placeholder="ex: en cours.."
+                                        value={newOrderStageInput}
+                                        onChange={(e) => {
+                                          e.stopPropagation();
+                                          setNewOrderStageInput(e.target.value);
+                                        }}
+                                        onKeyDown={(e) => {
+                                          e.stopPropagation();
+                                          if (e.key === "Enter") {
+                                            e.preventDefault(); // Prevent form submission on Enter for this input
+                                            handleAddOrderColumnStatus(
+                                              column.id
+                                            );
+                                          }
+                                        }}
+                                      />
+                                    ) : (
+                                      <Button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          e.preventDefault();
+                                          setShowAdd(true);
+                                        }}
+                                        variant="brand_link"
+                                        className="!p-0">
+                                        <Plus className="h-4 w-4" />
+                                        Ajouter Etat
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        )}
+
+                        {column.type === "DATE" && (
+                          <Popover>
+                            <PopoverTrigger
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                              asChild>
+                              <div>
+                                {cell?.date
+                                  ? cell?.date.toLocaleDateString()
+                                  : "-"}
+                              </div>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-auto overflow-hidden p-0"
+                              align="start">
+                              <Calendar
+                                disabled={isPending}
+                                mode="single"
+                                selected={cell?.date || new Date()}
+                                captionLayout="dropdown"
+                                onSelect={(date) => {
+                                  startTransition(() => {
+                                    toast.loading("mise a jour...", {
+                                      id: "loading",
+                                    });
+                                    manageCell({
+                                      columnId: column.id,
+                                      orderId: order.id,
+                                      date: date || new Date(),
+                                      cellId: cell?.id,
+                                    })
+                                      .then(() => {
+                                        toast.success("Success !");
+                                      })
+                                      .catch(() => toast.error("Erreur ."))
+                                      .finally(() => toast.dismiss("loading"));
+                                  });
+                                }}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
               </SheetTrigger>
               <SheetContent className="overflow-y-auto" showX={false}>
@@ -332,6 +769,7 @@ export function ProductionsTable({
                   //@ts-ignore
                   order={order.subOrderId ? order.subOrder : order}
                   onSubOrderClick={() => onSubOrderClick(order)}
+                  columns={columns}
                 />
               </SheetContent>
             </Sheet>
@@ -354,9 +792,9 @@ export function ProductionsTable({
             Previous
           </Button>
           {Array.from(Array(totalPages).keys()).map((_, idx) => {
-            const url = qs.stringifyUrl(
+            const path = qs.stringifyUrl(
               {
-                url: "/management/production",
+                url: url,
                 query: {
                   page: idx === 0 ? null : idx + 1,
                   ...rest,
@@ -377,7 +815,7 @@ export function ProductionsTable({
                     : "border-[#B9BEC7] hover:bg-gray-800"
                 )}
                 asChild>
-                <Link href={url}>{idx + 1}</Link>
+                <Link href={path}>{idx + 1}</Link>
               </Button>
             );
           })}

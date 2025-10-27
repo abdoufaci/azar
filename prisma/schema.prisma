@@ -20,6 +20,7 @@ enum EmplyeeRole {
   CUTTER
   TAILOR
   TAPISIER
+  MANCHEUR
 }
 
 model User {
@@ -39,21 +40,27 @@ model User {
   isTwoFactorEnabled    Boolean                @default(false)
   twoFactorConfirmation TwoFactorConfirmation?
   deviceToken           String?
+  assurance             Int                    @default(0)
+  deposit               Int                    @default(0)
+  payment               Int                    @default(0)
+  other                 Int                    @default(0)
 
   workShopId String?
   workShop   WorkShop? @relation(fields: [workShopId], references: [id], onDelete: NoAction)
 
   products        Product[]
-  creatorOrders   Order[]         @relation(name: "creator")
-  clientOrders    Order[]         @relation(name: "client")
-  cutterOrders    Order[]         @relation(name: "cutter")
-  tailorOrders    Order[]         @relation(name: "tailor")
-  tapisierOrders  Order[]         @relation(name: "tapisier")
-  history         OrderHistory[]  @relation(name: "creator")
-  employeeHistory OrderHistory[]  @relation(name: "employee")
+  creatorOrders   Order[]           @relation(name: "creator")
+  clientOrders    Order[]           @relation(name: "client")
+  cutterOrders    Order[]           @relation(name: "cutter")
+  tailorOrders    Order[]           @relation(name: "tailor")
+  tapisierOrders  Order[]           @relation(name: "tapisier")
+  mancheurOrders  Order[]           @relation(name: "mancheur")
+  history         OrderHistory[]    @relation(name: "creator")
+  employeeHistory OrderHistory[]    @relation(name: "employee")
   carts           Cart[]
   demands         Demand[]
   demandHistory   DemandHistory[]
+  orderExtraCells OrderColumnCell[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -124,6 +131,7 @@ model WorkShop {
   employees User[]
   orders    Order[]
   demands   Demand[]
+  stocks    Stock[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -171,6 +179,7 @@ model ProductPricing {
   cutterPrice   Int
   tailorPrice   Int
   tapisierPrice Int
+  mancheurPrice Int    @default(0)
 
   subtypeId String
   subtype   ProductSubtype @relation(fields: [subtypeId], references: [id], onDelete: NoAction)
@@ -250,6 +259,7 @@ model OrderPricing {
   cutterPrice   Int
   tailorPrice   Int
   tapisierPrice Int
+  mancheurPrice Int @default(0)
 
   orders Order[]
 
@@ -266,6 +276,61 @@ model Guest {
   note   String @default("")
 
   orders Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum OrderColumnType {
+  PERSON
+  STATUS
+  TEXT
+  DATE
+}
+
+model OrderColumnStatus {
+  id    String @id @default(cuid())
+  name  String
+  color String
+
+  columnId String
+  column   OrderColumn @relation(fields: [columnId], references: [id])
+
+  cells OrderColumnCell[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrderColumn {
+  id   String          @id @default(cuid())
+  name String
+  type OrderColumnType
+
+  cells    OrderColumnCell[]
+  statuses OrderColumnStatus[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrderColumnCell {
+  id String @id @default(cuid())
+
+  date DateTime?
+  text String?
+
+  personId String?
+  person   User?   @relation(fields: [personId], references: [id], onDelete: NoAction)
+
+  orderColumnId String?
+  orderColumn   OrderColumn? @relation(fields: [orderColumnId], references: [id], onDelete: Cascade)
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  statusId String?
+  status   OrderColumnStatus? @relation(fields: [statusId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -311,6 +376,9 @@ model Order {
   tapisierId String?
   tapisier   User?   @relation(fields: [tapisierId], references: [id], onDelete: NoAction, name: "tapisier")
 
+  mancheurId String?
+  mancheur   User?   @relation(fields: [mancheurId], references: [id], onDelete: NoAction, name: "mancheur")
+
   workShopId String?
   workShop   WorkShop? @relation(fields: [workShopId], references: [id], onDelete: NoAction)
 
@@ -320,7 +388,8 @@ model Order {
   tissuId String?
   tissu   Tissu?  @relation(fields: [tissuId], references: [id], onDelete: NoAction)
 
-  history OrderHistory[]
+  history    OrderHistory[]
+  extraCells OrderColumnCell[]
 
   acceptedAt DateTime?
   createdAt  DateTime  @default(now())
@@ -455,6 +524,57 @@ model DemandHistory {
 
   demandId String
   demand   Demand @relation(fields: [demandId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum StockDisponibility {
+  IN_STOCK
+  OUT_OF_STOCK
+  LIMITED
+}
+
+model StockType {
+  id    String @id @default(cuid())
+  name  String
+  color String
+
+  stocks Stock[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Stock {
+  id              String             @id @default(cuid())
+  name            String
+  disponibility   StockDisponibility
+  intialQuantity  Int
+  currentQuantity Int
+  ref             String             @unique
+
+  stockTypeId String
+  StockType   StockType @relation(fields: [stockTypeId], references: [id], onDelete: Cascade)
+
+  workShopId String
+  workshop   WorkShop @relation(fields: [workShopId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum DeskType {
+  DEPOSIT
+  WITHDRAWAL
+}
+
+model Desk {
+  id     String   @id @default(cuid())
+  ref    String   @unique
+  name   String
+  amount Int
+  type   DeskType
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

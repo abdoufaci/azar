@@ -1,9 +1,13 @@
 import { db } from "@/lib/db";
 import { DemandPriority } from "@prisma/client";
 
-export const getDemandsCount = async (
-  searchParams: Promise<{ [key: string]: string | undefined }>
-) => {
+export const getDemandsCount = async ({
+  searchParams,
+  workshopId,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+  workshopId?: string;
+}) => {
   const { workshop, material, status, priority, search } = await searchParams;
   return await db.demand.count({
     where: {
@@ -43,6 +47,9 @@ export const getDemandsCount = async (
       }),
       ...(workshop && {
         workShopId: workshop,
+      }),
+      ...(workshopId && {
+        workShopId: workshopId,
       }),
       ...(status && {
         stageId: status,

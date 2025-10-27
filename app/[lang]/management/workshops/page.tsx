@@ -2,6 +2,7 @@ import WorkshopCard from "./_components/workshop-card";
 import { AddWorkshopButton } from "./_components/add-workshop-button";
 import { getWorkshops } from "@/actions/queries/workshop/get-workshops";
 import { getEmployeesAndClients } from "@/actions/queries/users/get-employees-clients";
+import Link from "next/link";
 
 export default async function WorkShopsPage() {
   const workshops = await getWorkshops();
@@ -18,7 +19,9 @@ export default async function WorkShopsPage() {
 
       <div className="flex items-center flex-wrap gap-6">
         {workshops.map((item) => (
-          <WorkshopCard key={item.id} workshop={item} />
+          <Link href={`/management/workshop/${item?.id}`} key={item.id}>
+            <WorkshopCard workshop={item} />
+          </Link>
         ))}
       </div>
     </div>

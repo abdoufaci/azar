@@ -258,6 +258,7 @@ export default function ManageProductForm({
         onContinue={() => setStep(2)}
         types={types}
         setTypesToRemove={setTypesToRemove}
+        variant={null}
       />
     );
   }

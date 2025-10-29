@@ -11,6 +11,7 @@ export const getEmployeesAndClients = async () => {
       },
     },
     include: {
+      invoices: true,
       workShop: true,
       cutterOrders: {
         include: {

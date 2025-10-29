@@ -3,9 +3,8 @@
 import { currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ProductionFormData } from "@/schemas/production-schema";
-import { ProductionInTable, ProductVariantWithPricing } from "@/types/types";
+import { ProductVariantWithPricing } from "@/types/types";
 import { revalidatePath } from "next/cache";
-import ShortUniqueId from "short-unique-id";
 
 export const addProduction = async ({
   data,
@@ -23,9 +22,6 @@ export const addProduction = async ({
   const pricing = selectedVariant?.pricings.find(
     (pricing) => pricing.subtypeId === data.subtypeId
   );
-  const uid = new ShortUniqueId({ length: 10 });
-
-  const orderId = uid.rnd();
 
   await db.orderPricing.create({
     data: {
@@ -40,7 +36,7 @@ export const addProduction = async ({
           userId: user?.id || "",
           variantId: data.variant.id,
           status: "ACCEPTED",
-          orderId,
+          orderId: "/",
           acceptedAt: new Date(),
           barCode: "",
           orderStageId: "cmgfnausl0000kpfk6hf6653l",

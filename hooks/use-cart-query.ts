@@ -1,11 +1,12 @@
-"use client"
+"use client";
 
 import { Cart, CartItem, Product, ProductPricing, Tissu } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import qs from "query-string";
 
 export const useCartQuery = () => {
-  const cartId = localStorage.getItem("cart_Id");
+  const cartId =
+    typeof window !== "undefined" ? localStorage.getItem("cart_Id") : null;
 
   const fetchCart = async () => {
     const url = qs.stringifyUrl(

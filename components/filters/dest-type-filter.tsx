@@ -6,7 +6,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { StockDisponibility, StockType, User, WorkShop } from "@prisma/client";
+import {
+  DeskType,
+  StockDisponibility,
+  StockType,
+  User,
+  WorkShop,
+} from "@prisma/client";
 import { useRouter } from "next/navigation";
 import qs from "query-string";
 
@@ -15,20 +21,20 @@ interface Props {
   url: string;
 }
 
-function StockStatusFilter({ searchParams, url: pathname }: Props) {
+function DeskTypeFilter({ searchParams, url: pathname }: Props) {
   const router = useRouter();
 
   return (
     <Select
-      onValueChange={(disponibility) => {
-        const { disponibility: curr, page, ...rest } = searchParams;
+      onValueChange={(type) => {
+        const { type: curr, page, ...rest } = searchParams;
 
         const url = qs.stringifyUrl(
           {
             url: pathname,
             query: {
               ...rest,
-              disponibility: disponibility !== "default" ? disponibility : null,
+              type: type !== "default" ? type : null,
             },
           },
           { skipNull: true }
@@ -36,18 +42,15 @@ function StockStatusFilter({ searchParams, url: pathname }: Props) {
         router.push(url);
       }}>
       <SelectTrigger className="w-32 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">
-        <SelectValue placeholder="Status" />
+        <SelectValue placeholder="Type" />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="default">Par Default</SelectItem>
-        <SelectItem value={StockDisponibility.IN_STOCK}>Disponible</SelectItem>
-        <SelectItem value={StockDisponibility.LIMITED}>Faible</SelectItem>
-        <SelectItem value={StockDisponibility.OUT_OF_STOCK}>
-          Non Dispo
-        </SelectItem>
+        <SelectItem value={DeskType.DEPOSIT}>Acompte</SelectItem>
+        <SelectItem value={DeskType.WITHDRAWAL}>Versement</SelectItem>
       </SelectContent>
     </Select>
   );
 }
 
-export default StockStatusFilter;
+export default DeskTypeFilter;

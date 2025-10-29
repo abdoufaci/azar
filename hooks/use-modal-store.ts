@@ -6,7 +6,7 @@ import {
   UserInTable,
   UserWithWorkshop,
 } from "@/types/types";
-import { Tissu, WorkShop } from "@prisma/client";
+import { Invoice, Tissu, WorkShop } from "@prisma/client";
 import { create } from "zustand";
 
 export type ModalType =
@@ -27,6 +27,8 @@ export interface ModalData {
   order?: OrderInTable;
   productions?: OrderWithRelations[] | OrderInTable[];
   user?: UserInTable;
+  invoice?: Invoice;
+  date?: Date;
 }
 
 interface ModalStore {

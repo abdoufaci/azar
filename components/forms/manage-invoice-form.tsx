@@ -52,6 +52,7 @@ import { addClient } from "@/actions/mutations/users/add-client";
 import { UserWithWorkshop } from "@/types/types";
 import { updateClient } from "@/actions/mutations/users/update-client";
 import { updateInvoiceDetails } from "@/actions/mutations/users/update-invoice-details";
+import { manageUserInvoice } from "@/actions/mutations/users/manage-user-invoice";
 
 export const ManageInvoiceformSchema = z.object({
   assurance: z.number(),
@@ -62,21 +63,26 @@ export const ManageInvoiceformSchema = z.object({
 
 export function ManageInvoiceForm() {
   const { onClose, data } = useModal();
-  const { user } = data;
+  const { user, invoice, date } = data;
   const form = useForm<z.infer<typeof ManageInvoiceformSchema>>({
     resolver: zodResolver(ManageInvoiceformSchema),
     defaultValues: {
-      assurance: user ? user.assurance : 0,
-      deposit: user ? user.deposit : 0,
-      payment: user ? user.payment : 0,
-      other: user ? user.other : 0,
+      assurance: invoice?.assurance,
+      deposit: invoice?.deposit,
+      payment: invoice?.payment,
+      other: invoice?.other,
     },
   });
   const [isPending, startTransition] = useTransition();
 
   async function onSubmit(data: z.infer<typeof ManageInvoiceformSchema>) {
     startTransition(() => {
-      updateInvoiceDetails({ data, userId: user?.id })
+      manageUserInvoice({
+        ...data,
+        userId: user?.id,
+        invoiceId: invoice?.id,
+        date: date || new Date(),
+      })
         .then((res) => {
           toast.success("Success");
           onClose();
@@ -109,7 +115,7 @@ export function ManageInvoiceForm() {
                       onChange={(e) =>
                         field.onChange(e.target.valueAsNumber || 0)
                       }
-                      value={field.value.toString() || ""}
+                      value={field.value?.toString() || ""}
                     />
                   </div>
                 </FormControl>
@@ -132,7 +138,7 @@ export function ManageInvoiceForm() {
                       onChange={(e) =>
                         field.onChange(e.target.valueAsNumber || 0)
                       }
-                      value={field.value.toString() || ""}
+                      value={field.value?.toString() || ""}
                     />
                   </div>
                 </FormControl>
@@ -155,7 +161,7 @@ export function ManageInvoiceForm() {
                       onChange={(e) =>
                         field.onChange(e.target.valueAsNumber || 0)
                       }
-                      value={field.value.toString() || ""}
+                      value={field.value?.toString() || ""}
                     />
                   </div>
                 </FormControl>
@@ -178,7 +184,7 @@ export function ManageInvoiceForm() {
                       onChange={(e) =>
                         field.onChange(e.target.valueAsNumber || 0)
                       }
-                      value={field.value.toString() || ""}
+                      value={field.value?.toString() || ""}
                     />
                   </div>
                 </FormControl>

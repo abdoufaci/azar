@@ -50,6 +50,12 @@ function EmployeeDetails({ employee }: Props) {
       order.acceptedAt.getMonth() === selectedMonth
   );
 
+  const selectedInvoice = employee.invoices.find(
+    (invoice) =>
+      invoice.createdAt.getFullYear() === selectedYear &&
+      invoice.createdAt.getMonth() === selectedMonth
+  );
+
   const thisMonthTotal = selectedOrders.reduce(
     (acc, order) =>
       acc +
@@ -83,10 +89,10 @@ function EmployeeDetails({ employee }: Props) {
                 : "Tapisier",
             year: selectedYear,
             month: months[selectedMonth],
-            assuranceAmount: employee.assurance,
-            versementAmount: employee.payment,
-            acompteAmount: employee.deposit,
-            autreAmount: employee.other,
+            assuranceAmount: selectedInvoice?.assurance || 0,
+            versementAmount: selectedInvoice?.payment || 0,
+            acompteAmount: selectedInvoice?.deposit || 0,
+            autreAmount: selectedInvoice?.other || 0,
             items: selectedOrders.map((order) => ({
               id: order.orderId,
               model: order.variant?.name,
@@ -271,7 +277,11 @@ function EmployeeDetails({ employee }: Props) {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onOpen("manageInvoice", { user: employee });
+              onOpen("manageInvoice", {
+                user: employee,
+                invoice: selectedInvoice,
+                date: new Date(selectedYear, selectedMonth),
+              });
             }}
             disabled={isPending}
             variant={"brandOutline"}

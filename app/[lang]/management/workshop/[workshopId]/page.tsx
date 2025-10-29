@@ -15,6 +15,7 @@ import { getDemandStages } from "@/actions/queries/demands/get-demand-stages";
 import { getDemandMaterials } from "@/actions/queries/demands/get-demand-materials";
 import DemandsInterface from "../../demands/_components/demands-interface";
 import WorkshopInterface from "./_components/workshop-interface";
+import { getColumns } from "@/actions/queries/order/get-columns";
 
 interface Props {
   params: { lang: string; workshopId: string };
@@ -54,6 +55,7 @@ async function WorkShopIdPage({
   const totalDemands = await getDemandsCount({ searchParams, workshopId });
   const stages = await getDemandStages();
   const materials = await getDemandMaterials();
+  const columns = await getColumns();
 
   return (
     <div className="min-h-screen p-6 space-y-6">
@@ -78,6 +80,7 @@ async function WorkShopIdPage({
         materials={materials}
         itemsPerPage={itemsPerPage}
         url={`/management/workshop/${workshopId}`}
+        columns={columns}
       />
     </div>
   );

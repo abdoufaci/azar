@@ -188,6 +188,7 @@ function SubProductionDetails({ order, employees, orderStages }: Props) {
                             orderId: order.id,
                             userId: employee.id,
                             type: "CUTTER",
+                            currentRef: order.orderId,
                           })
                             .then(() => toast.success("Success !"))
                             .catch(() => toast.error("Erreur ."))

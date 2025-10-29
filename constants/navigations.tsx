@@ -28,7 +28,7 @@ export const AdminNav = [
   },
   {
     title: "Command Client",
-    url: "/management/orders",
+    url: "/management/orders?client=B2B",
     icon: Commands,
   },
   {
@@ -48,7 +48,7 @@ export const AdminNav = [
   },
   {
     title: "Stock",
-    url: "/management/stock",
+    url: "/management/stock?target=stock",
     icon: Stock,
   },
   {

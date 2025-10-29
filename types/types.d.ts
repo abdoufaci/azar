@@ -17,9 +17,18 @@ import {
   DemandHistory,
   OrderColumnCell,
   OrderColumnStatus,
+  Stock,
+  StockType,
+  Invoice,
 } from "@prisma/client";
 
+export type StockInTable = Stock & {
+  workshop: WorkShop;
+  type: StockType;
+};
+
 export type UserInTable = User & {
+  invoices: Invoice[];
   workShop: WorkShop | null;
   cutterOrders: (Order & {
     variant: ProductVariant | null;

@@ -15,7 +15,7 @@ import { ManageInvoiceForm } from "../forms/manage-invoice-form";
 import { months } from "@/lib/months";
 
 export const ManageInvoiceModal = () => {
-  const { isOpen, onClose, type } = useModal();
+  const { isOpen, onClose, type, data } = useModal();
 
   const isModalOpen = isOpen && type === "manageInvoice";
 
@@ -27,7 +27,8 @@ export const ManageInvoiceModal = () => {
             Facture de <span className="text-brand">Nom</span>
           </DialogTitle>
           <DialogDescription className="text-brand">
-            {months[new Date().getMonth()]} {new Date().getFullYear()}
+            {months[(data?.date || new Date()).getMonth()]}{" "}
+            {(data?.date || new Date()).getFullYear()}
           </DialogDescription>
         </DialogHeader>
         <ManageInvoiceForm />

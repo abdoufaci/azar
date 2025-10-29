@@ -41,11 +41,9 @@ export const addOrder = async ({
     db.order.createMany({
       data: cart.items.flatMap((item) => {
         return Array.from({ length: item.quantity }, () => {
-          const uid = new ShortUniqueId({ length: 10 });
-          const orderId = uid.rnd();
           return {
             ...(!!user && { clientId: user.id }),
-            orderId,
+            orderId: "/",
             subtypeId: item.product.pricing.subtypeId,
             variantId: item.product.variantId,
             tissuId: item.tissuId,

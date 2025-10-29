@@ -19,6 +19,8 @@ import {
 import {
   DemandMaterial,
   DemandStage,
+  OrderColumn,
+  OrderColumnStatus,
   OrderStage,
   Product,
   ProductAudience,
@@ -52,6 +54,9 @@ interface Props {
   totalDemands: number;
   materials: DemandMaterial[];
   url: string;
+  columns: (OrderColumn & {
+    statuses: OrderColumnStatus[];
+  })[];
 }
 
 function WorkshopInterface({
@@ -73,6 +78,7 @@ function WorkshopInterface({
   workShops,
   workshop,
   url,
+  columns,
 }: Props) {
   const [activeTab, setActiveTab] = useState("main");
   const [isAdd, setIsAdd] = useState(false);
@@ -163,6 +169,7 @@ function WorkshopInterface({
           productionsPerPage={itemsPerPage}
           totalProductions={totalProductions}
           url={url}
+          columns={columns}
         />
       )}
       {!isAdd && activeTab === "demands" && (

@@ -19,14 +19,14 @@ export const updateInvoiceDetails = async ({
     throw new Error("User is required");
   }
 
-  await db.user.update({
-    where: {
-      id: userId,
-    },
-    data: {
-      ...data,
-    },
-  });
+  // await db.user.update({
+  //   where: {
+  //     id: userId,
+  //   },
+  //   data: {
+  //     ...data,
+  //   },
+  // });
 
   revalidatePath("/");
 };

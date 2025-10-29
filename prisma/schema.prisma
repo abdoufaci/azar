@@ -23,6 +23,20 @@ enum EmplyeeRole {
   MANCHEUR
 }
 
+model Invoice {
+  id        String @id @default(cuid())
+  assurance Int    @default(0)
+  deposit   Int    @default(0)
+  payment   Int    @default(0)
+  other     Int    @default(0)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model User {
   id                    String                 @id @default(cuid())
   name                  String
@@ -40,10 +54,6 @@ model User {
   isTwoFactorEnabled    Boolean                @default(false)
   twoFactorConfirmation TwoFactorConfirmation?
   deviceToken           String?
-  assurance             Int                    @default(0)
-  deposit               Int                    @default(0)
-  payment               Int                    @default(0)
-  other                 Int                    @default(0)
 
   workShopId String?
   workShop   WorkShop? @relation(fields: [workShopId], references: [id], onDelete: NoAction)
@@ -61,6 +71,7 @@ model User {
   demands         Demand[]
   demandHistory   DemandHistory[]
   orderExtraCells OrderColumnCell[]
+  invoices        Invoice[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -554,8 +565,8 @@ model Stock {
   currentQuantity Int
   ref             String             @unique
 
-  stockTypeId String
-  StockType   StockType @relation(fields: [stockTypeId], references: [id], onDelete: Cascade)
+  typeId String
+  type   StockType @relation(fields: [typeId], references: [id], onDelete: Cascade)
 
   workShopId String
   workshop   WorkShop @relation(fields: [workShopId], references: [id], onDelete: Cascade)

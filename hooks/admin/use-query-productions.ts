@@ -1,15 +1,12 @@
+"use client";
+
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useFilterModal } from "./use-filter-modal-store";
+import { useFilterModal } from "../use-filter-modal-store";
 import qs from "query-string";
-import { ProductCategory } from "@prisma/client";
 
-interface Props {
-  type: ProductCategory;
-}
-
-export const useProductsQuery = ({ type }: Props) => {
+export const useProductionsQuery = () => {
   const { data: filter } = useFilterModal();
-  const { store: filterData } = filter;
+  const { admin: filterData } = filter;
 
   const fetchCars = async ({
     pageParam = undefined,
@@ -18,15 +15,10 @@ export const useProductsQuery = ({ type }: Props) => {
   }) => {
     const url = qs.stringifyUrl(
       {
-        url: "/api/products",
+        url: "/api/productions",
         query: {
-          min: filterData.price?.min,
-          max: filterData.price?.max,
-          search: filterData.search,
-          variantId: filterData.variantId,
-          subtypeId: filterData.subtypeId,
-          type,
           cursor: pageParam,
+          ...filterData,
         },
       },
       { skipNull: true }
@@ -43,8 +35,10 @@ export const useProductsQuery = ({ type }: Props) => {
     isLoading,
     isLoadingError,
     refetch,
+    fetchPreviousPage,
+    isPending,
   } = useInfiniteQuery({
-    queryKey: ["products", filterData],
+    queryKey: ["productions", filterData],
     queryFn: fetchCars,
     getNextPageParam: (lastPage) => lastPage?.nextCursor,
     initialPageParam: undefined,
@@ -59,5 +53,7 @@ export const useProductsQuery = ({ type }: Props) => {
     isLoading,
     isLoadingError,
     refetch,
+    fetchPreviousPage,
+    isPending,
   };
 };

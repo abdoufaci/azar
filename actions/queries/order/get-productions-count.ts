@@ -19,6 +19,12 @@ export const getProductionsCount = async ({
       ...(search && {
         OR: [
           {
+            orderId: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+          {
             client: {
               name: {
                 contains: search,

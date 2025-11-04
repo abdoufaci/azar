@@ -20,21 +20,25 @@ async function StockPage({
   const { target } = await searchParams;
   const currentPage = (await searchParams).page;
   const itemsPerPage = 8;
-  const stocks = await getStocks({
-    currentPage: Number(currentPage || "1"),
-    stocksPerPage: itemsPerPage,
-    searchParams,
-  });
-  const desks = await getDesks({
-    currentPage: Number(currentPage || "1"),
-    desksPerPage: itemsPerPage,
-    searchParams,
-  });
-  const totalStocks = await getStocksCount({ searchParams });
-  const totalDesks = await getDesksCount({ searchParams });
-  const workshops = await getWorkshops();
-  const types = await getStockTypes();
-  const { todaysDeposits, todaysWithdrawals, total } = await getPaymentsSum();
+  const [stocks, desks, totalStocks, totalDesks, workshops, types, payments] =
+    await Promise.all([
+      getStocks({
+        currentPage: Number(currentPage || "1"),
+        stocksPerPage: itemsPerPage,
+        searchParams,
+      }),
+      getDesks({
+        currentPage: Number(currentPage || "1"),
+        desksPerPage: itemsPerPage,
+        searchParams,
+      }),
+      getStocksCount({ searchParams }),
+      getDesksCount({ searchParams }),
+      getWorkshops(),
+      getStockTypes(),
+      getPaymentsSum(),
+    ]);
+  const { todaysDeposits, todaysWithdrawals, total } = payments;
 
   return (
     <div className="min-h-screen p-6">

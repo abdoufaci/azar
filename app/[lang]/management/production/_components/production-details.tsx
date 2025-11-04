@@ -21,6 +21,7 @@ import {
   Check,
   ChevronLeft,
   CircleFadingPlus,
+  Loader2,
   Minus,
   PenLine,
   Plus,
@@ -34,6 +35,10 @@ import { addColumnStatus } from "@/actions/mutations/order/add-column-status";
 import { truncate } from "@/lib/truncate";
 import { manageCell } from "@/actions/mutations/order/manage-cell";
 import { Calendar } from "@/components/ui/calendar";
+import Barcode from "react-barcode";
+import { useOrderHistoryQuery } from "@/hooks/admin/use-order-history-query";
+import { useSubOrdersQuery } from "@/hooks/admin/use-sub-orders-query";
+import { useOrderQuery } from "@/hooks/admin/use-order-query";
 
 interface Props {
   order: ProductionInTable;
@@ -49,7 +54,7 @@ interface Props {
 function ProductionDetails({
   onClick,
   orderStages,
-  order,
+  order: motherOrder,
   employees,
   onSubOrderClick,
   columns,
@@ -61,6 +66,19 @@ function ProductionDetails({
   const [cellTextToEdit, setCellTextToEdit] = useState<number | null>(null);
   const [cellText, setCellText] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const res = useOrderQuery({
+    orderId: motherOrder.subOrderId,
+  });
+  const { data, isPending: isFetchingOrderHistory } = useOrderHistoryQuery({
+    orderId: motherOrder.subOrderId || motherOrder.id,
+  });
+  const { data: subOrders, isPending: isFetchingSubOrders } = useSubOrdersQuery(
+    {
+      orderId: motherOrder.subOrderId ? motherOrder.subOrderId : motherOrder.id,
+    }
+  );
+
+  const order = motherOrder.subOrderId ? res?.data : motherOrder;
 
   const handleAddOrderStage = () => {
     startAddingOrderStage(() => {
@@ -91,25 +109,29 @@ function ProductionDetails({
 
   const cutters = employees.filter(
     (user) =>
-      user.workShopId === order.workShopId && user.employeeRole === "CUTTER"
+      user.workShopId === order?.workShopId && user.employeeRole === "CUTTER"
   );
 
   const tailors = employees.filter(
     (user) =>
-      user.workShopId === order.workShopId && user.employeeRole === "TAILOR"
+      user.workShopId === order?.workShopId && user.employeeRole === "TAILOR"
   );
 
   const tapisiers = employees.filter(
     (user) =>
-      user.workShopId === order.workShopId && user.employeeRole === "TAPISIER"
+      user.workShopId === order?.workShopId && user.employeeRole === "TAPISIER"
   );
 
   const mancheurs = employees.filter(
     (user) =>
-      user.workShopId === order.workShopId && user.employeeRole === "MANCHEUR"
+      user.workShopId === order?.workShopId && user.employeeRole === "MANCHEUR"
   );
 
-  return (
+  if (res?.isPending) {
+    return <Loader2 className="text-brand animate-spin h-5 w-5" />;
+  }
+
+  return !order ? null : (
     <div className="space-y-10">
       <div className="flex items-center justify-between gap-5">
         <SheetClose>
@@ -131,7 +153,7 @@ function ProductionDetails({
           <PenLine className="h-5 w-5" />
         </Button>
       </div>
-      <Image alt="barCode" src={"/bar-code.png"} height={200} width={250} />
+      <Barcode value={order.orderId} className="text-white" />
       <div className="space-y-5">
         <div className="space-y-2">
           <h3 className="text-[#95A1B1] font-medium text-xs">
@@ -1067,49 +1089,53 @@ function ProductionDetails({
       <div className="space-y-5">
         <h1 className="font-medium text-[#06191D]">LOGS</h1>
         <div className="space-y-3">
-          {order.history.map((action) => (
-            <div
-              key={action.id}
-              className="flex items-start gap-0.5 font-medium">
-              <h1 className="text-[#056BE4]">{action.user?.name} </h1>{" "}
-              {action.type === "INFORMATION" && (
-                <h5 className="text-[#182233]"> {action.text}</h5>
-              )}
-              {action.type === "STAGE" && (
-                <h5>
-                  changer le status{" "}
-                  <span
-                    style={{
-                      color: action.oldStage?.color,
-                    }}>
-                    {action.oldStage?.name}{" "}
-                  </span>{" "}
-                  {"->"}{" "}
-                  <span
-                    style={{
-                      color: action.newStage?.color,
-                    }}>
-                    {action.newStage?.name}{" "}
-                  </span>
-                </h5>
-              )}
-              {action.type === "EMPLOYEE" && (
-                <>
+          {isFetchingOrderHistory ? (
+            <Loader2 className="text-brand animate-spin h-5 w-5" />
+          ) : (
+            data?.map((action) => (
+              <div
+                key={action.id}
+                className="flex items-start gap-0.5 font-medium">
+                <h1 className="text-[#056BE4]">{action.user?.name} </h1>{" "}
+                {action.type === "INFORMATION" && (
+                  <h5 className="text-[#182233]"> {action.text}</h5>
+                )}
+                {action.type === "STAGE" && (
                   <h5>
-                    a {action.text === "remove" ? "retiré" : "ajouté"}{" "}
-                    {action.employee?.employeeRole === "CUTTER"
-                      ? "Decoupeur"
-                      : action.employee?.employeeRole === "TAILOR"
-                      ? "Couteur"
-                      : action.employee?.employeeRole === "MANCHEUR"
-                      ? "Mancheur"
-                      : "Tapisier"}
+                    changer le status{" "}
+                    <span
+                      style={{
+                        color: action.oldStage?.color,
+                      }}>
+                      {action.oldStage?.name}{" "}
+                    </span>{" "}
+                    {"->"}{" "}
+                    <span
+                      style={{
+                        color: action.newStage?.color,
+                      }}>
+                      {action.newStage?.name}{" "}
+                    </span>
                   </h5>
-                  <h5 className="text-[#056BE4]">{action.employee?.name}</h5>
-                </>
-              )}
-            </div>
-          ))}
+                )}
+                {action.type === "EMPLOYEE" && (
+                  <>
+                    <h5>
+                      a {action.text === "remove" ? "retiré" : "ajouté"}{" "}
+                      {action.employee?.employeeRole === "CUTTER"
+                        ? "Decoupeur"
+                        : action.employee?.employeeRole === "TAILOR"
+                        ? "Couteur"
+                        : action.employee?.employeeRole === "MANCHEUR"
+                        ? "Mancheur"
+                        : "Tapisier"}
+                    </h5>
+                    <h5 className="text-[#056BE4]">{action.employee?.name}</h5>
+                  </>
+                )}
+              </div>
+            ))
+          )}
         </div>
       </div>
       {!order.subOrderId && (
@@ -1124,14 +1150,18 @@ function ProductionDetails({
               <Plus className={cn("h-3 w-3 text-[#5A5A5A]")} />
             </div>
           </div>
-          {order.subOrders.map((order) => (
-            <SubProductionDetails
-              key={order.id}
-              order={order}
-              employees={employees}
-              orderStages={orderStages}
-            />
-          ))}
+          {isFetchingSubOrders ? (
+            <Loader2 className="text-brand animate-spin h-5 w-5" />
+          ) : (
+            subOrders.map((order) => (
+              <SubProductionDetails
+                key={order.id}
+                order={order}
+                employees={employees}
+                orderStages={orderStages}
+              />
+            ))
+          )}
         </div>
       )}
     </div>

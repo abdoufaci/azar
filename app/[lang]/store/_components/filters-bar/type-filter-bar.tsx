@@ -22,10 +22,13 @@ function TypeFilterBar({ lang, types }: Props) {
   return (
     <Select
       onValueChange={(type) => {
-        const { subtypeId, ...rest } = data;
+        const { subtypeId, ...rest } = data.store;
         onSearch({
-          ...rest,
-          subtypeId: type === "default" ? undefined : type,
+          store: {
+            ...rest,
+            subtypeId: type === "default" ? undefined : type,
+          },
+          admin: {},
         });
       }}>
       <SelectTrigger className="w-24 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">

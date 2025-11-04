@@ -20,7 +20,10 @@ function SearchFilterBar({ lang }: Props) {
   useEffect(() => {
     const fetchProducts = async () => {
       onSearch({
-        search: searchTerm,
+        store: {
+          search: searchTerm,
+        },
+        admin: {},
       });
     };
     fetchProducts();

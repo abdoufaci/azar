@@ -46,8 +46,8 @@ function DeskTypeFilter({ searchParams, url: pathname }: Props) {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="default">Par Default</SelectItem>
-        <SelectItem value={DeskType.DEPOSIT}>Acompte</SelectItem>
-        <SelectItem value={DeskType.WITHDRAWAL}>Versement</SelectItem>
+        <SelectItem value={DeskType.DEPOSIT}>Entrée</SelectItem>
+        <SelectItem value={DeskType.WITHDRAWAL}>Sortie</SelectItem>
       </SelectContent>
     </Select>
   );

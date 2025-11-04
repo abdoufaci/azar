@@ -10,10 +10,12 @@ async function ProductsPage({
 }: {
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
-  const types = await getProductSubTypes();
-  const variants = await getProductVariants();
-  const products = await getProducts();
-  const tissues = await getTissues();
+  const [types, variants, products, tissues] = await Promise.all([
+    getProductSubTypes(),
+    getProductVariants(),
+    getProducts(),
+    getTissues(),
+  ]);
 
   return (
     <div className="p-8">

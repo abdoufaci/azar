@@ -21,21 +21,27 @@ export default async function DemandesPage({
   params: any;
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
-  if (!(await searchParams).client) {
-    redirect("/management/orders?client=B2B");
-  }
   const currentPage = (await searchParams).page;
   const ordersPerPage = 8;
-  const types = await getProductSubTypes();
-  const variants = await getProductVariants();
-  const orders = await getOrders({
-    currentPage: Number(currentPage || "1"),
-    ordersPerPage,
-    searchParams,
-  });
-  const totalOrders = await getOrdersCount({ searchParams });
-  const availableProductions = await getAvailableProductions();
-  const workshops = await getWorkshops();
+  const [
+    types,
+    variants,
+    orders,
+    totalOrders,
+    availableProductions,
+    workshops,
+  ] = await Promise.all([
+    getProductSubTypes(),
+    getProductVariants(),
+    getOrders({
+      currentPage: Number(currentPage || "1"),
+      ordersPerPage,
+      searchParams,
+    }),
+    getOrdersCount({ searchParams }),
+    getAvailableProductions(),
+    getWorkshops(),
+  ]);
 
   return (
     <div className="min-h-screen p-6">

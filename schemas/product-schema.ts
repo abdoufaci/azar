@@ -7,12 +7,14 @@ export const productFormSchema = z.object({
     ProductCategory.TABLE,
     ProductCategory.CHAIR,
   ]),
-  images: z.array(
-    z.object({
-      id: z.string(),
-      type: z.string(),
-    })
-  ),
+  images: z
+    .array(
+      z.object({
+        id: z.string(),
+        type: z.string(),
+      })
+    )
+    .min(1),
   variant: z.object({
     id: z.string(),
     name: z.string(),

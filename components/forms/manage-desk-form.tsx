@@ -144,11 +144,9 @@ export default function ManageDeskForm({ onCancel, desk }: Props) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value={DeskType.DEPOSIT}>
-                          Acompte
-                        </SelectItem>
+                        <SelectItem value={DeskType.DEPOSIT}>Entrée</SelectItem>
                         <SelectItem value={DeskType.WITHDRAWAL}>
-                          Versement
+                          Sortie
                         </SelectItem>
                       </SelectContent>
                     </Select>

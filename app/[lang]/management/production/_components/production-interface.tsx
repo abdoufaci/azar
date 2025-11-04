@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/popover";
 import { addColumn } from "@/actions/mutations/order/add-column";
 import { toast } from "sonner";
+import ClientProductionsTable from "../../client-production/_components/client-productions-table";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
@@ -255,8 +256,7 @@ function ProductionInterface({
           key={productionToEdit?.id}
         />
       ) : (
-        <ProductionsTable
-          productions={productions}
+        <ClientProductionsTable
           orderStages={orderStages}
           employees={employees}
           onClick={(item) => {
@@ -267,11 +267,6 @@ function ProductionInterface({
             setMotherOrder(item);
             setIsAdd(true);
           }}
-          currentPage={currentPage}
-          productionsPerPage={productionsPerPage}
-          totalProductions={totalProductions}
-          searchParams={searchParams}
-          url={url}
           columns={columns}
         />
       )}

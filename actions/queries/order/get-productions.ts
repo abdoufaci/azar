@@ -30,17 +30,6 @@ export const getProductions = async ({
     variant: true,
     workShop: true,
     guest: true,
-    history: {
-      include: {
-        employee: true,
-        newStage: true,
-        oldStage: true,
-        user: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    },
     extraCells: {
       include: {
         person: true,
@@ -54,6 +43,12 @@ export const getProductions = async ({
       status: "ACCEPTED",
       ...(search && {
         OR: [
+          {
+            orderId: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
           {
             client: {
               name: {
@@ -114,19 +109,6 @@ export const getProductions = async ({
     },
     include: {
       ...baseOrderInclude,
-      subOrders: {
-        //@ts-ignore
-        include: baseOrderInclude,
-      },
-      subOrder: {
-        include: {
-          ...baseOrderInclude,
-          subOrders: {
-            //@ts-ignore
-            include: baseOrderInclude,
-          },
-        },
-      },
     },
     orderBy: {
       acceptedAt: "desc",

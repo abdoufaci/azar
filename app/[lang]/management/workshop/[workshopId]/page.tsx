@@ -27,35 +27,52 @@ async function WorkShopIdPage({
   searchParams,
 }: Props) {
   const currentPage = (await searchParams).page;
-  const target = (await searchParams).target;
   const itemsPerPage = 8;
-  const types = await getProductSubTypes();
-  const variants = await getProductVariants();
-  const tissues = await getTissues();
-  const { clients, employees } = await getEmployeesAndClients();
-  const workshops = await getWorkshops();
-  const productions = await getProductions({
-    currentPage: Number(currentPage || "1"),
-    productionsPerPage: itemsPerPage,
-    searchParams,
-    workshopId,
-  });
-  const totalProductions = await getProductionsCount({
-    searchParams,
-    workshopId,
-  });
-  const orderStages = await getOrderStages();
-  const workshop = await getWorkShopById(workshopId);
-  const demands = await getDemands({
-    currentPage: Number(currentPage || "1"),
-    demandsPerPage: itemsPerPage,
-    searchParams,
-    workshopId,
-  });
-  const totalDemands = await getDemandsCount({ searchParams, workshopId });
-  const stages = await getDemandStages();
-  const materials = await getDemandMaterials();
-  const columns = await getColumns();
+  const [
+    types,
+    variants,
+    tissues,
+    users,
+    workshops,
+    productions,
+    totalProductions,
+    orderStages,
+    workshop,
+    demands,
+    totalDemands,
+    stages,
+    materials,
+    columns,
+  ] = await Promise.all([
+    getProductSubTypes(),
+    getProductVariants(),
+    getTissues(),
+    getEmployeesAndClients(),
+    getWorkshops(),
+    getProductions({
+      currentPage: Number(currentPage || "1"),
+      productionsPerPage: itemsPerPage,
+      searchParams,
+      workshopId,
+    }),
+    getProductionsCount({
+      searchParams,
+      workshopId,
+    }),
+    getOrderStages(),
+    getWorkShopById(workshopId),
+    getDemands({
+      currentPage: Number(currentPage || "1"),
+      demandsPerPage: itemsPerPage,
+      searchParams,
+      workshopId,
+    }),
+    getDemandsCount({ searchParams, workshopId }),
+    getDemandStages(),
+    getDemandMaterials(),
+    getColumns(),
+  ]);
+  const { clients, employees } = users;
 
   return (
     <div className="min-h-screen p-6 space-y-6">
@@ -71,7 +88,6 @@ async function WorkShopIdPage({
         productions={productions}
         orderStages={orderStages}
         currentPage={Number(currentPage || "1")}
-        productionsPerPage={itemsPerPage}
         totalProductions={totalProductions}
         demands={demands}
         stages={stages}

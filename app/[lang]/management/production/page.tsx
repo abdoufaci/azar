@@ -18,19 +18,32 @@ export default async function ProductionPage({
 }) {
   const currentPage = (await searchParams).page;
   const productionsPerPage = 8;
-  const types = await getProductSubTypes();
-  const variants = await getProductVariants();
-  const tissues = await getTissues();
-  const { clients, employees } = await getEmployeesAndClients();
-  const workshops = await getWorkshops();
-  const productions = await getProductions({
-    currentPage: Number(currentPage || "1"),
-    productionsPerPage,
-    searchParams,
-  });
-  const totalProductions = await getProductionsCount({ searchParams });
-  const orderStages = await getOrderStages();
-  const columns = await getColumns();
+  const [
+    types,
+    variants,
+    tissues,
+    users,
+    workshops,
+    productions,
+    totalProductions,
+    orderStages,
+    columns,
+  ] = await Promise.all([
+    getProductSubTypes(),
+    getProductVariants(),
+    getTissues(),
+    getEmployeesAndClients(),
+    getWorkshops(),
+    getProductions({
+      currentPage: Number(currentPage || "1"),
+      productionsPerPage,
+      searchParams,
+    }),
+    getProductionsCount({ searchParams }),
+    getOrderStages(),
+    getColumns(),
+  ]);
+  const { clients, employees } = users;
 
   return (
     <div className="p-8">

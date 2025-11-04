@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useFilterModal } from "@/hooks/use-filter-modal-store";
 import { User, WorkShop } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import qs from "query-string";
@@ -16,25 +17,22 @@ interface Props {
   workShops: WorkShop[];
 }
 
-function WorkShopFilter({ searchParams, url: pathname, workShops }: Props) {
+function WorkShopFilter({ workShops }: Props) {
   const router = useRouter();
+  const { onSearch, data } = useFilterModal();
 
   return (
     <Select
       onValueChange={(workshop) => {
-        const { workshop: curr, page, ...rest } = searchParams;
+        const { workshop: curr, ...rest } = data.admin;
 
-        const url = qs.stringifyUrl(
-          {
-            url: pathname,
-            query: {
-              ...rest,
-              workshop: workshop !== "default" ? workshop : null,
-            },
+        onSearch({
+          store: {},
+          admin: {
+            ...rest,
+            workshop: workshop === "default" ? undefined : workshop,
           },
-          { skipNull: true }
-        );
-        router.push(url);
+        });
       }}>
       <SelectTrigger className="w-32 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">
         <SelectValue placeholder="Atelier" />

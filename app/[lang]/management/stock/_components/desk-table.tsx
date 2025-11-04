@@ -148,7 +148,7 @@ export function DesksTable({
                         ? "text-[#056BE4] bg-[#DEEDFF]"
                         : "text-[#7C05E4] bg-[#7C05E426]"
                     )}>
-                    {desk.type === "DEPOSIT" ? "Acompte" : "Versement"}
+                    {desk.type === "DEPOSIT" ? "Entrée" : "Sortie"}
                   </div>
                 </div>
               </TableCell>

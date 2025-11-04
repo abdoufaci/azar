@@ -21,10 +21,13 @@ function VariantFilterBar({ lang, variants }: Props) {
   return (
     <Select
       onValueChange={(variant) => {
-        const { variantId, ...rest } = data;
+        const { variantId, ...rest } = data.store;
         onSearch({
-          ...rest,
-          variantId: variant === "default" ? undefined : variant,
+          store: {
+            ...rest,
+            variantId: variant === "default" ? undefined : variant,
+          },
+          admin: {},
         });
       }}>
       <SelectTrigger className="w-24 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">

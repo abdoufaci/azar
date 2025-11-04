@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useFilterModal } from "@/hooks/use-filter-modal-store";
 import { ProductVariantWithPricing } from "@/types/types";
 import { OrderStage, User } from "@prisma/client";
 import { useRouter } from "next/navigation";
@@ -19,23 +20,20 @@ interface Props {
 
 function VariantsFilter({ searchParams, url: pathname, variants }: Props) {
   const router = useRouter();
+  const { onSearch, data } = useFilterModal();
 
   return (
     <Select
       onValueChange={(variant) => {
-        const { variant: curr, page, ...rest } = searchParams;
+        const { variant: curr, ...rest } = data.admin;
 
-        const url = qs.stringifyUrl(
-          {
-            url: pathname,
-            query: {
-              ...rest,
-              variant: variant !== "default" ? variant : null,
-            },
+        onSearch({
+          store: {},
+          admin: {
+            ...rest,
+            variant: variant === "default" ? undefined : variant,
           },
-          { skipNull: true }
-        );
-        router.push(url);
+        });
       }}>
       <SelectTrigger className="w-24 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">
         <SelectValue placeholder="Model" />

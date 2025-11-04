@@ -44,7 +44,7 @@ function Tiptap({ description, onChange, isArabic = false }: Props) {
   });
 
   return (
-    <div dir="rtl" className="w-full">
+    <div dir={isArabic ? "rtl" : "ltr"} className="w-full">
       <EditorContent editor={editor} />
       <Toolbar editor={editor} />
     </div>

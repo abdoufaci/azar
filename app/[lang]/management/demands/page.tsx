@@ -1,20 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Search, Plus } from "lucide-react";
-import { DemandesTable } from "./_components/demandes-table";
-import SearchFilter from "@/components/filters/search-filter";
-import WorkShopFilter from "@/components/filters/workshop-filter";
-import TypeFilter from "@/components/filters/type-filter";
-import PriorityFilter from "@/components/filters/priority-filter";
-import StatusFilter from "@/components/filters/status-filter";
-import { OpenDialogButton } from "@/components/open-dialog-button";
 import { getWorkshops } from "@/actions/queries/workshop/get-workshops";
 import { getDemands } from "@/actions/queries/demands/get-demands";
 import { getDemandsCount } from "@/actions/queries/demands/get-demands-count";
@@ -30,15 +13,18 @@ export default async function DemandesPage({
 }) {
   const currentPage = (await searchParams).page;
   const demandsPerPage = 8;
-  const workshops = await getWorkshops();
-  const demands = await getDemands({
-    currentPage: Number(currentPage || "1"),
-    demandsPerPage,
-    searchParams,
-  });
-  const totalDemands = await getDemandsCount({ searchParams });
-  const stages = await getDemandStages();
-  const materials = await getDemandMaterials();
+  const [workshops, demands, totalDemands, stages, materials] =
+    await Promise.all([
+      getWorkshops(),
+      getDemands({
+        currentPage: Number(currentPage || "1"),
+        demandsPerPage,
+        searchParams,
+      }),
+      getDemandsCount({ searchParams }),
+      getDemandStages(),
+      getDemandMaterials(),
+    ]);
 
   return (
     <div className="p-8">

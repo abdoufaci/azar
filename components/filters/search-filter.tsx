@@ -3,10 +3,8 @@
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@uidotdev/usehooks";
 import { Search } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import qs from "query-string";
-import { cn } from "@/lib/utils";
+import { useFilterModal } from "@/hooks/use-filter-modal-store";
 
 interface Props {
   url: string;
@@ -16,24 +14,18 @@ interface Props {
 export default function SearchFilter({ url: pathname, searchParams }: Props) {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const router = useRouter();
-  const { page, search, ...rest } = searchParams;
+  const { onSearch, data } = useFilterModal();
+
+  const { search, ...rest } = data.admin;
 
   useEffect(() => {
-    const url = qs.stringifyUrl(
-      {
-        url: pathname,
-        query: {
-          search:
-            debouncedSearchTerm.trim() === ""
-              ? null
-              : debouncedSearchTerm.trim(),
-          ...rest,
-        },
+    onSearch({
+      admin: {
+        ...rest,
+        search: searchTerm,
       },
-      { skipNull: true }
-    );
-    router.push(url);
+      store: {},
+    });
   }, [debouncedSearchTerm]);
 
   return (

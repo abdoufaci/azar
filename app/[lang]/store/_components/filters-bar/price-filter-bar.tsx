@@ -18,19 +18,24 @@ interface Props {
 function PriceFilterBar({ lang }: Props) {
   const { onSearch, data } = useFilterModal();
 
+  const { store } = data;
+
   return (
     <Select
       onValueChange={(minPrice) => {
-        const { price, ...rest } = data;
+        const { price, ...rest } = store;
         onSearch({
-          ...rest,
-          price:
-            minPrice === "default"
-              ? undefined
-              : {
-                  min: Number(minPrice),
-                  max: Number(minPrice) + 50000,
-                },
+          store: {
+            ...rest,
+            price:
+              minPrice === "default"
+                ? undefined
+                : {
+                    min: Number(minPrice),
+                    max: Number(minPrice) + 50000,
+                  },
+          },
+          admin: {},
         });
       }}>
       <SelectTrigger className="w-24 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">

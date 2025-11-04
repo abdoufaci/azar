@@ -79,7 +79,7 @@ export type OrderWithRelations = Order & {
   guest: Guest | null;
 };
 
-type OrderWithRelationsWithHistory = Order & {
+type OrderWithRelationsWithCells = Order & {
   client: User | null;
   tissu: Tissu | null;
   orderStage: OrderStage | null;
@@ -93,25 +93,30 @@ type OrderWithRelationsWithHistory = Order & {
   variant: ProductVariant;
   workShop: WorkShop | null;
   guest: Guest | null;
-  history: (OrderHistory & {
-    employee: User | null;
-    newStage: OrderStage | null;
-    oldStage: OrderStage | null;
-    user: User;
-  })[];
   extraCells: (OrderColumnCell & {
     person: User | null;
     status: OrderColumnStatus | null;
   })[];
 };
 
-export type ProductionInTable = OrderWithRelationsWithHistory & {
-  subOrders: OrderWithRelationsWithHistory[];
-  subOrder:
-    | (OrderWithRelationsWithHistory & {
-        subOrders: OrderWithRelationsWithHistory[];
-      })
-    | null;
+export type ProductionInTable = Order & {
+  client: User | null;
+  tissu: Tissu | null;
+  orderStage: OrderStage | null;
+  pricing: OrderPricing | null;
+  subType: ProductSubtype;
+  cutter: User | null;
+  tailor: User | null;
+  tapisier: User | null;
+  mancheur: User | null;
+  user: User | null;
+  variant: ProductVariant;
+  workShop: WorkShop | null;
+  guest: Guest | null;
+  extraCells: (OrderColumnCell & {
+    person: User | null;
+    status: OrderColumnStatus | null;
+  })[];
 };
 
 export type OrderInTable = Order & {

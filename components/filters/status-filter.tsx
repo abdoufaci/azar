@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useFilterModal } from "@/hooks/use-filter-modal-store";
 import { DemandStage, OrderStage, User } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import qs from "query-string";
@@ -18,23 +19,20 @@ interface Props {
 
 function StatusFilter({ searchParams, url: pathname, stages }: Props) {
   const router = useRouter();
+  const { onSearch, data } = useFilterModal();
 
   return (
     <Select
       onValueChange={(status) => {
-        const { status: curr, page, ...rest } = searchParams;
+        const { status: curr, ...rest } = data.admin;
 
-        const url = qs.stringifyUrl(
-          {
-            url: pathname,
-            query: {
-              ...rest,
-              status: status !== "default" ? status : null,
-            },
+        onSearch({
+          store: {},
+          admin: {
+            ...rest,
+            status: status === "default" ? undefined : status,
           },
-          { skipNull: true }
-        );
-        router.push(url);
+        });
       }}>
       <SelectTrigger className="w-24 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">
         <SelectValue placeholder="Statut" />

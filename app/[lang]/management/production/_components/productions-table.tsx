@@ -38,6 +38,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { manageCell } from "@/actions/mutations/order/manage-cell";
 import { addColumnStatus } from "@/actions/mutations/order/add-column-status";
 import { truncate } from "@/lib/truncate";
+import { useOrderQuery } from "@/hooks/admin/use-order-query";
 
 interface Props {
   productions: ProductionInTable[];
@@ -767,7 +768,7 @@ export function ProductionsTable({
                   orderStages={orderStages}
                   employees={employees}
                   //@ts-ignore
-                  order={order.subOrderId ? order.subOrder : order}
+                  order={order}
                   onSubOrderClick={() => onSubOrderClick(order)}
                   columns={columns}
                 />

@@ -40,16 +40,12 @@ const main = async () => {
     //   ],
     // });
 
-    await db.order.updateMany({
-      data: {
-        orderId: "/",
-      },
-    });
+    await db.orderColumn.deleteMany();
 
     console.log("adding finished");
   } catch (error) {
-    console.log(error);
-    throw new Error("Failed to seed the database");
+    console.log({ error });
+    // throw new Error("Failed to seed the database");
   }
 };
 

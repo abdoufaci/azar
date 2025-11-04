@@ -27,20 +27,25 @@ interface Props {
     >
   >;
   variant: ProductVariantWithPricing | null;
+  onUpdateVariant: (item: ProductVariantWithPricing) => void;
+  onAddVariant: (item: ProductVariantWithPricing) => void;
 }
 
 function AddProductVariantForm({
   selectedCategory,
-  types,
+  types: intialTypes,
   categoryLabel,
   handleCancel,
   setTypesToRemove,
   onContinue,
   variant,
+  onAddVariant,
+  onUpdateVariant,
 }: Props) {
   const [step, setStep] = useState<1 | 2>(1);
   const [model, setModel] = useState(variant ? variant.name : "");
   const [newTypeInput, setNewTypeInput] = useState("");
+  const [types, setTypes] = useState(intialTypes || []);
   const [selectedTypes, setSelectedTypes] = useState<
     {
       id: string;
@@ -74,7 +79,8 @@ function AddProductVariantForm({
   const handleAddType = (type: ProductCategory) => {
     startAddingType(() => {
       addProductSubtype({ name: newTypeInput, category: type })
-        .then(() => {
+        .then((res) => {
+          setTypes((prev) => [res, ...prev]);
           setNewTypeInput("");
           setShowAdd(false);
           toast.success("created !");
@@ -87,7 +93,8 @@ function AddProductVariantForm({
     startAddingProductModel(() => {
       variant
         ? updateProductVariant({ name: model, prices, variant })
-            .then(() => {
+            .then((res) => {
+              onUpdateVariant(res);
               setModel("");
               setStep(1);
               onContinue();
@@ -95,7 +102,8 @@ function AddProductVariantForm({
             })
             .catch(() => toast.error("Erreur"))
         : addProductVariant({ category: selectedCategory, name: model, prices })
-            .then(() => {
+            .then((res) => {
+              onAddVariant(res);
               setModel("");
               setStep(1);
               onContinue();

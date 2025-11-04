@@ -39,7 +39,7 @@ import { addColumn } from "@/actions/mutations/order/add-column";
 import { toast } from "sonner";
 import ProductionsTable from "./productions-table";
 import { useProductionsQuery } from "@/hooks/admin/use-query-productions";
-import { optimisticReducer } from "@/lib/optimistic-reducer";
+import { productionOptimisticReducer } from "@/lib/optimistic-reducers/production-optimistic-reducer";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
@@ -79,7 +79,7 @@ function ProductionInterface({
   const { data } = useProductionsQuery();
   const [productions, manageProductionOptimistic] = useOptimistic(
     data?.pages[data?.pages?.length - 1]?.productions as ProductionInTable[],
-    optimisticReducer
+    productionOptimisticReducer
   );
 
   const onAddColumn = async (type: OrderColumnType) => {

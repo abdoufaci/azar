@@ -29,10 +29,17 @@ export const updateProductVariant = async ({
     .filter((pricing) => !prices.find((price) => price.id === pricing.id))
     .map((pricing) => pricing.id);
 
-  await db.$transaction([
+  const [updatedVariant] = await db.$transaction([
     db.productVariant.update({
       where: { id: variant.id },
       data: { name },
+      include: {
+        pricings: {
+          include: {
+            subtype: true,
+          },
+        },
+      },
     }),
     ...pricingsToUpdate.map((price) =>
       db.productPricing.update({
@@ -63,4 +70,6 @@ export const updateProductVariant = async ({
   ]);
 
   revalidatePath("/");
+
+  return updatedVariant;
 };

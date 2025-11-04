@@ -44,6 +44,7 @@ import Tiptap from "../tiptap";
 import AddProductVariantForm from "./add-product-variant-form";
 import { updateProduct } from "@/actions/mutations/products/update-product";
 import ManageProductTissues from "./manage-product-tissues";
+import { ScrollArea } from "../ui/scroll-area";
 
 interface Props {
   onCancel: () => void;
@@ -61,7 +62,7 @@ interface Props {
 export default function ManageProductForm({
   onCancel,
   types,
-  variants,
+  variants: intialVariants,
   audience,
   product,
   tissues,
@@ -73,6 +74,7 @@ export default function ManageProductForm({
       name: string;
     }[]
   >([]);
+  const [variants, setVariants] = useState(intialVariants || []);
   const [tissuesToRemove, setTissuesToRemove] = useState<
     {
       id: string;
@@ -86,6 +88,8 @@ export default function ManageProductForm({
       type: string;
     }[]
   >([]);
+  const [variantToEdit, setVariantToEdit] =
+    useState<ProductVariantWithPricing | null>(null);
 
   const foundVariant = variants.find(
     (variant) => variant.id === product?.variantId
@@ -258,7 +262,17 @@ export default function ManageProductForm({
         onContinue={() => setStep(2)}
         types={types}
         setTypesToRemove={setTypesToRemove}
-        variant={null}
+        variant={variantToEdit}
+        onAddVariant={(variant) => setVariants((prev) => [variant, ...prev])}
+        onUpdateVariant={(variant) => {
+          let curr = variants;
+          const idx = curr.findIndex((item) => item.id === variant.id);
+          curr[idx] = {
+            ...variant,
+          };
+
+          setVariants(curr);
+        }}
       />
     );
   }
@@ -371,38 +385,58 @@ export default function ManageProductForm({
                         className="pb-1 !p-0 sm:!w-[280px] w-full "
                         align="start">
                         <div className="space-y-2">
-                          <div className="space-y-1">
-                            {variants
-                              .filter(
-                                (model) => model.category === selectedCategory
-                              )
-                              .map((model) => (
-                                <div
-                                  key={model.id}
-                                  onClick={() =>
-                                    field.onChange({
-                                      name: model.name,
-                                      id: model.id,
-                                      color: model.color,
-                                    })
-                                  }
-                                  className="border-b px-4 py-2 cursor-pointer">
+                          <ScrollArea className="h-40">
+                            <div className="space-y-1">
+                              {variants
+                                .filter(
+                                  (model) => model.category === selectedCategory
+                                )
+                                .map((variant) => (
                                   <div
-                                    style={{
-                                      backgroundColor: `${model.color}33`,
-                                    }}
-                                    className=" rounded-full px-5 py-1 w-fit">
-                                    <h1
+                                    key={variant.id}
+                                    onClick={() =>
+                                      field.onChange({
+                                        name: variant.name,
+                                        id: variant.id,
+                                        color: variant.color,
+                                      })
+                                    }
+                                    className="border-b px-4 py-2 cursor-pointer flex items-center gap-5">
+                                    <div
                                       style={{
-                                        color: model.color,
+                                        backgroundColor: `${variant.color}33`,
                                       }}
-                                      className="font-medium">
-                                      {model.name}
-                                    </h1>
+                                      className=" rounded-full px-5 py-1 w-fit">
+                                      <h1
+                                        style={{
+                                          color: variant.color,
+                                        }}
+                                        className="font-medium">
+                                        {variant.name}
+                                      </h1>
+                                    </div>
+                                    <svg
+                                      onClick={() => {
+                                        setStep(3);
+                                        setVariantToEdit(variant);
+                                      }}
+                                      width="17"
+                                      height="18"
+                                      viewBox="0 0 17 18"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg">
+                                      <path
+                                        d="M0.6875 17.1878H15.3542M2.21467 10.0259C1.82381 10.4176 1.60426 10.9484 1.60417 11.5017V14.4378H4.55858C5.11225 14.4378 5.643 14.2178 6.03442 13.8255L14.7428 5.11256C15.1335 4.72077 15.3529 4.19004 15.3529 3.63672C15.3529 3.08341 15.1335 2.55268 14.7428 2.16089L13.8829 1.29922C13.689 1.10521 13.4588 0.951327 13.2053 0.846362C12.9519 0.741398 12.6803 0.687415 12.406 0.6875C12.1317 0.687585 11.8601 0.741737 11.6067 0.846858C11.3534 0.95198 11.1232 1.10601 10.9294 1.30014L2.21467 10.0259Z"
+                                        stroke="#A2ABBD"
+                                        stroke-width="1.375"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                      />
+                                    </svg>
                                   </div>
-                                </div>
-                              ))}
-                          </div>
+                                ))}
+                            </div>
+                          </ScrollArea>
                           <div className="px-4">
                             <Button
                               type="button" // Important: type="button" to prevent submitting the form

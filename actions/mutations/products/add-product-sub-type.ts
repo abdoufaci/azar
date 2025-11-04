@@ -11,7 +11,7 @@ export const addProductSubtype = async ({
   name: string;
   category: ProductCategory;
 }) => {
-  await db.productSubtype.create({
+  const type = await db.productSubtype.create({
     data: {
       name,
       category,
@@ -19,4 +19,6 @@ export const addProductSubtype = async ({
   });
 
   revalidatePath("/");
+
+  return type;
 };

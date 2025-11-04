@@ -30,17 +30,22 @@ import { DemandFormData, demandFormSchema } from "@/schemas/demand-schema";
 import { addDemandMaterial } from "@/actions/mutations/demand/add-demand-material";
 import { addDemand } from "@/actions/mutations/demand/add-demand";
 import { useDemandsQuery } from "@/hooks/admin/use-query-demands";
+import { DemandInTable } from "@/types/types";
 
 interface Props {
   onCancel: () => void;
   workShops: WorkShop[];
   materials: DemandMaterial[];
+  addDemandOptimistic: (action: DemandInTable) => void;
+  updateDemandOptimistic: (action: DemandInTable) => void;
 }
 
 export default function ManageDemandForm({
   onCancel,
   workShops,
   materials,
+  addDemandOptimistic,
+  updateDemandOptimistic,
 }: Props) {
   const [isPending, startTransition] = useTransition();
   const [materialInput, setMaterialInput] = useState("");
@@ -54,7 +59,8 @@ export default function ManageDemandForm({
   const onSubmit = (data: DemandFormData) => {
     startTransition(() => {
       addDemand(data)
-        .then(() => {
+        .then((res) => {
+          addDemandOptimistic(res);
           refetch();
           toast.success("Success !");
           onCancel();

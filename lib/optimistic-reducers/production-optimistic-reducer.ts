@@ -16,7 +16,7 @@ export type OptimisticAction =
       action: "add" | "remove";
     };
 
-export const optimisticReducer = (
+export const productionOptimisticReducer = (
   state: ProductionInTable[],
   action: OptimisticAction
 ): ProductionInTable[] => {

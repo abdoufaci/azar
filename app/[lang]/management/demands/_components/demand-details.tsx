@@ -24,9 +24,10 @@ import { toast } from "sonner";
 interface Props {
   demand: DemandInTable;
   stages: DemandStage[];
+  updateStageOptimistic: (stage: DemandStage) => void;
 }
 
-function DemandDetails({ demand, stages }: Props) {
+function DemandDetails({ demand, stages, updateStageOptimistic }: Props) {
   const [newDemandStageInput, setNewDemandStageInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [isAddingDemandStagePending, startAddingDemandStage] = useTransition();
@@ -43,6 +44,7 @@ function DemandDetails({ demand, stages }: Props) {
     startAddingDemandStage(() => {
       addDemandStage(newDemandStageInput)
         .then(() => {
+          refetch();
           setNewDemandStageInput("");
           setShowAdd(false);
           toast.success("created !");
@@ -172,20 +174,15 @@ function DemandDetails({ demand, stages }: Props) {
                         onClick={(e) => {
                           e.stopPropagation();
                           startTransition(() => {
-                            toast.loading("mise a jour...", {
-                              id: "loading",
-                            });
+                            updateStageOptimistic(stage);
                             updateDemandStage({
                               demandId: demand.id,
                               stageId: stage.id,
                               oldStageId: demand.stageId,
-                            })
-                              .then(() => {
-                                refetch();
-                                toast.success("Success !");
-                              })
-                              .catch(() => toast.error("Erreur ."))
-                              .finally(() => toast.dismiss("loading"));
+                            }).catch(() => {
+                              refetch();
+                              toast.error("Erreur .");
+                            });
                           });
                         }}
                         style={{

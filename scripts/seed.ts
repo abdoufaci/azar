@@ -40,8 +40,6 @@ const main = async () => {
     //   ],
     // });
 
-    await db.orderColumn.deleteMany();
-
     console.log("adding finished");
   } catch (error) {
     console.log({ error });

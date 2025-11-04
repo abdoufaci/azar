@@ -30,16 +30,18 @@ interface Props {
 function ManageProductTissues({
   onChange,
   setTissuesToRemove,
-  tissues,
+  tissues: intialTissues,
   selectedTissues,
 }: Props) {
+  const [tissues, setTissues] = useState(intialTissues || []);
   const [newTissuInput, setNewTissuInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [isAddingTissuePending, startAddingTissue] = useTransition();
   const handleAddTissue = () => {
     startAddingTissue(() => {
       addTissu({ name: newTissuInput })
-        .then(() => {
+        .then((res) => {
+          setTissues((prev) => [res, ...prev]);
           setNewTissuInput("");
           setShowAdd(false);
           toast.success("created !");

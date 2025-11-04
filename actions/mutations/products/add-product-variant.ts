@@ -26,7 +26,7 @@ export const addProductVariant = async ({
   var randomColor = require("randomcolor"); // import the script
   var color = randomColor();
 
-  await db.productVariant.create({
+  const variant = await db.productVariant.create({
     data: {
       name,
       category,
@@ -43,7 +43,16 @@ export const addProductVariant = async ({
         },
       },
     },
+    include: {
+      pricings: {
+        include: {
+          subtype: true,
+        },
+      },
+    },
   });
 
   revalidatePath("/");
+
+  return variant;
 };

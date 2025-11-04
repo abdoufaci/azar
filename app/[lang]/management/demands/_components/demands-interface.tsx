@@ -27,11 +27,13 @@ import {
   WorkShop,
 } from "@prisma/client";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useOptimistic, useState } from "react";
 import VariantsFilter from "@/components/filters/variant-filter";
 import { DemandesTable } from "./demandes-table";
 import ManageDemandForm from "@/components/forms/manage-demand-form";
 import MaterialFilter from "@/components/filters/material-filter";
+import { useDemandsQuery } from "@/hooks/admin/use-query-demands";
+import { demandOptimisticReducer } from "@/lib/optimistic-reducers/demand-optimistic-reducer";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
@@ -49,6 +51,12 @@ function DemandsInterface({
   url = "/management/demands",
 }: Props) {
   const [isAdd, setIsAdd] = useState(false);
+
+  const { data } = useDemandsQuery();
+  const [demands, manageDemandOptimistic] = useOptimistic(
+    data?.pages[data?.pages?.length - 1]?.demands as DemandInTable[],
+    demandOptimisticReducer
+  );
 
   return (
     <div className="space-y-5">
@@ -93,9 +101,24 @@ function DemandsInterface({
           materials={materials}
           onCancel={() => setIsAdd(false)}
           workShops={workShops}
+          addDemandOptimistic={(item) =>
+            manageDemandOptimistic({ type: "ADD", item })
+          }
+          updateDemandOptimistic={(item) =>
+            manageDemandOptimistic({
+              type: "updateDemand",
+              production: item,
+            })
+          }
         />
       ) : (
-        <DemandesTable stages={stages} />
+        <DemandesTable
+          stages={stages}
+          demands={demands}
+          updateStageOptimistic={(stage, idx) =>
+            manageDemandOptimistic({ type: "updateStage", stage, idx })
+          }
+        />
       )}
     </div>
   );

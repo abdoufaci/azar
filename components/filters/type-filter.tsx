@@ -19,19 +19,19 @@ interface Props {
 
 function TypeFilter({ types }: Props) {
   const router = useRouter();
-  const { onSearch, data } = useFilterModal();
+  const { onSearch, admin, demand } = useFilterModal();
 
   return (
     <Select
       onValueChange={(type) => {
-        const { type: curr, ...rest } = data.admin;
+        const { type: curr, ...rest } = admin;
 
         onSearch({
-          store: {},
           admin: {
             ...rest,
             type: type === "default" ? undefined : type,
           },
+          demand,
         });
       }}>
       <SelectTrigger className="w-24 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">

@@ -1,5 +1,5 @@
 import React from "react";
-import ClientProductionsTable from "./_components/client-productions-table";
+import ClientProductionsTable from "../production/_components/productions-table";
 import { getEmployeesAndClients } from "@/actions/queries/users/get-employees-clients";
 import { getOrderStages } from "@/actions/queries/order/get-order-stages";
 import { getColumns } from "@/actions/queries/order/get-columns";
@@ -13,11 +13,11 @@ async function ClientPage() {
   const { employees } = users;
   return (
     <div className="p-6">
-      <ClientProductionsTable
+      {/* <ClientProductionsTable
         columns={columns}
         employees={employees}
         orderStages={orderStages}
-      />
+      /> */}
     </div>
   );
 }

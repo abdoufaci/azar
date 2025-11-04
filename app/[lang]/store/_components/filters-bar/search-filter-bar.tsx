@@ -23,7 +23,6 @@ function SearchFilterBar({ lang }: Props) {
         store: {
           search: searchTerm,
         },
-        admin: {},
       });
     };
     fetchProducts();

@@ -19,19 +19,19 @@ interface Props {
 
 function StatusFilter({ searchParams, url: pathname, stages }: Props) {
   const router = useRouter();
-  const { onSearch, data } = useFilterModal();
+  const { onSearch, admin, demand } = useFilterModal();
 
   return (
     <Select
       onValueChange={(status) => {
-        const { status: curr, ...rest } = data.admin;
+        const { status: curr, ...rest } = admin;
 
         onSearch({
-          store: {},
           admin: {
             ...rest,
             status: status === "default" ? undefined : status,
           },
+          demand,
         });
       }}>
       <SelectTrigger className="w-24 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">

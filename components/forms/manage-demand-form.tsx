@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, ArrowRight, Upload, Plus, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,43 +22,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import z from "zod";
-import { ProductFormData, productFormSchema } from "@/schemas/product-schema";
-import Image from "next/image";
-import { UploadEverything } from "../upload-everything/upload-everything";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Badge } from "../ui/badge";
-import { Checkbox } from "../ui/checkbox";
-import {
-  ProductSubtype,
-  ProductCategory,
-  ProductAudience,
-  Product,
-  Tissu,
-  WorkShop,
-  Order,
-  DemandMaterial,
-  DemandPriority,
-  DemandStage,
-} from "@prisma/client";
-import {
-  ProductionInTable,
-  ProductVariantWithPricing,
-  UserWithWorkshop,
-} from "@/types/types";
-import { addProduct } from "@/actions/mutations/products/add-product";
+import { WorkShop, DemandMaterial, DemandPriority } from "@prisma/client";
 import { toast } from "sonner";
-import Tiptap from "../tiptap";
-import AddProductVariantForm from "./add-product-variant-form";
-import { updateProduct } from "@/actions/mutations/products/update-product";
-import ManageProductTissues from "./manage-product-tissues";
 import { DemandFormData, demandFormSchema } from "@/schemas/demand-schema";
-import { updateProduction } from "@/actions/mutations/order/update-production";
-import { addProduction } from "@/actions/mutations/order/add-production";
-import { addTissu } from "@/actions/mutations/products/add-tissu";
 import { addDemandMaterial } from "@/actions/mutations/demand/add-demand-material";
 import { addDemand } from "@/actions/mutations/demand/add-demand";
+import { useDemandsQuery } from "@/hooks/admin/use-query-demands";
 
 interface Props {
   onCancel: () => void;
@@ -74,6 +45,7 @@ export default function ManageDemandForm({
   const [isPending, startTransition] = useTransition();
   const [materialInput, setMaterialInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
+  const { refetch } = useDemandsQuery();
 
   const form = useForm<DemandFormData>({
     resolver: zodResolver(demandFormSchema),
@@ -83,6 +55,7 @@ export default function ManageDemandForm({
     startTransition(() => {
       addDemand(data)
         .then(() => {
+          refetch();
           toast.success("Success !");
           onCancel();
         })

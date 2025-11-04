@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useFilterModal } from "@/hooks/use-filter-modal-store";
 import { DemandPriority, User } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import qs from "query-string";
@@ -17,23 +18,20 @@ interface Props {
 
 function PriorityFilter({ searchParams, url: pathname }: Props) {
   const router = useRouter();
+  const { onSearch, admin, demand } = useFilterModal();
 
   return (
     <Select
       onValueChange={(priority) => {
-        const { priority: curr, page, ...rest } = searchParams;
+        const { priority: curr, ...rest } = demand;
 
-        const url = qs.stringifyUrl(
-          {
-            url: pathname,
-            query: {
-              ...rest,
-              priority: priority !== "default" ? priority : null,
-            },
+        onSearch({
+          admin,
+          demand: {
+            ...rest,
+            priority: priority === "default" ? undefined : priority,
           },
-          { skipNull: true }
-        );
-        router.push(url);
+        });
       }}>
       <SelectTrigger className="w-28 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">
         <SelectValue placeholder="Priorité" />

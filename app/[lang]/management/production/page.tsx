@@ -16,33 +16,16 @@ export default async function ProductionPage({
   params: any;
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
-  const currentPage = (await searchParams).page;
-  const productionsPerPage = 8;
-  const [
-    types,
-    variants,
-    tissues,
-    users,
-    workshops,
-    productions,
-    totalProductions,
-    orderStages,
-    columns,
-  ] = await Promise.all([
-    getProductSubTypes(),
-    getProductVariants(),
-    getTissues(),
-    getEmployeesAndClients(),
-    getWorkshops(),
-    getProductions({
-      currentPage: Number(currentPage || "1"),
-      productionsPerPage,
-      searchParams,
-    }),
-    getProductionsCount({ searchParams }),
-    getOrderStages(),
-    getColumns(),
-  ]);
+  const [types, variants, tissues, users, workshops, orderStages, columns] =
+    await Promise.all([
+      getProductSubTypes(),
+      getProductVariants(),
+      getTissues(),
+      getEmployeesAndClients(),
+      getWorkshops(),
+      getOrderStages(),
+      getColumns(),
+    ]);
   const { clients, employees } = users;
 
   return (
@@ -55,12 +38,7 @@ export default async function ProductionPage({
         clients={clients}
         employees={employees}
         workShops={workshops}
-        //@ts-ignore
-        productions={productions}
         orderStages={orderStages}
-        currentPage={Number(currentPage || "1")}
-        productionsPerPage={productionsPerPage}
-        totalProductions={totalProductions}
         columns={columns}
       />
     </div>

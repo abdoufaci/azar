@@ -16,9 +16,7 @@ interface Props {
 }
 
 function PriceFilterBar({ lang }: Props) {
-  const { onSearch, data } = useFilterModal();
-
-  const { store } = data;
+  const { onSearch, store } = useFilterModal();
 
   return (
     <Select
@@ -35,7 +33,6 @@ function PriceFilterBar({ lang }: Props) {
                     max: Number(minPrice) + 50000,
                   },
           },
-          admin: {},
         });
       }}>
       <SelectTrigger className="w-24 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">

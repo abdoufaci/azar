@@ -10,11 +10,13 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { SheetClose } from "@/components/ui/sheet";
+import { useDemandHistoryQuery } from "@/hooks/admin/use-demand-history-query";
+import { useDemandsQuery } from "@/hooks/admin/use-query-demands";
 import { cn } from "@/lib/utils";
 import { DemandInTable } from "@/types/types";
 import { DemandStage } from "@prisma/client";
 import { format } from "date-fns";
-import { ChevronLeft, Plus } from "lucide-react";
+import { ChevronLeft, Loader2, Plus } from "lucide-react";
 import Image from "next/image";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -29,6 +31,13 @@ function DemandDetails({ demand, stages }: Props) {
   const [showAdd, setShowAdd] = useState(false);
   const [isAddingDemandStagePending, startAddingDemandStage] = useTransition();
   const [isPending, startTransition] = useTransition();
+
+  const { data: history, isPending: isFetchingDemandHistory } =
+    useDemandHistoryQuery({
+      demandId: demand.id,
+    });
+
+  const { refetch } = useDemandsQuery();
 
   const handleAddDemandStage = () => {
     startAddingDemandStage(() => {
@@ -172,6 +181,7 @@ function DemandDetails({ demand, stages }: Props) {
                               oldStageId: demand.stageId,
                             })
                               .then(() => {
+                                refetch();
                                 toast.success("Success !");
                               })
                               .catch(() => toast.error("Erreur ."))
@@ -224,29 +234,33 @@ function DemandDetails({ demand, stages }: Props) {
       <div className="space-y-5">
         <h1 className="font-medium text-[#06191D]">LOGS</h1>
         <div className="space-y-3">
-          {demand.history.map((action) => (
-            <div
-              key={action.id}
-              className="flex items-start gap-0.5 font-medium">
-              <h1 className="text-[#056BE4]">{action.user?.name} </h1>{" "}
-              <h5>
-                changer le status{" "}
-                <span
-                  style={{
-                    color: action.oldStage?.color,
-                  }}>
-                  {action.oldStage?.name}{" "}
-                </span>{" "}
-                {"->"}{" "}
-                <span
-                  style={{
-                    color: action.newStage?.color,
-                  }}>
-                  {action.newStage?.name}{" "}
-                </span>
-              </h5>
-            </div>
-          ))}
+          {isFetchingDemandHistory ? (
+            <Loader2 className="text-brand animate-spin h-5 w-5" />
+          ) : (
+            history.map((action) => (
+              <div
+                key={action.id}
+                className="flex items-start gap-0.5 font-medium">
+                <h1 className="text-[#056BE4]">{action.user?.name} </h1>{" "}
+                <h5>
+                  changer le status{" "}
+                  <span
+                    style={{
+                      color: action.oldStage?.color,
+                    }}>
+                    {action.oldStage?.name}{" "}
+                  </span>{" "}
+                  {"->"}{" "}
+                  <span
+                    style={{
+                      color: action.newStage?.color,
+                    }}>
+                    {action.newStage?.name}{" "}
+                  </span>
+                </h5>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

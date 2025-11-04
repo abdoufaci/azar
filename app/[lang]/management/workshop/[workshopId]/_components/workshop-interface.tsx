@@ -44,14 +44,8 @@ interface Props {
   employees: UserWithWorkshop[];
   workShops: WorkShop[];
   workshop: WorkShop | null;
-  productions: ProductionInTable[];
   orderStages: OrderStage[];
-  currentPage: number;
-  totalProductions: number;
-  itemsPerPage: number;
-  demands: DemandInTable[];
   stages: DemandStage[];
-  totalDemands: number;
   materials: DemandMaterial[];
   url: string;
   columns: (OrderColumn & {
@@ -61,18 +55,12 @@ interface Props {
 
 function WorkshopInterface({
   clients,
-  currentPage,
-  demands,
   employees,
   materials,
   orderStages,
-  productions,
-  itemsPerPage,
   searchParams,
   stages,
   tissues,
-  totalDemands,
-  totalProductions,
   types,
   variants,
   workShops,
@@ -162,24 +150,15 @@ function WorkshopInterface({
           clients={clients}
           employees={employees}
           workShops={workShops}
-          //@ts-ignore
-          productions={productions}
           orderStages={orderStages}
-          currentPage={currentPage}
-          productionsPerPage={itemsPerPage}
-          totalProductions={totalProductions}
           url={url}
           columns={columns}
         />
       )}
       {!isAdd && activeTab === "demands" && (
         <DemandsInterface
-          currentPage={currentPage}
-          demandsPerPage={itemsPerPage}
-          demands={demands}
           searchParams={searchParams}
           stages={stages}
-          totalDemands={totalDemands}
           workShops={workShops}
           materials={materials}
           url={url}

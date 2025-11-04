@@ -14,17 +14,17 @@ interface Props {
 export default function SearchFilter({ url: pathname, searchParams }: Props) {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const { onSearch, data } = useFilterModal();
+  const { onSearch, admin, demand } = useFilterModal();
 
-  const { search, ...rest } = data.admin;
+  const { search, ...rest } = admin;
 
   useEffect(() => {
     onSearch({
+      demand,
       admin: {
         ...rest,
         search: searchTerm,
       },
-      store: {},
     });
   }, [debouncedSearchTerm]);
 

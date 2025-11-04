@@ -26,20 +26,14 @@ async function WorkShopIdPage({
   params: { lang, workshopId },
   searchParams,
 }: Props) {
-  const currentPage = (await searchParams).page;
-  const itemsPerPage = 8;
   const [
     types,
     variants,
     tissues,
     users,
     workshops,
-    productions,
-    totalProductions,
     orderStages,
     workshop,
-    demands,
-    totalDemands,
     stages,
     materials,
     columns,
@@ -49,25 +43,8 @@ async function WorkShopIdPage({
     getTissues(),
     getEmployeesAndClients(),
     getWorkshops(),
-    getProductions({
-      currentPage: Number(currentPage || "1"),
-      productionsPerPage: itemsPerPage,
-      searchParams,
-      workshopId,
-    }),
-    getProductionsCount({
-      searchParams,
-      workshopId,
-    }),
     getOrderStages(),
     getWorkShopById(workshopId),
-    getDemands({
-      currentPage: Number(currentPage || "1"),
-      demandsPerPage: itemsPerPage,
-      searchParams,
-      workshopId,
-    }),
-    getDemandsCount({ searchParams, workshopId }),
     getDemandStages(),
     getDemandMaterials(),
     getColumns(),
@@ -84,17 +61,10 @@ async function WorkShopIdPage({
         clients={clients}
         employees={employees}
         workShops={workshops}
-        //@ts-ignore
-        productions={productions}
         orderStages={orderStages}
-        currentPage={Number(currentPage || "1")}
-        totalProductions={totalProductions}
-        demands={demands}
         stages={stages}
-        totalDemands={totalDemands}
         workshop={workshop}
         materials={materials}
-        itemsPerPage={itemsPerPage}
         url={`/management/workshop/${workshopId}`}
         columns={columns}
       />

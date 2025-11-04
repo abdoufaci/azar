@@ -117,7 +117,16 @@ export async function GET(req: Request) {
           id: cursor,
         },
       }),
-      take: PRODUCTIONS_BATCH,
+      take:
+        !!search ||
+        cursor ||
+        !!search ||
+        !!workshop ||
+        !!type ||
+        !!variant ||
+        !!status
+          ? 50
+          : PRODUCTIONS_BATCH,
       orderBy: {
         createdAt: "desc",
       },

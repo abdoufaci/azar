@@ -36,11 +36,7 @@ import MaterialFilter from "@/components/filters/material-filter";
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
   workShops: WorkShop[];
-  demands: DemandInTable[];
   stages: DemandStage[];
-  currentPage: number;
-  totalDemands: number;
-  demandsPerPage: number;
   materials: DemandMaterial[];
   url?: string;
 }
@@ -48,10 +44,6 @@ interface Props {
 function DemandsInterface({
   searchParams,
   workShops,
-  demands,
-  currentPage,
-  demandsPerPage,
-  totalDemands,
   materials,
   stages,
   url = "/management/demands",
@@ -103,15 +95,7 @@ function DemandsInterface({
           workShops={workShops}
         />
       ) : (
-        <DemandesTable
-          currentPage={currentPage}
-          demands={demands}
-          demandsPerPage={demandsPerPage}
-          searchParams={searchParams}
-          stages={stages}
-          totalDemands={totalDemands}
-          url={url}
-        />
+        <DemandesTable stages={stages} />
       )}
     </div>
   );

@@ -19,19 +19,19 @@ interface Props {
 
 function WorkShopFilter({ workShops }: Props) {
   const router = useRouter();
-  const { onSearch, data } = useFilterModal();
+  const { onSearch, admin, demand } = useFilterModal();
 
   return (
     <Select
       onValueChange={(workshop) => {
-        const { workshop: curr, ...rest } = data.admin;
+        const { workshop: curr, ...rest } = admin;
 
         onSearch({
-          store: {},
           admin: {
             ...rest,
             workshop: workshop === "default" ? undefined : workshop,
           },
+          demand,
         });
       }}>
       <SelectTrigger className="w-32 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">

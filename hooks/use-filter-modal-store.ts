@@ -8,6 +8,11 @@ export interface AdminData {
   status?: string;
 }
 
+export interface DemandData {
+  material?: string;
+  priority?: string;
+}
+
 export interface StoreData {
   price?: {
     min: number;
@@ -18,17 +23,22 @@ export interface StoreData {
   variantId?: string;
 }
 
-export interface ModalData {
+interface ModalStore {
+  onSearch: ({}: {
+    store?: StoreData;
+    admin?: AdminData;
+    demand?: DemandData;
+  }) => void;
   store: StoreData;
   admin: AdminData;
-}
-
-interface ModalStore {
-  onSearch: (data?: ModalData) => void;
-  data: ModalData;
+  demand: DemandData;
 }
 
 export const useFilterModal = create<ModalStore>((set) => ({
-  data: { store: {}, admin: {} },
-  onSearch: (data) => set({ data }),
+  store: {},
+  production: {},
+  admin: {},
+  demand: {},
+  onSearch: ({ store = {}, admin = {}, demand = {} }) =>
+    set({ store, admin, demand }),
 }));

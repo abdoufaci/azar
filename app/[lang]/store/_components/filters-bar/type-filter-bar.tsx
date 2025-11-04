@@ -17,18 +17,17 @@ interface Props {
 }
 
 function TypeFilterBar({ lang, types }: Props) {
-  const { onSearch, data } = useFilterModal();
+  const { onSearch, store } = useFilterModal();
 
   return (
     <Select
       onValueChange={(type) => {
-        const { subtypeId, ...rest } = data.store;
+        const { subtypeId, ...rest } = store;
         onSearch({
           store: {
             ...rest,
             subtypeId: type === "default" ? undefined : type,
           },
-          admin: {},
         });
       }}>
       <SelectTrigger className="w-24 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">

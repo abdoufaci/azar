@@ -3,8 +3,9 @@
 import { currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ProductionFormData } from "@/schemas/production-schema";
-import { ProductVariantWithPricing } from "@/types/types";
+import { ProductionInTable, ProductVariantWithPricing } from "@/types/types";
 import { revalidatePath } from "next/cache";
+import { createId } from "@paralleldrive/cuid2";
 
 export const addProduction = async ({
   data,
@@ -23,7 +24,9 @@ export const addProduction = async ({
     (pricing) => pricing.subtypeId === data.subtypeId
   );
 
-  await db.orderPricing.create({
+  const id = createId();
+
+  const p = await db.orderPricing.create({
     data: {
       cutterPrice: pricing?.cutterPrice || 0,
       tailorPrice: pricing?.tailorPrice || 0,
@@ -32,6 +35,7 @@ export const addProduction = async ({
       orders: {
         create: {
           ...rest,
+          id,
           tissuId: tissu?.id,
           userId: user?.id || "",
           variantId: data.variant.id,
@@ -48,5 +52,34 @@ export const addProduction = async ({
     },
   });
 
+  const order = await db.order.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      client: true,
+      tissu: true,
+      orderStage: true,
+      pricing: true,
+      subType: true,
+      cutter: true,
+      tailor: true,
+      tapisier: true,
+      mancheur: true,
+      user: true,
+      variant: true,
+      workShop: true,
+      guest: true,
+      extraCells: {
+        include: {
+          person: true,
+          status: true,
+        },
+      },
+    },
+  });
+
   revalidatePath("/");
+
+  return order;
 };

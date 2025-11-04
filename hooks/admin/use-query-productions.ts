@@ -5,10 +5,9 @@ import { useFilterModal } from "../use-filter-modal-store";
 import qs from "query-string";
 
 export const useProductionsQuery = () => {
-  const { data: filter } = useFilterModal();
-  const { admin: filterData } = filter;
+  const { admin: filterData } = useFilterModal();
 
-  const fetchCars = async ({
+  const fetchProductions = async ({
     pageParam = undefined,
   }: {
     pageParam?: string;
@@ -39,7 +38,7 @@ export const useProductionsQuery = () => {
     isPending,
   } = useInfiniteQuery({
     queryKey: ["productions", filterData],
-    queryFn: fetchCars,
+    queryFn: fetchProductions,
     getNextPageParam: (lastPage) => lastPage?.nextCursor,
     initialPageParam: undefined,
     refetchInterval: false,

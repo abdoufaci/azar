@@ -57,11 +57,6 @@ export type DemandInTable = Demand & {
   workshop: WorkShop;
   stage: DemandStage;
   user: User;
-  history: (DemandHistory & {
-    user: User;
-    newStage: DemandStage | null;
-    oldStage: DemandStage | null;
-  })[];
 };
 
 export type OrderWithRelations = Order & {

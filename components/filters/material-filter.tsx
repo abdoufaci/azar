@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useFilterModal } from "@/hooks/use-filter-modal-store";
 import { DemandMaterial, ProductSubtype, User } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import qs from "query-string";
@@ -18,23 +19,20 @@ interface Props {
 
 function MaterialFilter({ searchParams, url: pathname, materials }: Props) {
   const router = useRouter();
+  const { onSearch, admin, demand } = useFilterModal();
 
   return (
     <Select
       onValueChange={(material) => {
-        const { material: curr, page, ...rest } = searchParams;
+        const { material: curr, ...rest } = demand;
 
-        const url = qs.stringifyUrl(
-          {
-            url: pathname,
-            query: {
-              ...rest,
-              material: material !== "default" ? material : null,
-            },
+        onSearch({
+          admin,
+          demand: {
+            ...rest,
+            material: material === "default" ? undefined : material,
           },
-          { skipNull: true }
-        );
-        router.push(url);
+        });
       }}>
       <SelectTrigger className="w-24 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">
         <SelectValue placeholder="Type" />

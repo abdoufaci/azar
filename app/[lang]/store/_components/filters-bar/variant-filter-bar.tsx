@@ -16,18 +16,17 @@ interface Props {
 }
 
 function VariantFilterBar({ lang, variants }: Props) {
-  const { onSearch, data } = useFilterModal();
+  const { onSearch, store } = useFilterModal();
 
   return (
     <Select
       onValueChange={(variant) => {
-        const { variantId, ...rest } = data.store;
+        const { variantId, ...rest } = store;
         onSearch({
           store: {
             ...rest,
             variantId: variant === "default" ? undefined : variant,
           },
-          admin: {},
         });
       }}>
       <SelectTrigger className="w-24 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">

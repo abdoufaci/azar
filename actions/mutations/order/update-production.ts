@@ -65,7 +65,7 @@ export const updateProduction = async ({
       ? `a modifié ${changes.join(" et ")}.`
       : "Aucun changement effectué.";
 
-  await db.order.update({
+  const order = await db.order.update({
     where: {
       id: productionId,
     },
@@ -83,7 +83,30 @@ export const updateProduction = async ({
         },
       },
     },
+    include: {
+      client: true,
+      tissu: true,
+      orderStage: true,
+      pricing: true,
+      subType: true,
+      cutter: true,
+      tailor: true,
+      tapisier: true,
+      mancheur: true,
+      user: true,
+      variant: true,
+      workShop: true,
+      guest: true,
+      extraCells: {
+        include: {
+          person: true,
+          status: true,
+        },
+      },
+    },
   });
 
   revalidatePath("/");
+
+  return order;
 };

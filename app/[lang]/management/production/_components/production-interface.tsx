@@ -27,8 +27,7 @@ import {
   WorkShop,
 } from "@prisma/client";
 import { Plus } from "lucide-react";
-import { useState, useTransition } from "react";
-import { ProductionsTable } from "./productions-table";
+import { useOptimistic, useState, useTransition } from "react";
 import ManageProductionForm from "@/components/forms/manage-production-form";
 import VariantsFilter from "@/components/filters/variant-filter";
 import {
@@ -38,7 +37,9 @@ import {
 } from "@/components/ui/popover";
 import { addColumn } from "@/actions/mutations/order/add-column";
 import { toast } from "sonner";
-import ClientProductionsTable from "../../client-production/_components/client-productions-table";
+import ProductionsTable from "./productions-table";
+import { useProductionsQuery } from "@/hooks/admin/use-query-productions";
+import { optimisticReducer } from "@/lib/optimistic-reducer";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
@@ -48,11 +49,7 @@ interface Props {
   clients: UserWithWorkshop[];
   employees: UserWithWorkshop[];
   workShops: WorkShop[];
-  productions: ProductionInTable[];
   orderStages: OrderStage[];
-  currentPage: number;
-  totalProductions: number;
-  productionsPerPage: number;
   url?: string;
   columns: (OrderColumn & {
     statuses: OrderColumnStatus[];
@@ -66,11 +63,7 @@ function ProductionInterface({
   tissues,
   clients,
   workShops,
-  productions,
   orderStages,
-  currentPage,
-  productionsPerPage,
-  totalProductions,
   employees,
   columns,
   url = "/management/production",
@@ -82,6 +75,12 @@ function ProductionInterface({
     null
   );
   const [isPending, startTransition] = useTransition();
+
+  const { data } = useProductionsQuery();
+  const [productions, manageProductionOptimistic] = useOptimistic(
+    data?.pages[data?.pages?.length - 1]?.productions as ProductionInTable[],
+    optimisticReducer
+  );
 
   const onAddColumn = async (type: OrderColumnType) => {
     startTransition(() => {
@@ -125,7 +124,7 @@ function ProductionInterface({
                 searchParams={searchParams}
                 stages={orderStages}
               />
-              <Popover>
+              {/* <Popover>
                 <PopoverTrigger className="max-md:!hidden">
                   <div className="w-10 h-10 rounded-full bg-[#056BE421] flex items-center justify-center cursor-pointer">
                     <div className="w-[18px] h-[18px] rounded-md flex items-center justify-center border border-brand">
@@ -235,7 +234,7 @@ function ProductionInterface({
                     </Button>
                   </div>
                 </PopoverContent>
-              </Popover>
+              </Popover> */}
             </div>
           </div>
         </>
@@ -254,9 +253,19 @@ function ProductionInterface({
           workShops={workShops}
           clients={clients}
           key={productionToEdit?.id}
+          addProductionOptimistic={(item) =>
+            manageProductionOptimistic({ type: "ADD", item })
+          }
+          updateProductionOptimistic={(item) =>
+            manageProductionOptimistic({
+              type: "updateProduction",
+              production: item,
+            })
+          }
         />
       ) : (
-        <ClientProductionsTable
+        <ProductionsTable
+          productions={productions}
           orderStages={orderStages}
           employees={employees}
           onClick={(item) => {
@@ -268,6 +277,18 @@ function ProductionInterface({
             setIsAdd(true);
           }}
           columns={columns}
+          updateStageOptimistic={(stage, idx) =>
+            manageProductionOptimistic({ type: "updateStage", idx, stage })
+          }
+          manageEmployeeOptimistic={(employee, role, idx, action) =>
+            manageProductionOptimistic({
+              type: "addEmployee",
+              employee,
+              role,
+              idx,
+              action,
+            })
+          }
         />
       )}
     </div>

@@ -65,6 +65,7 @@ import {
 import { updateProduction } from "@/actions/mutations/order/update-production";
 import { addProduction } from "@/actions/mutations/order/add-production";
 import { addTissu } from "@/actions/mutations/products/add-tissu";
+import { useProductionsQuery } from "@/hooks/admin/use-query-productions";
 
 interface Props {
   onCancel: () => void;
@@ -75,6 +76,8 @@ interface Props {
   tissues: Tissu[];
   clients: UserWithWorkshop[];
   workShops: WorkShop[];
+  addProductionOptimistic: (action: ProductionInTable) => void;
+  updateProductionOptimistic: (action: ProductionInTable) => void;
 }
 
 export default function ManageProductionForm({
@@ -86,6 +89,8 @@ export default function ManageProductionForm({
   clients,
   workShops,
   motherOrder,
+  addProductionOptimistic,
+  updateProductionOptimistic,
 }: Props) {
   const [step, setStep] = useState<1 | 2 | 3>(production ? 2 : 1);
   const [typesToRemove, setTypesToRemove] = useState<
@@ -101,6 +106,7 @@ export default function ManageProductionForm({
   const [searchTerm, setSearchTerm] = useState("");
   const [variantToEdit, setVariantToEdit] =
     useState<ProductVariantWithPricing | null>(null);
+  const { refetch } = useProductionsQuery();
 
   const foundVariant = variants.find(
     (variant) => variant.id === production?.variantId
@@ -188,7 +194,10 @@ export default function ManageProductionForm({
               workShopId: production?.workShopId || "",
             },
           })
-            .then(() => {
+            .then((res) => {
+              //@ts-ignore
+              updateProductionOptimistic(res);
+              refetch();
               toast.success("updated !");
               onCancel();
             })
@@ -200,7 +209,9 @@ export default function ManageProductionForm({
             ),
             subOrderId: motherOrder?.id,
           })
-            .then(() => {
+            .then((data) => {
+              //@ts-ignore
+              addProductionOptimistic(data);
               toast.success("Created !");
               onCancel();
             })
@@ -414,12 +425,24 @@ export default function ManageProductionForm({
                                       {variant.name}
                                     </h1>
                                   </div>
-                                  <Pen
+                                  <svg
                                     onClick={() => {
                                       setStep(3);
                                       setVariantToEdit(variant);
                                     }}
-                                  />
+                                    width="17"
+                                    height="18"
+                                    viewBox="0 0 17 18"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                      d="M0.6875 17.1878H15.3542M2.21467 10.0259C1.82381 10.4176 1.60426 10.9484 1.60417 11.5017V14.4378H4.55858C5.11225 14.4378 5.643 14.2178 6.03442 13.8255L14.7428 5.11256C15.1335 4.72077 15.3529 4.19004 15.3529 3.63672C15.3529 3.08341 15.1335 2.55268 14.7428 2.16089L13.8829 1.29922C13.689 1.10521 13.4588 0.951327 13.2053 0.846362C12.9519 0.741398 12.6803 0.687415 12.406 0.6875C12.1317 0.687585 11.8601 0.741737 11.6067 0.846858C11.3534 0.95198 11.1232 1.10601 10.9294 1.30014L2.21467 10.0259Z"
+                                      stroke="#A2ABBD"
+                                      stroke-width="1.375"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                    />
+                                  </svg>
                                 </div>
                               ))}
                           </div>

@@ -20,15 +20,14 @@ interface Props {
 
 function VariantsFilter({ searchParams, url: pathname, variants }: Props) {
   const router = useRouter();
-  const { onSearch, data } = useFilterModal();
+  const { onSearch, admin } = useFilterModal();
 
   return (
     <Select
       onValueChange={(variant) => {
-        const { variant: curr, ...rest } = data.admin;
+        const { variant: curr, ...rest } = admin;
 
         onSearch({
-          store: {},
           admin: {
             ...rest,
             variant: variant === "default" ? undefined : variant,

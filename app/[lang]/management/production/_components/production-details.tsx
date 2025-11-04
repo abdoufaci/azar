@@ -15,7 +15,13 @@ import { Separator } from "@/components/ui/separator";
 import { SheetClose } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { ProductionInTable, UserWithWorkshop } from "@/types/types";
-import { OrderColumn, OrderColumnStatus, OrderStage } from "@prisma/client";
+import {
+  EmplyeeRole,
+  OrderColumn,
+  OrderColumnStatus,
+  OrderStage,
+  User,
+} from "@prisma/client";
 import { format } from "date-fns";
 import {
   Check,
@@ -39,6 +45,7 @@ import Barcode from "react-barcode";
 import { useOrderHistoryQuery } from "@/hooks/admin/use-order-history-query";
 import { useSubOrdersQuery } from "@/hooks/admin/use-sub-orders-query";
 import { useOrderQuery } from "@/hooks/admin/use-order-query";
+import { useProductionsQuery } from "@/hooks/admin/use-query-productions";
 
 interface Props {
   order: ProductionInTable;
@@ -49,6 +56,12 @@ interface Props {
   columns: (OrderColumn & {
     statuses: OrderColumnStatus[];
   })[];
+  manageEmployeeOptimistic: (
+    employee: User,
+    role: EmplyeeRole,
+    action: "add" | "remove"
+  ) => void;
+  updateStageOptimistic: (stage: OrderStage) => void;
 }
 
 function ProductionDetails({
@@ -58,6 +71,8 @@ function ProductionDetails({
   employees,
   onSubOrderClick,
   columns,
+  manageEmployeeOptimistic,
+  updateStageOptimistic,
 }: Props) {
   const [newOrderStageInput, setNewOrderStageInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
@@ -77,6 +92,7 @@ function ProductionDetails({
       orderId: motherOrder.subOrderId ? motherOrder.subOrderId : motherOrder.id,
     }
   );
+  const { refetch } = useProductionsQuery();
 
   const order = motherOrder.subOrderId ? res?.data : motherOrder;
 
@@ -84,6 +100,7 @@ function ProductionDetails({
     startAddingOrderStage(() => {
       addOrderStage(newOrderStageInput)
         .then(() => {
+          refetch();
           setNewOrderStageInput("");
           setShowAdd(false);
           toast.success("created !");
@@ -99,6 +116,7 @@ function ProductionDetails({
         name: newOrderStageInput,
       })
         .then(() => {
+          refetch();
           setNewOrderStageInput("");
           setShowAdd(false);
           toast.success("created !");
@@ -230,14 +248,20 @@ function ProductionDetails({
                 onClick={() => {
                   if (!isPending) {
                     startTransition(() => {
-                      toast.loading("mise a jour...", { id: "loading" });
+                      manageEmployeeOptimistic(
+                        order.cutter!,
+                        "CUTTER",
+                        "remove"
+                      );
                       removeOrderWorker({
                         orderId: order.id,
                         type: "CUTTER",
                         userId: order.cutterId || "",
                       })
-                        .then(() => toast.success("Success !"))
-                        .catch(() => toast.error("Erreur ."))
+                        .catch(() => {
+                          refetch();
+                          toast.error("Erreur .");
+                        })
                         .finally(() => toast.dismiss("loading"));
                     });
                   }
@@ -264,17 +288,17 @@ function ProductionDetails({
                     onClick={() => {
                       if (!isPending) {
                         startTransition(() => {
-                          toast.loading("mise a jour...", {
-                            id: "loading",
-                          });
+                          manageEmployeeOptimistic(employee, "CUTTER", "add");
                           updateOrderWorkers({
                             orderId: order.id,
                             userId: employee.id,
                             type: "CUTTER",
                             currentRef: order.orderId,
                           })
-                            .then(() => toast.success("Success !"))
-                            .catch(() => toast.error("Erreur ."))
+                            .catch(() => {
+                              refetch();
+                              toast.error("Erreur .");
+                            })
                             .finally(() => toast.dismiss("loading"));
                         });
                       }
@@ -333,14 +357,20 @@ function ProductionDetails({
                 onClick={() => {
                   if (!isPending) {
                     startTransition(() => {
-                      toast.loading("mise a jour...", { id: "loading" });
+                      manageEmployeeOptimistic(
+                        order.tailor!,
+                        "TAILOR",
+                        "remove"
+                      );
                       removeOrderWorker({
                         orderId: order.id,
                         type: "TAILOR",
                         userId: order.tailorId || "",
                       })
-                        .then(() => toast.success("Success !"))
-                        .catch(() => toast.error("Erreur ."))
+                        .catch(() => {
+                          refetch();
+                          toast.error("Erreur .");
+                        })
                         .finally(() => toast.dismiss("loading"));
                     });
                   }
@@ -367,16 +397,16 @@ function ProductionDetails({
                     onClick={() => {
                       if (!isPending) {
                         startTransition(() => {
-                          toast.loading("mise a jour...", {
-                            id: "loading",
-                          });
+                          manageEmployeeOptimistic(employee, "TAILOR", "add");
                           updateOrderWorkers({
                             orderId: order.id,
                             userId: employee.id,
                             type: "TAILOR",
                           })
-                            .then(() => toast.success("Success !"))
-                            .catch(() => toast.error("Erreur ."))
+                            .catch(() => {
+                              refetch();
+                              toast.error("Erreur .");
+                            })
                             .finally(() => toast.dismiss("loading"));
                         });
                       }
@@ -435,14 +465,20 @@ function ProductionDetails({
                 onClick={() => {
                   if (!isPending) {
                     startTransition(() => {
-                      toast.loading("mise a jour...", { id: "loading" });
+                      manageEmployeeOptimistic(
+                        order.tapisier!,
+                        "TAPISIER",
+                        "remove"
+                      );
                       removeOrderWorker({
                         orderId: order.id,
                         type: "TAPISIER",
                         userId: order.tapisierId || "",
                       })
-                        .then(() => toast.success("Success !"))
-                        .catch(() => toast.error("Erreur ."))
+                        .catch(() => {
+                          refetch();
+                          toast.error("Erreur .");
+                        })
                         .finally(() => toast.dismiss("loading"));
                     });
                   }
@@ -469,16 +505,16 @@ function ProductionDetails({
                     onClick={() => {
                       if (!isPending) {
                         startTransition(() => {
-                          toast.loading("mise a jour...", {
-                            id: "loading",
-                          });
+                          manageEmployeeOptimistic(employee, "TAPISIER", "add");
                           updateOrderWorkers({
                             orderId: order.id,
                             userId: employee.id,
                             type: "TAPISIER",
                           })
-                            .then(() => toast.success("Success !"))
-                            .catch(() => toast.error("Erreur ."))
+                            .catch(() => {
+                              refetch();
+                              toast.error("Erreur .");
+                            })
                             .finally(() => toast.dismiss("loading"));
                         });
                       }
@@ -537,14 +573,20 @@ function ProductionDetails({
                 onClick={() => {
                   if (!isPending) {
                     startTransition(() => {
-                      toast.loading("mise a jour...", { id: "loading" });
+                      manageEmployeeOptimistic(
+                        order.mancheur!,
+                        "MANCHEUR",
+                        "remove"
+                      );
                       removeOrderWorker({
                         orderId: order.id,
                         type: "MANCHEUR",
                         userId: order.mancheurId || "",
                       })
-                        .then(() => toast.success("Success !"))
-                        .catch(() => toast.error("Erreur ."))
+                        .catch(() => {
+                          refetch();
+                          toast.error("Erreur .");
+                        })
                         .finally(() => toast.dismiss("loading"));
                     });
                   }
@@ -571,16 +613,16 @@ function ProductionDetails({
                     onClick={() => {
                       if (!isPending) {
                         startTransition(() => {
-                          toast.loading("mise a jour...", {
-                            id: "loading",
-                          });
+                          manageEmployeeOptimistic(employee, "MANCHEUR", "add");
                           updateOrderWorkers({
                             orderId: order.id,
                             userId: employee.id,
                             type: "MANCHEUR",
                           })
-                            .then(() => toast.success("Success !"))
-                            .catch(() => toast.error("Erreur ."))
+                            .catch(() => {
+                              refetch();
+                              toast.error("Erreur .");
+                            })
                             .finally(() => toast.dismiss("loading"));
                         });
                       }
@@ -655,18 +697,16 @@ function ProductionDetails({
                         onClick={(e) => {
                           e.stopPropagation();
                           startTransition(() => {
-                            toast.loading("mise a jour...", {
-                              id: "loading",
-                            });
+                            updateStageOptimistic(stage);
                             updateOrderStage({
                               orderId: order.id,
                               orderStageId: stage.id,
                               oldStageId: order.orderStageId || "",
                             })
-                              .then(() => {
-                                toast.success("Success !");
+                              .catch(() => {
+                                refetch();
+                                toast.error("Erreur .");
                               })
-                              .catch(() => toast.error("Erreur ."))
                               .finally(() => toast.dismiss("loading"));
                           });
                         }}
@@ -763,7 +803,10 @@ function ProductionDetails({
                                 cellId: cell?.id,
                                 personId: null,
                               })
-                                .then(() => toast.success("Success !"))
+                                .then(() => {
+                                  refetch();
+                                  toast.success("Success !");
+                                })
                                 .catch(() => toast.error("Erreur ."))
                                 .finally(() => toast.dismiss("loading"));
                             });
@@ -830,6 +873,7 @@ function ProductionDetails({
                                             : member.id,
                                         })
                                           .then(() => {
+                                            refetch();
                                             toast.success("Success !");
                                           })
                                           .catch(() => toast.error("Erreur ."))
@@ -944,6 +988,7 @@ function ProductionDetails({
                                     statusId: status.id,
                                   })
                                     .then(() => {
+                                      refetch();
                                       toast.success("Success !");
                                     })
                                     .catch(() => toast.error("Erreur ."))
@@ -1017,6 +1062,7 @@ function ProductionDetails({
                               text: cellText,
                             })
                               .then(() => {
+                                refetch();
                                 toast.success("Success !");
                                 setCellTextToEdit(null);
                                 setCellText("");
@@ -1062,9 +1108,6 @@ function ProductionDetails({
                       captionLayout="dropdown"
                       onSelect={(date) => {
                         startTransition(() => {
-                          toast.loading("mise a jour...", {
-                            id: "loading",
-                          });
                           manageCell({
                             columnId: column.id,
                             orderId: order.id,
@@ -1072,6 +1115,7 @@ function ProductionDetails({
                             cellId: cell?.id,
                           })
                             .then(() => {
+                              refetch();
                               toast.success("Success !");
                             })
                             .catch(() => toast.error("Erreur ."))

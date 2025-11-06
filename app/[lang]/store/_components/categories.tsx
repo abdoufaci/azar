@@ -8,7 +8,7 @@ interface Props {
 }
 
 async function Categories({ dict, lang }: Props) {
-  const products = await getStoreProducts();
+  const { chaires, salons, tables } = await getStoreProducts();
 
   return (
     <div className="container mx-auto space-y-16 !mb-40">
@@ -24,13 +24,19 @@ async function Categories({ dict, lang }: Props) {
       <div className="space-y-12">
         <CategoryProducts
           title={lang === "ar" ? "صالونات" : "Salons"}
-          products={products}
+          products={salons}
+          dict={dict}
+          lang={lang}
+        />
+        <CategoryProducts
+          title={lang === "ar" ? "طاولات" : "Tables"}
+          products={tables}
           dict={dict}
           lang={lang}
         />
         <CategoryProducts
           title={lang === "ar" ? "كراسي" : "Chaises"}
-          products={products}
+          products={chaires}
           dict={dict}
           lang={lang}
         />

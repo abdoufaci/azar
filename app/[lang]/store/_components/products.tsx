@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default async function Products({ dict, lang }: Props) {
-  const products = await getStoreProducts();
+  const { salons: products } = await getStoreProducts();
 
   return (
     <div className="max-md:!px-4 md:!w-[90%] container mx-auto">

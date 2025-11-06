@@ -34,10 +34,10 @@ import ManageDemandForm from "@/components/forms/manage-demand-form";
 import MaterialFilter from "@/components/filters/material-filter";
 import { useDemandsQuery } from "@/hooks/admin/use-query-demands";
 import { demandOptimisticReducer } from "@/lib/optimistic-reducers/demand-optimistic-reducer";
+import { useWorkShopsQuery } from "@/hooks/use-workshops-query";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
-  workShops: WorkShop[];
   stages: DemandStage[];
   materials: DemandMaterial[];
   url?: string;
@@ -45,13 +45,14 @@ interface Props {
 
 function DemandsInterface({
   searchParams,
-  workShops,
   materials,
   stages,
   url = "/management/demands",
 }: Props) {
   const [isAdd, setIsAdd] = useState(false);
 
+  const { data: workShops, isPending: isFetchingWorkShops } =
+    useWorkShopsQuery();
   const { data } = useDemandsQuery();
   const [demands, manageDemandOptimistic] = useOptimistic(
     data?.pages[data?.pages?.length - 1]?.demands as DemandInTable[],
@@ -79,6 +80,7 @@ function DemandsInterface({
                   url={url}
                   searchParams={searchParams}
                   workShops={workShops}
+                  isPending={isFetchingWorkShops}
                 />
               )}
               <MaterialFilter

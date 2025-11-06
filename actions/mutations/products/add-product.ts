@@ -4,20 +4,34 @@ import { checkIsAdmin } from "@/actions/security/admin-check";
 import { currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ProductFormData } from "@/schemas/product-schema";
-import { ProductAudience } from "@prisma/client";
+import {
+  ProductAudience,
+  ProductPricing,
+  ProductSubtype,
+} from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 export const addProduct = async ({
   audience,
   data,
+  pricings,
+  prices,
 }: {
   data: ProductFormData;
   audience: ProductAudience;
+  pricings: (ProductPricing & {
+    subtype: ProductSubtype;
+  })[];
+  prices: {
+    price: number;
+    typeId: string;
+    id?: string;
+  }[];
 }) => {
   await checkIsAdmin();
   const user = await currentUser();
 
-  await db.product.create({
+  const product = await db.product.create({
     data: {
       arDescription: data.descriptionAr,
       arName: data.nameAr,
@@ -26,10 +40,20 @@ export const addProduct = async ({
       frDescription: data.descriptionFr,
       frName: data.nameFr,
       mainImageIdx: data.mainImageIdx,
-      price: data.price,
+
       images: data.images,
       variantId: data.variant.id,
-      pricingId: data.pricingId,
+      pricings: {
+        connect: pricings.map(({ id }) => ({ id })),
+      },
+      prices: {
+        createMany: {
+          data: prices.map((price) => ({
+            price: price.price,
+            typeId: price.typeId,
+          })),
+        },
+      },
       userId: user?.id || "",
       ...(!!data.tissues.length && {
         tissues: {
@@ -37,7 +61,18 @@ export const addProduct = async ({
         },
       }),
     },
+    include: {
+      tissues: true,
+      prices: true,
+      pricings: {
+        include: {
+          subtype: true,
+        },
+      },
+    },
   });
 
   revalidatePath("/");
+
+  return product;
 };

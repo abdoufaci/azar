@@ -11,9 +11,7 @@ export const addOrder = async ({
 }: {
   cart: Cart & {
     items: (CartItem & {
-      product: Product & {
-        pricing: ProductPricing;
-      };
+      product: Product;
       tissu: Tissu;
     })[];
   };
@@ -44,7 +42,7 @@ export const addOrder = async ({
           return {
             ...(!!user && { clientId: user.id }),
             orderId: "/",
-            subtypeId: item.product.pricing.subtypeId,
+            subtypeId: item.typeId,
             variantId: item.product.variantId,
             tissuId: item.tissuId,
             ...(!user && { guestId }),

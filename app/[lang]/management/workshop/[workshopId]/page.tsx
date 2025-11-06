@@ -26,47 +26,26 @@ async function WorkShopIdPage({
   params: { lang, workshopId },
   searchParams,
 }: Props) {
-  const [
-    types,
-    variants,
-    tissues,
-    users,
-    workshops,
-    orderStages,
-    workshop,
-    stages,
-    materials,
-    columns,
-  ] = await Promise.all([
-    getProductSubTypes(),
-    getProductVariants(),
-    getTissues(),
-    getEmployeesAndClients(),
-    getWorkshops(),
-    getOrderStages(),
-    getWorkShopById(workshopId),
-    getDemandStages(),
-    getDemandMaterials(),
-    getColumns(),
-  ]);
-  const { clients, employees } = users;
+  const [workshops, orderStages, workshop, stages, materials] =
+    await Promise.all([
+      getWorkshops(),
+      getOrderStages(),
+      getWorkShopById(workshopId),
+      getDemandStages(),
+      getDemandMaterials(),
+    ]);
 
   return (
     <div className="min-h-screen p-6 space-y-6">
       <WorkshopInterface
         searchParams={await searchParams}
-        types={types}
-        variants={variants}
-        tissues={tissues}
-        clients={clients}
-        employees={employees}
         workShops={workshops}
         orderStages={orderStages}
         stages={stages}
         workshop={workshop}
         materials={materials}
         url={`/management/workshop/${workshopId}`}
-        columns={columns}
+        columns={[]}
       />
     </div>
   );

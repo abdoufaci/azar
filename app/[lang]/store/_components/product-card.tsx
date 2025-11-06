@@ -32,7 +32,6 @@ function ProductCard({ product, isAdmin, dict, lang }: Props) {
               {dict?.products?.starting || "ابتداءا من"}
             </p>
           )}
-          <p className="text-[#f2ba05] text-lg font-medium">{product.price}</p>
         </div>
       </div>
     </div>

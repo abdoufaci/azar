@@ -26,11 +26,7 @@ export async function GET(req: Request) {
       include: {
         items: {
           include: {
-            product: {
-              include: {
-                pricing: true,
-              },
-            },
+            product: true,
             tissu: true,
           },
         },

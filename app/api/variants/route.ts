@@ -1,30 +1,22 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-const MESSAGES_BATCH = 10;
-
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-
-    const orderId = searchParams.get("orderId");
-
-    const history = await db.orderHistory.findMany({
-      where: {
-        orderId: orderId || "",
-      },
+    const variants = await db.productVariant.findMany({
       include: {
-        employee: true,
-        newStage: true,
-        oldStage: true,
-        user: true,
+        pricings: {
+          include: {
+            subtype: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
       },
     });
     return NextResponse.json({
-      history,
+      variants,
     });
   } catch (error) {
     console.log("[DIRECT_MESSAGES_GET]", error);

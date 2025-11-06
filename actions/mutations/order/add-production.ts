@@ -26,7 +26,7 @@ export const addProduction = async ({
 
   const id = createId();
 
-  const p = await db.orderPricing.create({
+  await db.orderPricing.create({
     data: {
       cutterPrice: pricing?.cutterPrice || 0,
       tailorPrice: pricing?.tailorPrice || 0,

@@ -5,7 +5,7 @@ import { checkIsAdmin } from "@/actions/security/admin-check";
 import { currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ProductFormData } from "@/schemas/product-schema";
-import { ProductAudience } from "@prisma/client";
+import { ProductPrices, ProductPricing, ProductSubtype } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 export const updateProduct = async ({
@@ -13,6 +13,10 @@ export const updateProduct = async ({
   data,
   imagesToDelete,
   tissuesToRemove,
+  pricings,
+  currentPricings,
+  currentPrices,
+  prices,
 }: {
   data: ProductFormData;
   productId?: string;
@@ -24,6 +28,18 @@ export const updateProduct = async ({
     id: string;
     name: string;
   }[];
+  pricings: (ProductPricing & {
+    subtype: ProductSubtype;
+  })[];
+  currentPricings: (ProductPricing & {
+    subtype: ProductSubtype;
+  })[];
+  prices: {
+    price: number;
+    typeId: string;
+    id?: string | undefined;
+  }[];
+  currentPrices: ProductPrices[];
 }) => {
   await checkIsAdmin();
   const user = await currentUser();
@@ -38,7 +54,13 @@ export const updateProduct = async ({
     });
   }
 
-  await db.product.update({
+  const pricesToUpdate = prices.filter((price) => price.id);
+  const pricesToCreate = prices.filter((price) => !price.id);
+  const pricesToDelete = currentPrices
+    .filter((pricing) => !prices.find((price) => price.id === pricing.id))
+    .map((pricing) => pricing.id);
+
+  const product = await db.product.update({
     where: {
       id: productId,
     },
@@ -49,10 +71,33 @@ export const updateProduct = async ({
       frDescription: data.descriptionFr,
       frName: data.nameFr,
       mainImageIdx: data.mainImageIdx,
-      price: data.price,
       images: data.images,
       variantId: data.variant.id,
-      pricingId: data.pricingId,
+      prices: {
+        ...(!!pricesToUpdate.length && {
+          updateMany: pricesToUpdate.map((price) => ({
+            where: { id: price.id },
+            data: {
+              price: price.price,
+              typeId: price.typeId,
+            },
+          })),
+        }),
+        ...(!!pricesToCreate.length && {
+          createMany: { data: pricesToCreate },
+        }),
+        ...(!!pricesToDelete.length && {
+          deleteMany: {
+            id: {
+              in: pricesToDelete,
+            },
+          },
+        }),
+      },
+      pricings: {
+        disconnect: currentPricings.map(({ id }) => ({ id })),
+        connect: pricings.map(({ id }) => ({ id })),
+      },
       userId: user?.id || "",
       ...(!!data.tissues.length && {
         tissues: {
@@ -65,7 +110,18 @@ export const updateProduct = async ({
         },
       }),
     },
+    include: {
+      tissues: true,
+      prices: true,
+      pricings: {
+        include: {
+          subtype: true,
+        },
+      },
+    },
   });
 
   revalidatePath("/");
+
+  return product;
 };

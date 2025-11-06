@@ -27,7 +27,7 @@ import {
   WorkShop,
 } from "@prisma/client";
 import { Plus } from "lucide-react";
-import { useOptimistic, useState, useTransition } from "react";
+import { useMemo, useOptimistic, useRef, useState, useTransition } from "react";
 import ManageProductionForm from "@/components/forms/manage-production-form";
 import VariantsFilter from "@/components/filters/variant-filter";
 import {
@@ -40,15 +40,14 @@ import { toast } from "sonner";
 import ProductionsTable from "./productions-table";
 import { useProductionsQuery } from "@/hooks/admin/use-query-productions";
 import { productionOptimisticReducer } from "@/lib/optimistic-reducers/production-optimistic-reducer";
+import { useTissuesQuery } from "@/hooks/use-tissues-query";
+import { useTypesQuery } from "@/hooks/use-types-query";
+import { useVariantsQuery } from "@/hooks/use-variants-query";
+import { useEmployeesClientsQuery } from "@/hooks/use-employees-clients-query";
+import { useWorkShopsQuery } from "@/hooks/use-workshops-query";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
-  types: ProductSubtype[];
-  variants: ProductVariantWithPricing[];
-  tissues: Tissu[];
-  clients: UserWithWorkshop[];
-  employees: UserWithWorkshop[];
-  workShops: WorkShop[];
   orderStages: OrderStage[];
   url?: string;
   columns: (OrderColumn & {
@@ -58,16 +57,12 @@ interface Props {
 
 function ProductionInterface({
   searchParams,
-  types,
-  variants,
-  tissues,
-  clients,
-  workShops,
   orderStages,
-  employees,
   columns,
   url = "/management/production",
 }: Props) {
+  const { data: workShops, isPending: isFetchingWorkShops } =
+    useWorkShopsQuery();
   const [isAdd, setIsAdd] = useState(false);
   const [productionToEdit, setProductionToEdit] =
     useState<ProductionInTable | null>(null);
@@ -78,9 +73,11 @@ function ProductionInterface({
 
   const { data } = useProductionsQuery();
   const [productions, manageProductionOptimistic] = useOptimistic(
-    data?.pages[data?.pages?.length - 1]?.productions as ProductionInTable[],
+    data?.pages[data?.pages?.length - 1]?.productions || [],
     productionOptimisticReducer
   );
+  const { data: variants, isPending: isFetchingVariants } = useVariantsQuery();
+  const { data: types, isPending: isFetchingTypes } = useTypesQuery();
 
   const onAddColumn = async (type: OrderColumnType) => {
     startTransition(() => {
@@ -111,13 +108,20 @@ function ProductionInterface({
                   url={url}
                   searchParams={searchParams}
                   workShops={workShops}
+                  isPending={isFetchingWorkShops}
                 />
               )}
-              <TypeFilter url={url} searchParams={searchParams} types={types} />
+              <TypeFilter
+                url={url}
+                searchParams={searchParams}
+                types={types}
+                isPending={isFetchingTypes}
+              />
               <VariantsFilter
                 url={url}
                 searchParams={searchParams}
                 variants={variants}
+                isPending={isFetchingVariants}
               />
               <StatusFilter
                 url={url}
@@ -249,9 +253,10 @@ function ProductionInterface({
           types={types}
           variants={variants}
           production={productionToEdit}
-          tissues={tissues}
+          tissues={[]}
+          isFetchingVariants={isFetchingVariants}
           workShops={workShops}
-          clients={clients}
+          clients={[]}
           key={productionToEdit?.id}
           addProductionOptimistic={(item) =>
             manageProductionOptimistic({ type: "ADD", item })
@@ -267,7 +272,7 @@ function ProductionInterface({
         <ProductionsTable
           productions={productions}
           orderStages={orderStages}
-          employees={employees}
+          employees={[]}
           onClick={(item) => {
             setProductionToEdit(item);
             setIsAdd(true);

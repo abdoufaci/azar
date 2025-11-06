@@ -1,46 +1,36 @@
 "use client";
 
 import ProductCard from "@/app/[lang]/store/_components/product-card";
-import PriorityFilter from "@/components/filters/priority-filter";
 import SearchFilter from "@/components/filters/search-filter";
-import StatusFilter from "@/components/filters/status-filter";
 import TypeFilter from "@/components/filters/type-filter";
-import WorkShopFilter from "@/components/filters/workshop-filter";
+import VariantsFilter from "@/components/filters/variant-filter";
 import ManageProductForm from "@/components/forms/manage-product-form";
-import { OpenDialogButton } from "@/components/open-dialog-button";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useProductsQuery } from "@/hooks/use-query-products";
+import { useTypesQuery } from "@/hooks/use-types-query";
+import { useVariantsQuery } from "@/hooks/use-variants-query";
+import { productOptimisticReducer } from "@/lib/optimistic-reducers/product-optimistic-reducer copy";
 import { cn } from "@/lib/utils";
-import { ProductVariantWithPricing } from "@/types/types";
+import { ProductInTable, ProductVariantWithPricing } from "@/types/types";
 import {
   Product,
   ProductAudience,
+  ProductPrices,
+  ProductPricing,
   ProductSubtype,
   Tissu,
 } from "@prisma/client";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useOptimistic, useState } from "react";
+import { useInView } from "react-intersection-observer";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
-  types: ProductSubtype[];
-  variants: ProductVariantWithPricing[];
-  Bproducts: (Product & {
-    tissues: Tissu[];
-  })[];
-  Cproducts: (Product & {
-    tissues: Tissu[];
-  })[];
   tissues: Tissu[];
 }
 
-function ProductsInterface({
-  searchParams,
-  types,
-  variants,
-  Bproducts,
-  Cproducts,
-  tissues,
-}: Props) {
+function ProductsInterface({ searchParams, tissues }: Props) {
   const [activeTab, setActiveTab] = useState<ProductAudience>(
     ProductAudience.B2B
   );
@@ -48,9 +38,38 @@ function ProductsInterface({
   const [productToEdit, setProductToEdit] = useState<
     | (Product & {
         tissues: Tissu[];
+        prices: ProductPrices[];
+        pricings: (ProductPricing & {
+          subtype: ProductSubtype;
+        })[];
       })
     | null
   >(null);
+
+  const { data: variants, isPending: isFetchingVariants } = useVariantsQuery();
+  const { data: types, isPending: isFetchingTypes } = useTypesQuery();
+
+  const {
+    data: intialProducts,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    refetch,
+  } = useProductsQuery({ audience: activeTab });
+
+  const [products, manageProductOptimistic] = useOptimistic(
+    intialProducts?.pages.flatMap((page) => page?.products) as ProductInTable[],
+    productOptimisticReducer
+  );
+
+  const [Buttonref, ButtonInView] = useInView();
+
+  useEffect(() => {
+    if (ButtonInView) {
+      fetchNextPage();
+    }
+  }, [ButtonInView]);
 
   return (
     <div className="space-y-5">
@@ -109,41 +128,53 @@ function ProductsInterface({
               />
             </div>
             <div className="flex items-center gap-3">
-              {/* <WorkShopFilter
-            url="/management/production"
-            searchParams={searchParams}
-          />
-          <TypeFilter url="/management/products" searchParams={searchParams} />
-          <PriorityFilter
-            url="/management/products"
-            searchParams={searchParams}
-          />
-          <StatusFilter
-            url="/management/products"
-            searchParams={searchParams}
-          /> */}
+              <TypeFilter
+                url={""}
+                searchParams={searchParams}
+                types={types}
+                isPending={isFetchingTypes}
+              />
+              <VariantsFilter
+                url={""}
+                searchParams={searchParams}
+                variants={variants}
+                isPending={isFetchingVariants}
+              />
             </div>
           </div>
         </>
       )}
-      {activeTab === "B2B" && (
+      {isAdd ? (
+        <ManageProductForm
+          onCancel={() => {
+            setIsAdd(false);
+            setProductToEdit(null);
+          }}
+          types={types}
+          variants={variants}
+          audience={activeTab}
+          product={productToEdit}
+          key={productToEdit?.id}
+          tissues={tissues}
+          addProductOptimistic={(item) =>
+            manageProductOptimistic({ type: "ADD", item })
+          }
+          updateProductOptimistic={(product) =>
+            manageProductOptimistic({ type: "updateProduct", product })
+          }
+        />
+      ) : (
         <>
-          {isAdd ? (
-            <ManageProductForm
-              onCancel={() => {
-                setIsAdd(false);
-                setProductToEdit(null);
-              }}
-              types={types}
-              variants={variants}
-              audience={activeTab}
-              product={productToEdit}
-              key={productToEdit?.id}
-              tissues={tissues}
-            />
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 place-items-center">
+              <ProductsInterface.Skelton />
+              <ProductsInterface.Skelton />
+              <ProductsInterface.Skelton />
+              <ProductsInterface.Skelton />
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-4 gap-6 w-full">
-              {Bproducts.map((product) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 place-items-center">
+              {products.map((product: any) => (
                 <div
                   key={product.id}
                   onClick={() => {
@@ -155,35 +186,23 @@ function ProductsInterface({
               ))}
             </div>
           )}
-        </>
-      )}
-      {activeTab === "B2C" && (
-        <>
-          {isAdd ? (
-            <ManageProductForm
-              onCancel={() => {
-                setIsAdd(false);
-                setProductToEdit(null);
-              }}
-              types={types}
-              variants={variants}
-              audience={activeTab}
-              product={productToEdit}
-              tissues={tissues}
-              key={productToEdit?.id}
-            />
-          ) : (
-            <div className="grid grid-cols-1 md:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-4 gap-6 w-full">
-              {Cproducts.map((product) => (
-                <div
-                  key={product.id}
-                  onClick={() => {
-                    setIsAdd(true);
-                    setProductToEdit(product);
-                  }}>
-                  <ProductCard product={product} key={product.id} isAdmin />
+          {hasNextPage && (
+            <div className="flex justify-center w-full">
+              {isFetchingNextPage ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full place-items-center">
+                  <ProductsInterface.Skelton />
+                  <ProductsInterface.Skelton />
+                  <ProductsInterface.Skelton />
+                  <ProductsInterface.Skelton />
                 </div>
-              ))}
+              ) : (
+                <Button
+                  ref={Buttonref}
+                  disabled={isFetchingNextPage}
+                  onClick={() => fetchNextPage()}>
+                  Show more
+                </Button>
+              )}
             </div>
           )}
         </>
@@ -191,5 +210,18 @@ function ProductsInterface({
     </div>
   );
 }
+
+ProductsInterface.Skelton = function SkeltonTravel() {
+  return (
+    <div className="flex flex-col space-y-3">
+      <Skeleton className="h-[285px] w-[285px] rounded-xl" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[200px]" />
+        <Skeleton className="h-4 w-[150px]" />
+        <Skeleton className="h-4 w-[125px]" />
+      </div>
+    </div>
+  );
+};
 
 export default ProductsInterface;

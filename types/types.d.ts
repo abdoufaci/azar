@@ -27,6 +27,14 @@ export type StockInTable = Stock & {
   type: StockType;
 };
 
+export type ProductInTable = Product & {
+  tissues: Tissu[];
+  prices: ProductPrices[];
+  pricings: (ProductPricing & {
+    subtype: ProductSubtype;
+  })[];
+};
+
 export type UserInTable = User & {
   invoices: Invoice[];
   workShop: WorkShop | null;

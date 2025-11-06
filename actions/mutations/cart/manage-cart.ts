@@ -2,15 +2,21 @@
 
 import { currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { ProductWithPricing } from "@/types/types";
+import { ProductInTable, ProductWithPricing } from "@/types/types";
 
 interface Props {
-  product: ProductWithPricing;
+  product: ProductInTable;
   cartId?: string | null;
   tissuId?: string;
+  typeId: string;
 }
 
-export const manageCart = async ({ product, cartId, tissuId }: Props) => {
+export const manageCart = async ({
+  product,
+  cartId,
+  tissuId,
+  typeId,
+}: Props) => {
   const user = await currentUser();
 
   try {
@@ -28,6 +34,7 @@ export const manageCart = async ({ product, cartId, tissuId }: Props) => {
             productId: product.id,
             cartId: existingCart.id,
             tissuId: tissuId ?? product.tissues?.[0]?.id ?? null,
+            typeId,
           },
         });
         return { status: "added_to_existing_cart", item };
@@ -41,6 +48,7 @@ export const manageCart = async ({ product, cartId, tissuId }: Props) => {
             create: {
               productId: product.id,
               tissuId: tissuId ?? product.tissues?.[0]?.id ?? null,
+              typeId,
             },
           },
         },
@@ -56,6 +64,7 @@ export const manageCart = async ({ product, cartId, tissuId }: Props) => {
           productId: product.id,
           cartId,
           tissuId: tissuId ?? product.tissues?.[0]?.id ?? null,
+          typeId,
         },
       });
       return { status: "added_to_guest_cart", item };
@@ -68,6 +77,7 @@ export const manageCart = async ({ product, cartId, tissuId }: Props) => {
           create: {
             productId: product.id,
             tissuId: tissuId ?? product.tissues?.[0]?.id ?? null,
+            typeId,
           },
         },
       },

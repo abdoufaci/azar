@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select";
 import { useFilterModal } from "@/hooks/use-filter-modal-store";
 import { User, WorkShop } from "@prisma/client";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import qs from "query-string";
 
@@ -15,9 +16,10 @@ interface Props {
   searchParams: Record<string, string | string[] | undefined>;
   url: string;
   workShops: WorkShop[];
+  isPending?: boolean;
 }
 
-function WorkShopFilter({ workShops }: Props) {
+function WorkShopFilter({ workShops, isPending }: Props) {
   const router = useRouter();
   const { onSearch, admin, demand } = useFilterModal();
 
@@ -39,11 +41,15 @@ function WorkShopFilter({ workShops }: Props) {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="default">Par Default</SelectItem>
-        {workShops.map((workshop) => (
-          <SelectItem key={workshop.id} value={workshop.id}>
-            {workshop.name}
-          </SelectItem>
-        ))}
+        {isPending ? (
+          <Loader2 className="h-5 w-5 text-brand animate-spin" />
+        ) : (
+          workShops.map((workshop) => (
+            <SelectItem key={workshop.id} value={workshop.id}>
+              {workshop.name}
+            </SelectItem>
+          ))
+        )}
       </SelectContent>
     </Select>
   );

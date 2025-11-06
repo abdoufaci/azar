@@ -59,11 +59,13 @@ export default async function DemandesPage({
               url="/management/orders"
               searchParams={await searchParams}
               types={types}
+              isPending={false}
             />
             <VariantsFilter
               url="/management/orders"
               searchParams={await searchParams}
               variants={variants}
+              isPending={false}
             />
           </div>
         </div>

@@ -1,11 +1,8 @@
-import { currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { Cart, CartItem } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
   try {
-    const user = await currentUser();
     const { searchParams } = new URL(req.url);
 
     const orderId = searchParams.get("orderId");

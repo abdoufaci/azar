@@ -1,14 +1,11 @@
-import { currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ProductionInTable } from "@/types/types";
-import { Cart, CartItem, Product, ProductCategory } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 const PRODUCTIONS_BATCH = 8;
 
 export async function GET(req: Request) {
   try {
-    const user = await currentUser();
     const { searchParams } = new URL(req.url);
 
     const cursor = searchParams.get("cursor");

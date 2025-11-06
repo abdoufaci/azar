@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, ArrowRight, Upload, Plus, ChevronDown } from "lucide-react";
+import {
+  Check,
+  ArrowRight,
+  Upload,
+  Plus,
+  ChevronDown,
+  Search,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,8 +43,10 @@ import {
   ProductAudience,
   Product,
   Tissu,
+  ProductPrices,
+  ProductPricing,
 } from "@prisma/client";
-import { ProductVariantWithPricing } from "@/types/types";
+import { ProductInTable, ProductVariantWithPricing } from "@/types/types";
 import { addProduct } from "@/actions/mutations/products/add-product";
 import { toast } from "sonner";
 import Tiptap from "../tiptap";
@@ -54,9 +63,15 @@ interface Props {
   product:
     | (Product & {
         tissues: Tissu[];
+        prices: ProductPrices[];
+        pricings: (ProductPricing & {
+          subtype: ProductSubtype;
+        })[];
       })
     | null;
   tissues: Tissu[];
+  addProductOptimistic: (product: ProductInTable) => void;
+  updateProductOptimistic: (product: ProductInTable) => void;
 }
 
 export default function ManageProductForm({
@@ -66,8 +81,10 @@ export default function ManageProductForm({
   audience,
   product,
   tissues,
+  addProductOptimistic,
+  updateProductOptimistic,
 }: Props) {
-  const [step, setStep] = useState<1 | 2 | 3>(product ? 2 : 1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(product ? 2 : 1);
   const [typesToRemove, setTypesToRemove] = useState<
     {
       id: string;
@@ -75,6 +92,7 @@ export default function ManageProductForm({
     }[]
   >([]);
   const [variants, setVariants] = useState(intialVariants || []);
+  const [variantSearchTerm, setVariantSearchTerm] = useState("");
   const [tissuesToRemove, setTissuesToRemove] = useState<
     {
       id: string;
@@ -90,6 +108,13 @@ export default function ManageProductForm({
   >([]);
   const [variantToEdit, setVariantToEdit] =
     useState<ProductVariantWithPricing | null>(null);
+  const [prices, setPrices] = useState<
+    {
+      price: number;
+      typeId: string;
+      id?: string;
+    }[]
+  >([]);
 
   const foundVariant = variants.find(
     (variant) => variant.id === product?.variantId
@@ -107,13 +132,11 @@ export default function ManageProductForm({
         })) || [],
       language: "fr",
       mainImageIdx: product?.mainImageIdx || 0,
-      price: product?.price || 0,
       category: product?.category,
       descriptionAr: product?.arDescription,
       descriptionFr: product?.frDescription,
       nameAr: product?.arName,
       nameFr: product?.frName,
-      pricingId: product?.pricingId,
       variant: foundVariant
         ? {
             color: foundVariant?.color,
@@ -158,8 +181,15 @@ export default function ManageProductForm({
             productId: product.id,
             imagesToDelete,
             tissuesToRemove,
+            pricings:
+              variants.find((variant) => variant.id === selectedVariant?.id)
+                ?.pricings || [],
+            currentPricings: product.pricings,
+            prices,
+            currentPrices: product.prices,
           })
-            .then(() => {
+            .then((res) => {
+              updateProductOptimistic(res);
               toast.success("updated !");
               onCancel();
             })
@@ -167,8 +197,13 @@ export default function ManageProductForm({
         : addProduct({
             data,
             audience,
+            pricings:
+              variants.find((variant) => variant.id === selectedVariant?.id)
+                ?.pricings || [],
+            prices,
           })
-            .then(() => {
+            .then((res) => {
+              addProductOptimistic(res);
               toast.success("Created !");
               onCancel();
             })
@@ -183,6 +218,10 @@ export default function ManageProductForm({
   const selectedCategory = form.watch("category");
   const currentLanguage = form.watch("language");
   const selectedVariant = form.watch("variant");
+
+  const pricesVariant = variants.find(
+    (variant) => variant.id === selectedVariant?.id
+  );
 
   if (step === 1) {
     return (
@@ -292,385 +331,477 @@ export default function ManageProductForm({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Image Upload */}
-            <FormField
-              control={form.control}
-              name="images"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Image</FormLabel>
-                  <FormControl>
-                    <div
-                      className={cn(
-                        "",
-                        !!field.value.length &&
-                          "border-2 border-[#A2ABBD] rounded-[7px] p-4"
-                      )}>
-                      <UploadEverything
-                        isMutliple
-                        value={form.watch("images")}
-                        onChange={field.onChange}
-                        imageContainerClassName="w-24 min-w-24 !h-24 min-h-24"
-                        MainImageIdx={MainImageIdx}
-                        onClick={(idx) => {
-                          form.setValue(
-                            "mainImageIdx",
-                            MainImageIdx === idx ? 0 : idx
-                          );
-                        }}
-                        setImagesToDelete={setImagesToDelete}>
-                        {!!field.value.length ? (
-                          <div
-                            className="w-24 h-24 rounded-[10px] border-2 border-dashed border-[#d1d5db] bg-[#F3F6F8] 
-                          flex items-center justify-center cursor-pointer">
-                            <div className="h-6 w-6 border-2 border-[#A2ABBD] rounded-[9.7px] flex items-center justify-center">
-                              <Plus className="h-4 w-4 text-[#A2ABBD]" />
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="min-w-80 border-2 border-dashed border-[#d1d5db] rounded-lg p-12 text-center hover:border-brand transition-colors cursor-pointer">
-                            <div className="flex flex-col items-center gap-2">
-                              <Upload className="w-8 h-8 text-brand" />
-                              <p className="text-sm text-[#6b7280]">
-                                <span className="text-brand font-medium">
-                                  Click to upload
-                                </span>{" "}
-                                or drag and drop
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </UploadEverything>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Type and Category Row */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="variant"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {selectedCategory === "CHAIR"
-                        ? "Chaise"
-                        : selectedCategory === "TABLE"
-                        ? "Table"
-                        : "Salon"}
-                    </FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <div className="h-fit relative w-full max-w-full min-w-fit border border-[#CFCFCF] cursor-pointer rounded-lg bg-background px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none flex justify-between items-center">
-                          <div className="flex flex-col items-end space-y-1">
-                            <span
-                              className={cn(
-                                !!field.value ? "" : "text-[#A2ABBD]"
-                              )}>
-                              {!!field.value
-                                ? field.value.name
-                                : selectedCategory === "CHAIR"
-                                ? "Chaise"
-                                : selectedCategory === "TABLE"
-                                ? "Table"
-                                : "Salon"}
-                            </span>
-                          </div>
-                          <ChevronDown className="h-4 w-4 opacity-50" />
-                        </div>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="pb-1 !p-0 sm:!w-[280px] w-full "
-                        align="start">
-                        <div className="space-y-2">
-                          <ScrollArea className="h-40">
-                            <div className="space-y-1">
-                              {variants
-                                .filter(
-                                  (model) => model.category === selectedCategory
-                                )
-                                .map((variant) => (
-                                  <div
-                                    key={variant.id}
-                                    onClick={() =>
-                                      field.onChange({
-                                        name: variant.name,
-                                        id: variant.id,
-                                        color: variant.color,
-                                      })
-                                    }
-                                    className="border-b px-4 py-2 cursor-pointer flex items-center gap-5">
-                                    <div
-                                      style={{
-                                        backgroundColor: `${variant.color}33`,
-                                      }}
-                                      className=" rounded-full px-5 py-1 w-fit">
-                                      <h1
-                                        style={{
-                                          color: variant.color,
-                                        }}
-                                        className="font-medium">
-                                        {variant.name}
-                                      </h1>
-                                    </div>
-                                    <svg
-                                      onClick={() => {
-                                        setStep(3);
-                                        setVariantToEdit(variant);
-                                      }}
-                                      width="17"
-                                      height="18"
-                                      viewBox="0 0 17 18"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg">
-                                      <path
-                                        d="M0.6875 17.1878H15.3542M2.21467 10.0259C1.82381 10.4176 1.60426 10.9484 1.60417 11.5017V14.4378H4.55858C5.11225 14.4378 5.643 14.2178 6.03442 13.8255L14.7428 5.11256C15.1335 4.72077 15.3529 4.19004 15.3529 3.63672C15.3529 3.08341 15.1335 2.55268 14.7428 2.16089L13.8829 1.29922C13.689 1.10521 13.4588 0.951327 13.2053 0.846362C12.9519 0.741398 12.6803 0.687415 12.406 0.6875C12.1317 0.687585 11.8601 0.741737 11.6067 0.846858C11.3534 0.95198 11.1232 1.10601 10.9294 1.30014L2.21467 10.0259Z"
-                                        stroke="#A2ABBD"
-                                        stroke-width="1.375"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                      />
-                                    </svg>
-                                  </div>
-                                ))}
-                            </div>
-                          </ScrollArea>
-                          <div className="px-4">
-                            <Button
-                              type="button" // Important: type="button" to prevent submitting the form
-                              onClick={() => setStep(3)}
-                              variant="brand_link"
-                              className="!p-0">
-                              <Plus className="h-4 w-4" />
-                              Ajouter SALON
-                            </Button>
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="pricingId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}>
+            {step === 2 ? (
+              <>
+                <FormField
+                  control={form.control}
+                  name="images"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Image</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue
-                            placeholder={`Type de ${
-                              selectedCategory === "CHAIR"
-                                ? "chaise"
-                                : selectedCategory === "TABLE"
-                                ? "table"
-                                : "salon"
-                            }`}
-                          />
-                        </SelectTrigger>
+                        <div
+                          className={cn(
+                            "",
+                            !!field.value.length &&
+                              "border-2 border-[#A2ABBD] rounded-[7px] p-4"
+                          )}>
+                          <UploadEverything
+                            isMutliple
+                            value={form.watch("images")}
+                            onChange={field.onChange}
+                            imageContainerClassName="w-24 min-w-24 !h-24 min-h-24"
+                            MainImageIdx={MainImageIdx}
+                            onClick={(idx) => {
+                              form.setValue(
+                                "mainImageIdx",
+                                MainImageIdx === idx ? 0 : idx
+                              );
+                            }}
+                            setImagesToDelete={setImagesToDelete}>
+                            {!!field.value.length ? (
+                              <div
+                                className="w-24 h-24 rounded-[10px] border-2 border-dashed border-[#d1d5db] bg-[#F3F6F8] 
+                          flex items-center justify-center cursor-pointer">
+                                <div className="h-6 w-6 border-2 border-[#A2ABBD] rounded-[9.7px] flex items-center justify-center">
+                                  <Plus className="h-4 w-4 text-[#A2ABBD]" />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="min-w-80 border-2 border-dashed border-[#d1d5db] rounded-lg p-12 text-center hover:border-brand transition-colors cursor-pointer">
+                                <div className="flex flex-col items-center gap-2">
+                                  <Upload className="w-8 h-8 text-brand" />
+                                  <p className="text-sm text-[#6b7280]">
+                                    <span className="text-brand font-medium">
+                                      Click to upload
+                                    </span>{" "}
+                                    or drag and drop
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </UploadEverything>
+                        </div>
                       </FormControl>
-                      <SelectContent>
-                        {variants
-                          .find((variant) => variant.id === selectedVariant?.id)
-                          ?.pricings.map((price) => (
-                            <SelectItem key={price.id} value={price.id}>
-                              {price.subtype.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Type and Category Row */}
+                <div className=" ">
+                  <FormField
+                    control={form.control}
+                    name="variant"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {selectedCategory === "CHAIR"
+                            ? "Chaise"
+                            : selectedCategory === "TABLE"
+                            ? "Table"
+                            : "Salon"}
+                        </FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <div className="h-fit relative w-full max-w-full min-w-fit border border-[#CFCFCF] cursor-pointer rounded-lg bg-background px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none flex justify-between items-center">
+                              <div className="flex flex-col items-end space-y-1">
+                                <span
+                                  className={cn(
+                                    !!field.value ? "" : "text-[#A2ABBD]"
+                                  )}>
+                                  {!!field.value
+                                    ? field.value.name
+                                    : selectedCategory === "CHAIR"
+                                    ? "Chaise"
+                                    : selectedCategory === "TABLE"
+                                    ? "Table"
+                                    : "Salon"}
+                                </span>
+                              </div>
+                              <ChevronDown className="h-4 w-4 opacity-50" />
+                            </div>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="pb-1 !p-0 sm:!w-[575px] w-full "
+                            align="start">
+                            <div className="space-y-2">
+                              <div className="px-4 pt-4">
+                                <div className="relative w-full flex-1 max-w-md border border-[#E7F1F8] bg-transparent rounded-lg">
+                                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5A5A5A]" />
+                                  <Input
+                                    value={variantSearchTerm}
+                                    onChange={(e) => {
+                                      setVariantSearchTerm(
+                                        e.currentTarget.value
+                                      );
+                                    }}
+                                    placeholder="Recherche"
+                                    className="pl-10 border-none text-[#5A5A5A] placeholder:text-[#5A5A5A] w-full"
+                                  />
+                                </div>
+                              </div>
+                              <ScrollArea className="h-40">
+                                <div className="space-y-1">
+                                  {variants
+                                    .filter(
+                                      (variant) =>
+                                        variant.category === selectedCategory &&
+                                        variant.name
+                                          .toLowerCase()
+                                          .trim()
+                                          .includes(
+                                            variantSearchTerm
+                                              .toLowerCase()
+                                              .trim()
+                                          )
+                                    )
+                                    .map((variant) => (
+                                      <div
+                                        key={variant.id}
+                                        onClick={() =>
+                                          field.onChange({
+                                            name: variant.name,
+                                            id: variant.id,
+                                            color: variant.color,
+                                          })
+                                        }
+                                        className="border-b px-4 py-2 cursor-pointer flex items-center gap-5">
+                                        <div
+                                          style={{
+                                            backgroundColor: `${variant.color}33`,
+                                          }}
+                                          className=" rounded-full px-5 py-1 w-fit">
+                                          <h1
+                                            style={{
+                                              color: variant.color,
+                                            }}
+                                            className="font-medium">
+                                            {variant.name}
+                                          </h1>
+                                        </div>
+                                        <svg
+                                          onClick={() => {
+                                            setStep(3);
+                                            setVariantToEdit(variant);
+                                          }}
+                                          width="17"
+                                          height="18"
+                                          viewBox="0 0 17 18"
+                                          fill="none"
+                                          xmlns="http://www.w3.org/2000/svg">
+                                          <path
+                                            d="M0.6875 17.1878H15.3542M2.21467 10.0259C1.82381 10.4176 1.60426 10.9484 1.60417 11.5017V14.4378H4.55858C5.11225 14.4378 5.643 14.2178 6.03442 13.8255L14.7428 5.11256C15.1335 4.72077 15.3529 4.19004 15.3529 3.63672C15.3529 3.08341 15.1335 2.55268 14.7428 2.16089L13.8829 1.29922C13.689 1.10521 13.4588 0.951327 13.2053 0.846362C12.9519 0.741398 12.6803 0.687415 12.406 0.6875C12.1317 0.687585 11.8601 0.741737 11.6067 0.846858C11.3534 0.95198 11.1232 1.10601 10.9294 1.30014L2.21467 10.0259Z"
+                                            stroke="#A2ABBD"
+                                            stroke-width="1.375"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                          />
+                                        </svg>
+                                      </div>
+                                    ))}
+                                </div>
+                              </ScrollArea>
+                              <div className="px-4">
+                                <Button
+                                  type="button" // Important: type="button" to prevent submitting the form
+                                  onClick={() => setStep(3)}
+                                  variant="brand_link"
+                                  className="!p-0">
+                                  <Plus className="h-4 w-4" />
+                                  Ajouter SALON
+                                </Button>
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {/* <FormField
+                    control={form.control}
+                    name="pricingId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Type</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={`Type de ${
+                                  selectedCategory === "CHAIR"
+                                    ? "chaise"
+                                    : selectedCategory === "TABLE"
+                                    ? "table"
+                                    : "salon"
+                                }`}
+                              />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {variants
+                              .find(
+                                (variant) => variant.id === selectedVariant?.id
+                              )
+                              ?.pricings?.map((price) => (
+                                <SelectItem key={price.id} value={price.id}>
+                                  {price.subtype.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  /> */}
+                </div>
+                {selectedCategory === "SALON" && audience === "B2C" && (
+                  <FormField
+                    control={form.control}
+                    name="tissues"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tissue</FormLabel>
+                        <FormControl>
+                          <ManageProductTissues
+                            selectedTissues={field.value}
+                            onChange={field.onChange}
+                            setTissuesToRemove={setTissuesToRemove}
+                            tissues={tissues}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
-              />
-            </div>
-            {selectedCategory === "SALON" && audience === "B2C" && (
-              <FormField
-                control={form.control}
-                name="tissues"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tissue</FormLabel>
-                    <FormControl>
-                      <ManageProductTissues
-                        selectedTissues={field.value}
-                        onChange={field.onChange}
-                        setTissuesToRemove={setTissuesToRemove}
-                        tissues={tissues}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                {/* Price */}
+                {/* <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Price</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(e.target.valueAsNumber || 0)
+                            }
+                            value={field.value.toString() || ""}
+                            className="pr-16"
+                          />
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-brand">
+                            DZD
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                /> */}
+
+                {/* Language Tabs */}
+                <FormField
+                  control={form.control}
+                  name="language"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex gap-8 border-b border-[#e5e7eb]">
+                        <button
+                          type="button"
+                          onClick={() => field.onChange("fr")}
+                          className={`pb-3 text-sm font-medium transition-colors relative ${
+                            currentLanguage === "fr"
+                              ? "text-brand"
+                              : "text-[#6b7280] hover:text-[#000000]"
+                          }`}>
+                          Français
+                          {currentLanguage === "fr" && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => field.onChange("ar")}
+                          className={`pb-3 text-sm font-medium transition-colors relative ${
+                            currentLanguage === "ar"
+                              ? "text-brand"
+                              : "text-[#6b7280] hover:text-[#000000]"
+                          }`}>
+                          عربي
+                          {currentLanguage === "ar" && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand" />
+                          )}
+                        </button>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Name */}
+                {currentLanguage === "fr" && (
+                  <FormField
+                    control={form.control}
+                    name="nameFr"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Nom{" "}
+                          <span className="text-[#9ca3af]">(Optionnel)</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nom de Salon" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
-              />
-            )}
-            {/* Price */}
-            <FormField
-              control={form.control}
-              name="price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price</FormLabel>
-                  <FormControl>
+
+                {currentLanguage === "ar" && (
+                  <FormField
+                    control={form.control}
+                    name="nameAr"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-right">
+                          <div className="w-full">
+                            اسم{" "}
+                            <span className="text-[#9ca3af]">(اختياري)</span>
+                          </div>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="اسم الصالون"
+                            {...field}
+                            dir="rtl"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {/* Description */}
+                {currentLanguage === "fr" && (
+                  <FormField
+                    control={form.control}
+                    name="descriptionFr"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Tiptap
+                            description={field.value}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {currentLanguage === "ar" && (
+                  <FormField
+                    control={form.control}
+                    name="descriptionAr"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-right">
+                          <div className="w-full">وصف</div>
+                        </FormLabel>
+                        <FormControl>
+                          <Tiptap
+                            description={field.value}
+                            onChange={field.onChange}
+                            isArabic
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </>
+            ) : (
+              <>
+                {prices.map((price, idx) => (
+                  <div key={idx} className="space-y-2">
+                    <h3>
+                      {
+                        pricesVariant?.pricings.find(
+                          (pricing) => pricing.subtypeId === price.typeId
+                        )?.subtype.name
+                      }
+                    </h3>
                     <div className="relative">
                       <Input
                         type="number"
-                        placeholder="0"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(e.target.valueAsNumber || 0)
-                        }
-                        value={field.value.toString() || ""}
-                        className="pr-16"
+                        placeholder="Montant dû de decop pour le type 3+2"
+                        value={`${price.price}`}
+                        onChange={(e) => {
+                          const newPrices = [...prices];
+                          newPrices[idx] = {
+                            ...newPrices[idx],
+                            price: e.target.valueAsNumber,
+                          };
+                          setPrices(newPrices);
+                        }}
+                        className=""
                       />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-brand">
-                        DZD
-                      </div>
                     </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Language Tabs */}
-            <FormField
-              control={form.control}
-              name="language"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex gap-8 border-b border-[#e5e7eb]">
-                    <button
-                      type="button"
-                      onClick={() => field.onChange("fr")}
-                      className={`pb-3 text-sm font-medium transition-colors relative ${
-                        currentLanguage === "fr"
-                          ? "text-brand"
-                          : "text-[#6b7280] hover:text-[#000000]"
-                      }`}>
-                      Français
-                      {currentLanguage === "fr" && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand" />
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => field.onChange("ar")}
-                      className={`pb-3 text-sm font-medium transition-colors relative ${
-                        currentLanguage === "ar"
-                          ? "text-brand"
-                          : "text-[#6b7280] hover:text-[#000000]"
-                      }`}>
-                      عربي
-                      {currentLanguage === "ar" && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand" />
-                      )}
-                    </button>
                   </div>
-                </FormItem>
-              )}
-            />
-
-            {/* Name */}
-            {currentLanguage === "fr" && (
-              <FormField
-                control={form.control}
-                name="nameFr"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Nom <span className="text-[#9ca3af]">(Optionnel)</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nom de Salon" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                ))}
+              </>
             )}
-
-            {currentLanguage === "ar" && (
-              <FormField
-                control={form.control}
-                name="nameAr"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel className="text-right">
-                      <div className="w-full">
-                        اسم <span className="text-[#9ca3af]">(اختياري)</span>
-                      </div>
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="اسم الصالون" {...field} dir="rtl" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {/* Description */}
-            {currentLanguage === "fr" && (
-              <FormField
-                control={form.control}
-                name="descriptionFr"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Tiptap
-                        description={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {currentLanguage === "ar" && (
-              <FormField
-                control={form.control}
-                name="descriptionAr"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel className="text-right">
-                      <div className="w-full">وصف</div>
-                    </FormLabel>
-                    <FormControl>
-                      <Tiptap
-                        description={field.value}
-                        onChange={field.onChange}
-                        isArabic
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
             {/* Action Buttons */}
             <div className="flex justify-between items-center pt-4">
               <Button
                 type="button"
                 variant="ghost"
-                onClick={handleCancel}
+                onClick={() => (step === 2 ? handleCancel() : setStep(2))}
                 className="text-[#000000] hover:text-[#000000] hover:bg-[#f3f4f6]">
                 Cancel
               </Button>
-              <Button type="submit" disabled={isPending} variant={"brand"}>
-                {product ? "update" : "Add"} Product
-              </Button>
+              {step === 2 ? (
+                <Button
+                  type="button"
+                  variant="brand"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setStep(4);
+                    setPrices(
+                      pricesVariant?.pricings.map((pricing) => {
+                        const price = product?.prices.find(
+                          (price) => price.typeId === pricing.subtypeId
+                        );
+                        return {
+                          id: price?.id || undefined,
+                          price: price?.price || 0,
+                          typeId: pricing.subtypeId,
+                        };
+                      }) || []
+                    );
+                  }}
+                  className="rounded-full px-14">
+                  Continue
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              ) : (
+                <Button type="submit" disabled={isPending} variant={"brand"}>
+                  {product ? "update" : "Add"} Product
+                </Button>
+              )}
             </div>
           </form>
         </Form>

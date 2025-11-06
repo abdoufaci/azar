@@ -788,7 +788,7 @@ function ProductionsTable({
                     <ProductionDetails
                       onClick={() => onClick(order)}
                       orderStages={orderStages}
-                      employees={employees}
+                      employees={[]}
                       //@ts-ignore
                       order={order}
                       onSubOrderClick={() => onSubOrderClick(order)}

@@ -1,14 +1,14 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useFilterModal } from "./use-filter-modal-store";
 import qs from "query-string";
-import { ProductAudience, ProductCategory } from "@prisma/client";
+import { ProductCategory } from "@prisma/client";
 
 interface Props {
-  audience: ProductAudience;
+  type: ProductCategory;
 }
 
-export const useProductsQuery = ({ audience }: Props) => {
-  const { admin: filterData } = useFilterModal();
+export const useStoreProductsQuery = ({ type }: Props) => {
+  const { store: filterData } = useFilterModal();
 
   const fetchCars = async ({
     pageParam = undefined,
@@ -17,10 +17,14 @@ export const useProductsQuery = ({ audience }: Props) => {
   }) => {
     const url = qs.stringifyUrl(
       {
-        url: "/api/products",
+        url: "/api/store-products",
         query: {
-          ...filterData,
-          audience,
+          min: filterData.price?.min,
+          max: filterData.price?.max,
+          search: filterData.search,
+          variantId: filterData.variantId,
+          subtypeId: filterData.subtypeId,
+          type,
           cursor: pageParam,
         },
       },
@@ -39,14 +43,11 @@ export const useProductsQuery = ({ audience }: Props) => {
     isLoadingError,
     refetch,
   } = useInfiniteQuery({
-    queryKey: ["products", filterData, audience],
+    queryKey: ["store-products", filterData],
     queryFn: fetchCars,
     getNextPageParam: (lastPage) => lastPage?.nextCursor,
     initialPageParam: undefined,
     refetchInterval: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
   });
 
   return {

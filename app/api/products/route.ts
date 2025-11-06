@@ -1,6 +1,16 @@
 import { currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { Cart, CartItem, Product, ProductCategory } from "@prisma/client";
+import {
+  Cart,
+  CartItem,
+  Product,
+  ProductAudience,
+  ProductCategory,
+  ProductPrices,
+  ProductPricing,
+  ProductSubtype,
+  Tissu,
+} from "@prisma/client";
 import { NextResponse } from "next/server";
 
 const PRODUCTS_BATCH = 12;
@@ -11,116 +21,69 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
 
     const cursor = searchParams.get("cursor");
-    const min = searchParams.get("min");
-    const max = searchParams.get("max");
     const search = searchParams.get("search");
-    const variantId = searchParams.get("variantId");
-    const subtypeId = searchParams.get("subtypeId");
+    const audience = searchParams.get("audience");
     const type = searchParams.get("type");
+    const variant = searchParams.get("variant");
 
-    let products: Product[];
+    let products: (Product & {
+      tissues: Tissu[];
+      prices: ProductPrices[];
+      pricings: (ProductPricing & {
+        subtype: ProductSubtype;
+      })[];
+    })[];
 
-    if (cursor) {
-      products = await db.product.findMany({
-        where: {
-          category: type as ProductCategory,
-          audience: !!user ? "B2B" : "B2C",
-          ...(subtypeId && {
-            pricing: {
-              subtypeId,
+    products = await db.product.findMany({
+      where: {
+        audience: audience as ProductAudience,
+        ...(variant && {
+          variantId: variant,
+        }),
+        ...(type && {
+          pricings: {
+            some: {
+              subtypeId: type,
             },
-          }),
-          ...(variantId && {
-            variantId,
-          }),
-          ...(min &&
-            max && {
-              price: {
-                gte: Number(min),
-                lte: Number(max),
+          },
+        }),
+        ...(search && {
+          OR: [
+            {
+              arName: {
+                contains: search,
+                mode: "insensitive",
               },
-            }),
-          ...(search && {
-            OR: [
-              {
-                arName: {
-                  contains: search,
-                  mode: "insensitive",
-                },
+            },
+            {
+              frName: {
+                contains: search,
+                mode: "insensitive",
               },
-              {
-                frName: {
-                  contains: search,
-                  mode: "insensitive",
-                },
-              },
-            ],
-          }),
+            },
+          ],
+        }),
+      },
+      include: {
+        tissues: true,
+        prices: true,
+        pricings: {
+          include: {
+            subtype: true,
+          },
         },
-        include: {
-          tissues: true,
-        },
+      },
+      ...(cursor && {
         skip: 1,
         cursor: {
           id: cursor,
         },
-        take:
-          search === "" && !min && !max && !variantId && !subtypeId
-            ? PRODUCTS_BATCH
-            : undefined,
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
-    } else {
-      products = await db.product.findMany({
-        where: {
-          category: type as ProductCategory,
-          audience: !!user ? "B2B" : "B2C",
-          ...(subtypeId && {
-            pricing: {
-              subtypeId,
-            },
-          }),
-          ...(variantId && {
-            variantId,
-          }),
-          ...(min &&
-            max && {
-              price: {
-                gte: Number(min),
-                lte: Number(max),
-              },
-            }),
-          ...(search && {
-            OR: [
-              {
-                arName: {
-                  contains: search,
-                  mode: "insensitive",
-                },
-              },
-              {
-                frName: {
-                  contains: search,
-                  mode: "insensitive",
-                },
-              },
-            ],
-          }),
-        },
-        include: {
-          tissues: true,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take:
-          search === "" && !min && !max && !variantId && !subtypeId
-            ? PRODUCTS_BATCH
-            : undefined,
-      });
-    }
+      }),
+      take: search === "" ? PRODUCTS_BATCH : undefined,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
     let nextCursor = null;
     if (products.length === PRODUCTS_BATCH) {

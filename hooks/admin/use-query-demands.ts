@@ -43,6 +43,9 @@ export const useDemandsQuery = () => {
     getNextPageParam: (lastPage) => lastPage?.nextCursor,
     initialPageParam: undefined,
     refetchInterval: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
   });
 
   return {

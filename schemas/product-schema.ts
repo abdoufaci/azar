@@ -26,8 +26,6 @@ export const productFormSchema = z.object({
       name: z.string(),
     })
   ),
-  pricingId: z.string(),
-  price: z.number(),
   language: z.string(),
   nameFr: z.string(),
   nameAr: z.string(),

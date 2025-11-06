@@ -14,14 +14,14 @@ import {
 } from "@prisma/client";
 import DOMPurify from "dompurify";
 import { cn } from "@/lib/utils";
-import { ProductWithPricing } from "@/types/types";
+import { ProductInTable, ProductWithPricing } from "@/types/types";
 import { manageCart } from "@/actions/mutations/cart/manage-cart";
 import { toast } from "sonner";
 import { useCartQuery } from "@/hooks/use-cart-query";
 import { useModal } from "@/hooks/use-modal-store";
 
 interface Props {
-  product: ProductWithPricing | null;
+  product: ProductInTable | null;
   tissues: Tissu[];
   lang: any;
   dict: any;
@@ -50,21 +50,22 @@ function ProductDetails({ product, tissues, lang, dict }: Props) {
   const descriptionText = tempDiv.textContent || tempDiv.innerText || "";
 
   const onAddProduct = () => {
-    if (!product) return;
-    startTransition(() => {
-      manageCart({
-        product,
-        cartId,
-      })
-        .then((res) => {
-          if (res.status === "guest_cart_created" && !!res?.cart) {
-            localStorage.setItem("cart_Id", res.cart.id);
-          }
-          refetch();
-          toast.success("Produit ajouter !");
-        })
-        .catch(() => toast.error("Erreur"));
-    });
+    // if (!product) return;
+    // startTransition(() => {
+    //   manageCart({
+    //     product,
+    //     cartId,
+    //     typeId:
+    //   })
+    //     .then((res) => {
+    //       if (res.status === "guest_cart_created" && !!res?.cart) {
+    //         localStorage.setItem("cart_Id", res.cart.id);
+    //       }
+    //       refetch();
+    //       toast.success("Produit ajouter !");
+    //     })
+    //     .catch(() => toast.error("Erreur"));
+    // });
   };
 
   return (
@@ -118,9 +119,9 @@ function ProductDetails({ product, tissues, lang, dict }: Props) {
                   lang === "ar" && "justify-end"
                 )}>
                 <span>
-                  {product?.pricing.variant.category === "SALON"
+                  {product?.category === "SALON"
                     ? dict?.storeHeader.salon
-                    : product?.pricing.variant.category === "CHAIR"
+                    : product?.category === "CHAIR"
                     ? dict?.storeHeader.chair
                     : dict?.storeHeader.table}{" "}
                   / {lang === "ar" ? product?.arName : product?.frName}{" "}
@@ -170,9 +171,7 @@ function ProductDetails({ product, tissues, lang, dict }: Props) {
               <Button
                 disabled={isPending}
                 onClick={() =>
-                  product?.audience === "B2B"
-                    ? onOpen("chooseTissu", { product, tissues })
-                    : onAddProduct()
+                  product && onOpen("chooseTissu", { product, tissues })
                 }
                 variant={"yellow_brand"}
                 size="lg"

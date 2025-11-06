@@ -10,22 +10,11 @@ async function ProductsPage({
 }: {
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
-  const [types, variants, products, tissues] = await Promise.all([
-    getProductSubTypes(),
-    getProductVariants(),
-    getProducts(),
-    getTissues(),
-  ]);
+  const [tissues] = await Promise.all([getTissues()]);
 
   return (
     <div className="p-8">
-      <ProductsInterface
-        searchParams={await searchParams}
-        types={types}
-        variants={variants}
-        tissues={tissues}
-        {...products}
-      />
+      <ProductsInterface searchParams={await searchParams} tissues={tissues} />
     </div>
   );
 }

@@ -5,10 +5,11 @@ export const getProductById = async (productId: string) => {
     where: { id: productId },
     include: {
       tissues: true,
-      pricing: {
+      prices: true,
+
+      pricings: {
         include: {
           subtype: true,
-          variant: true,
         },
       },
     },

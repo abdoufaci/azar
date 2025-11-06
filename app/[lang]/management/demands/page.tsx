@@ -11,8 +11,7 @@ export default async function DemandesPage({
   params: any;
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
-  const [workshops, stages, materials] = await Promise.all([
-    getWorkshops(),
+  const [stages, materials] = await Promise.all([
     getDemandStages(),
     getDemandMaterials(),
   ]);
@@ -22,7 +21,6 @@ export default async function DemandesPage({
       <DemandsInterface
         searchParams={await searchParams}
         stages={stages}
-        workShops={workshops}
         materials={materials}
       />
     </div>

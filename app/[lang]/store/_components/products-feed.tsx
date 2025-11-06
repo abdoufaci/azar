@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useInView } from "react-intersection-observer";
-import { useProductsQuery } from "@/hooks/use-query-products";
+import { useStoreProductsQuery } from "@/hooks/use-query-store-products";
 import { Product, ProductCategory } from "@prisma/client";
 import ProductCard from "./product-card";
 import Link from "next/link";
@@ -24,7 +24,7 @@ function ProductsFeed({ type, dict, lang }: Props) {
     isFetchingNextPage,
     isLoading,
     refetch,
-  } = useProductsQuery({ type });
+  } = useStoreProductsQuery({ type });
 
   const [Buttonref, ButtonInView] = useInView();
 

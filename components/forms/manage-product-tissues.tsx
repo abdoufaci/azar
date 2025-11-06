@@ -3,12 +3,13 @@ import { ProductCategory, ProductSubtype, Tissu } from "@prisma/client";
 import { Dispatch, SetStateAction, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
-import { ChevronDown, Plus } from "lucide-react";
+import { ChevronDown, Plus, Search } from "lucide-react";
 import { Input } from "../ui/input";
 import { Checkbox } from "../ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
 import { addTissu } from "@/actions/mutations/products/add-tissu";
+import { ScrollArea } from "../ui/scroll-area";
 
 interface Props {
   onChange: (item: { id: string; name: string }[]) => void;
@@ -33,6 +34,7 @@ function ManageProductTissues({
   tissues: intialTissues,
   selectedTissues,
 }: Props) {
+  const [searchTerm, setSearchTerm] = useState("");
   const [tissues, setTissues] = useState(intialTissues || []);
   const [newTissuInput, setNewTissuInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
@@ -70,40 +72,37 @@ function ManageProductTissues({
         </PopoverTrigger>
         <PopoverContent className="p-0 sm:!w-[280px] w-full" align="start">
           <div className="space-y-2">
-            <div className="space-y-1">
-              {tissues
-                .map((type) => ({ id: type.id, name: type.name }))
-                .map((type) => {
-                  const isChecked = selectedTissues
-                    ?.map((item) => item.id)
-                    .includes(type.id);
-                  return (
-                    <div
-                      key={type.id}
-                      onClick={() => {
-                        if (!!isChecked) {
-                          setTissuesToRemove((prev) => [...prev, type]);
-                        }
-
-                        if (!isChecked) {
-                          setTissuesToRemove((prev) =>
-                            prev.filter((item) => item.id !== type.id)
-                          );
-                        }
-                        return !isChecked
-                          ? onChange([...selectedTissues, type])
-                          : onChange(
-                              selectedTissues?.filter(
-                                (value) => value.name !== type.name
-                              )
-                            );
-                      }}
-                      className="flex items-center gap-2 border-b p-4 cursor-pointer">
-                      <Checkbox
-                        className="cursor-pointer data-[state=checked]:bg-brand data-[state=checked]:border-brand 
-                                border border-[#0000006B] rounded-full"
-                        checked={isChecked}
-                        onCheckedChange={(checked) => {
+            <div className="px-4 pt-4">
+              <div className="relative w-full flex-1 max-w-md border border-[#E7F1F8] bg-transparent rounded-lg">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5A5A5A]" />
+                <Input
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.currentTarget.value);
+                  }}
+                  placeholder="Recherche"
+                  className="pl-10 border-none text-[#5A5A5A] placeholder:text-[#5A5A5A] w-full"
+                />
+              </div>
+            </div>
+            <ScrollArea className="h-40">
+              <div className="space-y-1">
+                {tissues
+                  .filter((tissu) =>
+                    tissu.name
+                      .toLowerCase()
+                      .trim()
+                      .includes(searchTerm.toLowerCase().trim())
+                  )
+                  .map((type) => ({ id: type.id, name: type.name }))
+                  .map((type) => {
+                    const isChecked = selectedTissues
+                      ?.map((item) => item.id)
+                      .includes(type.id);
+                    return (
+                      <div
+                        key={type.id}
+                        onClick={() => {
                           if (!!isChecked) {
                             setTissuesToRemove((prev) => [...prev, type]);
                           }
@@ -121,12 +120,36 @@ function ManageProductTissues({
                                 )
                               );
                         }}
-                      />
-                      <h1 className="text-[#232323]">{type.name}</h1>
-                    </div>
-                  );
-                })}
-            </div>
+                        className="flex items-center gap-2 border-b p-4 cursor-pointer">
+                        <Checkbox
+                          className="cursor-pointer data-[state=checked]:bg-brand data-[state=checked]:border-brand 
+                                border border-[#0000006B] rounded-full"
+                          checked={isChecked}
+                          onCheckedChange={(checked) => {
+                            if (!!isChecked) {
+                              setTissuesToRemove((prev) => [...prev, type]);
+                            }
+
+                            if (!isChecked) {
+                              setTissuesToRemove((prev) =>
+                                prev.filter((item) => item.id !== type.id)
+                              );
+                            }
+                            return !isChecked
+                              ? onChange([...selectedTissues, type])
+                              : onChange(
+                                  selectedTissues?.filter(
+                                    (value) => value.name !== type.name
+                                  )
+                                );
+                          }}
+                        />
+                        <h1 className="text-[#232323]">{type.name}</h1>
+                      </div>
+                    );
+                  })}
+              </div>
+            </ScrollArea>
             <div className="px-4 pb-2">
               {showAdd ? (
                 <Input

@@ -23,7 +23,7 @@ export default function SearchFilter({ url: pathname, searchParams }: Props) {
       demand,
       admin: {
         ...rest,
-        search: searchTerm,
+        search: search === "" ? undefined : searchTerm,
       },
     });
   }, [debouncedSearchTerm]);

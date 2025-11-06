@@ -4,6 +4,12 @@ export const getProducts = async () => {
   const products = await db.product.findMany({
     include: {
       tissues: true,
+      prices: true,
+      pricings: {
+        include: {
+          subtype: true,
+        },
+      },
     },
   });
 

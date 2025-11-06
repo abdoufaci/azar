@@ -46,6 +46,7 @@ import { useOrderHistoryQuery } from "@/hooks/admin/use-order-history-query";
 import { useSubOrdersQuery } from "@/hooks/admin/use-sub-orders-query";
 import { useOrderQuery } from "@/hooks/admin/use-order-query";
 import { useProductionsQuery } from "@/hooks/admin/use-query-productions";
+import { useEmployeesClientsQuery } from "@/hooks/use-employees-clients-query";
 
 interface Props {
   order: ProductionInTable;
@@ -68,12 +69,16 @@ function ProductionDetails({
   onClick,
   orderStages,
   order: motherOrder,
-  employees,
   onSubOrderClick,
   columns,
   manageEmployeeOptimistic,
   updateStageOptimistic,
 }: Props) {
+  const { data: users, isPending: isFetchingUsers } = useEmployeesClientsQuery(
+    motherOrder?.workShopId
+  );
+  const employees = users?.employees || [];
+
   const [newOrderStageInput, setNewOrderStageInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [isAddingOrderStagePending, startAddingOrderStage] = useTransition();
@@ -245,6 +250,7 @@ function ProductionDetails({
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6 rounded-full bg-[#ba0000]/10 hover:bg-[#ba0000]/10"
+                disabled={isPending}
                 onClick={() => {
                   if (!isPending) {
                     startTransition(() => {
@@ -282,50 +288,56 @@ function ProductionDetails({
                 />
               </PopoverTrigger>
               <PopoverContent className="p-0 w-fit">
-                {cutters.map((employee, idx) => (
-                  <div
-                    key={employee.id}
-                    onClick={() => {
-                      if (!isPending) {
-                        startTransition(() => {
-                          manageEmployeeOptimistic(employee, "CUTTER", "add");
-                          updateOrderWorkers({
-                            orderId: order.id,
-                            userId: employee.id,
-                            type: "CUTTER",
-                            currentRef: order.orderId,
-                          })
-                            .catch(() => {
-                              refetch();
-                              toast.error("Erreur .");
-                            })
-                            .finally(() => toast.dismiss("loading"));
-                        });
-                      }
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 p-4 cursor-pointer",
-                      idx !== cutters.length - 1 && "border-b"
-                    )}>
-                    <Avatar className="w-6 h-6 flex items-center justify-center">
-                      <AvatarImage
-                        className="object-cover"
-                        src={`https://${
-                          process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME
-                        }/${
-                          //@ts-ignore
-                          employee?.image?.id
-                        }`}
-                      />
-                      <AvatarFallback className="bg-brand text-white flex items-center justify-center">
-                        {employee?.name?.charAt(0) || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <h1 className="text-sm font-medium text-[#182233]">
-                      {employee?.name}
-                    </h1>
+                {isFetchingUsers ? (
+                  <div className="p-4 flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 text-brand animate-spin" />
                   </div>
-                ))}
+                ) : (
+                  cutters.map((employee, idx) => (
+                    <div
+                      key={employee.id}
+                      onClick={() => {
+                        if (!isPending) {
+                          startTransition(() => {
+                            manageEmployeeOptimistic(employee, "CUTTER", "add");
+                            updateOrderWorkers({
+                              orderId: order.id,
+                              userId: employee.id,
+                              type: "CUTTER",
+                              currentRef: order.orderId,
+                            })
+                              .catch(() => {
+                                refetch();
+                                toast.error("Erreur .");
+                              })
+                              .finally(() => toast.dismiss("loading"));
+                          });
+                        }
+                      }}
+                      className={cn(
+                        "flex items-center gap-3 p-4 cursor-pointer",
+                        idx !== cutters.length - 1 && "border-b"
+                      )}>
+                      <Avatar className="w-6 h-6 flex items-center justify-center">
+                        <AvatarImage
+                          className="object-cover"
+                          src={`https://${
+                            process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME
+                          }/${
+                            //@ts-ignore
+                            employee?.image?.id
+                          }`}
+                        />
+                        <AvatarFallback className="bg-brand text-white flex items-center justify-center">
+                          {employee?.name?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <h1 className="text-sm font-medium text-[#182233]">
+                        {employee?.name}
+                      </h1>
+                    </div>
+                  ))
+                )}
               </PopoverContent>
             </Popover>
           )}
@@ -354,6 +366,7 @@ function ProductionDetails({
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6 rounded-full bg-[#ba0000]/10 hover:bg-[#ba0000]/10"
+                disabled={isPending}
                 onClick={() => {
                   if (!isPending) {
                     startTransition(() => {
@@ -391,49 +404,55 @@ function ProductionDetails({
                 />
               </PopoverTrigger>
               <PopoverContent className="p-0 w-fit">
-                {tailors.map((employee, idx) => (
-                  <div
-                    key={employee.id}
-                    onClick={() => {
-                      if (!isPending) {
-                        startTransition(() => {
-                          manageEmployeeOptimistic(employee, "TAILOR", "add");
-                          updateOrderWorkers({
-                            orderId: order.id,
-                            userId: employee.id,
-                            type: "TAILOR",
-                          })
-                            .catch(() => {
-                              refetch();
-                              toast.error("Erreur .");
-                            })
-                            .finally(() => toast.dismiss("loading"));
-                        });
-                      }
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 p-4 cursor-pointer",
-                      idx !== tailors.length - 1 && "border-b"
-                    )}>
-                    <Avatar className="w-6 h-6 flex items-center justify-center">
-                      <AvatarImage
-                        className="object-cover"
-                        src={`https://${
-                          process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME
-                        }/${
-                          //@ts-ignore
-                          employee?.image?.id
-                        }`}
-                      />
-                      <AvatarFallback className="bg-brand text-white flex items-center justify-center">
-                        {employee?.name?.charAt(0) || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <h1 className="text-sm font-medium text-[#182233]">
-                      {employee?.name}
-                    </h1>
+                {isFetchingUsers ? (
+                  <div className="p-4 flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 text-brand animate-spin" />
                   </div>
-                ))}
+                ) : (
+                  tailors.map((employee, idx) => (
+                    <div
+                      key={employee.id}
+                      onClick={() => {
+                        if (!isPending) {
+                          startTransition(() => {
+                            manageEmployeeOptimistic(employee, "TAILOR", "add");
+                            updateOrderWorkers({
+                              orderId: order.id,
+                              userId: employee.id,
+                              type: "TAILOR",
+                            })
+                              .catch(() => {
+                                refetch();
+                                toast.error("Erreur .");
+                              })
+                              .finally(() => toast.dismiss("loading"));
+                          });
+                        }
+                      }}
+                      className={cn(
+                        "flex items-center gap-3 p-4 cursor-pointer",
+                        idx !== tailors.length - 1 && "border-b"
+                      )}>
+                      <Avatar className="w-6 h-6 flex items-center justify-center">
+                        <AvatarImage
+                          className="object-cover"
+                          src={`https://${
+                            process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME
+                          }/${
+                            //@ts-ignore
+                            employee?.image?.id
+                          }`}
+                        />
+                        <AvatarFallback className="bg-brand text-white flex items-center justify-center">
+                          {employee?.name?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <h1 className="text-sm font-medium text-[#182233]">
+                        {employee?.name}
+                      </h1>
+                    </div>
+                  ))
+                )}
               </PopoverContent>
             </Popover>
           )}
@@ -462,6 +481,7 @@ function ProductionDetails({
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6 rounded-full bg-[#ba0000]/10 hover:bg-[#ba0000]/10"
+                disabled={isPending}
                 onClick={() => {
                   if (!isPending) {
                     startTransition(() => {
@@ -499,49 +519,59 @@ function ProductionDetails({
                 />
               </PopoverTrigger>
               <PopoverContent className="p-0 w-fit">
-                {tapisiers.map((employee, idx) => (
-                  <div
-                    key={employee.id}
-                    onClick={() => {
-                      if (!isPending) {
-                        startTransition(() => {
-                          manageEmployeeOptimistic(employee, "TAPISIER", "add");
-                          updateOrderWorkers({
-                            orderId: order.id,
-                            userId: employee.id,
-                            type: "TAPISIER",
-                          })
-                            .catch(() => {
-                              refetch();
-                              toast.error("Erreur .");
-                            })
-                            .finally(() => toast.dismiss("loading"));
-                        });
-                      }
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 p-4 cursor-pointer",
-                      idx !== tapisiers.length - 1 && "border-b"
-                    )}>
-                    <Avatar className="w-6 h-6 flex items-center justify-center">
-                      <AvatarImage
-                        className="object-cover"
-                        src={`https://${
-                          process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME
-                        }/${
-                          //@ts-ignore
-                          employee?.image?.id
-                        }`}
-                      />
-                      <AvatarFallback className="bg-brand text-white flex items-center justify-center">
-                        {employee?.name?.charAt(0) || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <h1 className="text-sm font-medium text-[#182233]">
-                      {employee?.name}
-                    </h1>
+                {isFetchingUsers ? (
+                  <div className="p-4 flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 text-brand animate-spin" />
                   </div>
-                ))}
+                ) : (
+                  tapisiers.map((employee, idx) => (
+                    <div
+                      key={employee.id}
+                      onClick={() => {
+                        if (!isPending) {
+                          startTransition(() => {
+                            manageEmployeeOptimistic(
+                              employee,
+                              "TAPISIER",
+                              "add"
+                            );
+                            updateOrderWorkers({
+                              orderId: order.id,
+                              userId: employee.id,
+                              type: "TAPISIER",
+                            })
+                              .catch(() => {
+                                refetch();
+                                toast.error("Erreur .");
+                              })
+                              .finally(() => toast.dismiss("loading"));
+                          });
+                        }
+                      }}
+                      className={cn(
+                        "flex items-center gap-3 p-4 cursor-pointer",
+                        idx !== tapisiers.length - 1 && "border-b"
+                      )}>
+                      <Avatar className="w-6 h-6 flex items-center justify-center">
+                        <AvatarImage
+                          className="object-cover"
+                          src={`https://${
+                            process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME
+                          }/${
+                            //@ts-ignore
+                            employee?.image?.id
+                          }`}
+                        />
+                        <AvatarFallback className="bg-brand text-white flex items-center justify-center">
+                          {employee?.name?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <h1 className="text-sm font-medium text-[#182233]">
+                        {employee?.name}
+                      </h1>
+                    </div>
+                  ))
+                )}
               </PopoverContent>
             </Popover>
           )}
@@ -570,6 +600,7 @@ function ProductionDetails({
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6 rounded-full bg-[#ba0000]/10 hover:bg-[#ba0000]/10"
+                disabled={isPending}
                 onClick={() => {
                   if (!isPending) {
                     startTransition(() => {
@@ -607,49 +638,59 @@ function ProductionDetails({
                 />
               </PopoverTrigger>
               <PopoverContent className="p-0 w-fit">
-                {mancheurs.map((employee, idx) => (
-                  <div
-                    key={employee.id}
-                    onClick={() => {
-                      if (!isPending) {
-                        startTransition(() => {
-                          manageEmployeeOptimistic(employee, "MANCHEUR", "add");
-                          updateOrderWorkers({
-                            orderId: order.id,
-                            userId: employee.id,
-                            type: "MANCHEUR",
-                          })
-                            .catch(() => {
-                              refetch();
-                              toast.error("Erreur .");
-                            })
-                            .finally(() => toast.dismiss("loading"));
-                        });
-                      }
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 p-4 cursor-pointer",
-                      idx !== mancheurs.length - 1 && "border-b"
-                    )}>
-                    <Avatar className="w-6 h-6 flex items-center justify-center">
-                      <AvatarImage
-                        className="object-cover"
-                        src={`https://${
-                          process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME
-                        }/${
-                          //@ts-ignore
-                          employee?.image?.id
-                        }`}
-                      />
-                      <AvatarFallback className="bg-brand text-white flex items-center justify-center">
-                        {employee?.name?.charAt(0) || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <h1 className="text-sm font-medium text-[#182233]">
-                      {employee?.name}
-                    </h1>
+                {isFetchingUsers ? (
+                  <div className="p-4 flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 text-brand animate-spin" />
                   </div>
-                ))}
+                ) : (
+                  mancheurs.map((employee, idx) => (
+                    <div
+                      key={employee.id}
+                      onClick={() => {
+                        if (!isPending) {
+                          startTransition(() => {
+                            manageEmployeeOptimistic(
+                              employee,
+                              "MANCHEUR",
+                              "add"
+                            );
+                            updateOrderWorkers({
+                              orderId: order.id,
+                              userId: employee.id,
+                              type: "MANCHEUR",
+                            })
+                              .catch(() => {
+                                refetch();
+                                toast.error("Erreur .");
+                              })
+                              .finally(() => toast.dismiss("loading"));
+                          });
+                        }
+                      }}
+                      className={cn(
+                        "flex items-center gap-3 p-4 cursor-pointer",
+                        idx !== mancheurs.length - 1 && "border-b"
+                      )}>
+                      <Avatar className="w-6 h-6 flex items-center justify-center">
+                        <AvatarImage
+                          className="object-cover"
+                          src={`https://${
+                            process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME
+                          }/${
+                            //@ts-ignore
+                            employee?.image?.id
+                          }`}
+                        />
+                        <AvatarFallback className="bg-brand text-white flex items-center justify-center">
+                          {employee?.name?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <h1 className="text-sm font-medium text-[#182233]">
+                        {employee?.name}
+                      </h1>
+                    </div>
+                  ))
+                )}
               </PopoverContent>
             </Popover>
           )}

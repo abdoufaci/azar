@@ -37,11 +37,6 @@ import { ManageEmployeeForm } from "@/components/forms/manage-employee-form";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
-  types: ProductSubtype[];
-  variants: ProductVariantWithPricing[];
-  tissues: Tissu[];
-  clients: UserWithWorkshop[];
-  employees: UserWithWorkshop[];
   workShops: WorkShop[];
   workshop: WorkShop | null;
   orderStages: OrderStage[];
@@ -54,15 +49,10 @@ interface Props {
 }
 
 function WorkshopInterface({
-  clients,
-  employees,
   materials,
   orderStages,
   searchParams,
   stages,
-  tissues,
-  types,
-  variants,
   workShops,
   workshop,
   url,
@@ -144,12 +134,6 @@ function WorkshopInterface({
       {!isAdd && activeTab === "main" && (
         <ProductionInterface
           searchParams={searchParams}
-          types={types}
-          variants={variants}
-          tissues={tissues}
-          clients={clients}
-          employees={employees}
-          workShops={workShops}
           orderStages={orderStages}
           url={url}
           columns={columns}
@@ -159,7 +143,6 @@ function WorkshopInterface({
         <DemandsInterface
           searchParams={searchParams}
           stages={stages}
-          workShops={workShops}
           materials={materials}
           url={url}
         />

@@ -56,7 +56,8 @@ import { manageCart } from "@/actions/mutations/cart/manage-cart";
 import { useCartQuery } from "@/hooks/use-cart-query";
 
 export const ChooseTissuformSchema = z.object({
-  tissuId: z.string(),
+  tissuId: z.string().optional(),
+  typeId: z.string(),
 });
 
 export function ChooseTissuForm() {
@@ -77,6 +78,7 @@ export function ChooseTissuForm() {
       manageCart({
         product: product!,
         tissuId: data.tissuId,
+        typeId: data.typeId,
       })
         .then((res) => {
           if (res.status === "guest_cart_created" && !!res?.cart) {
@@ -96,15 +98,67 @@ export function ChooseTissuForm() {
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-8 flex flex-col items-center justify-center">
         <div className="space-y-6 w-full">
+          {product?.audience === "B2B" && (
+            <FormField
+              control={form.control}
+              name="tissuId"
+              render={({ field }) => (
+                <FormItem className="flex flex-col items-end w-full text-[#15091B]">
+                  <FormLabel
+                    htmlFor="slogan"
+                    className="text-[#182233] text-lg font-normal">
+                    القماش
+                  </FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <div className="p-2">
+                        <div className="relative w-full flex-1 border border-[#E7F1F8] bg-transparent rounded-lg">
+                          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5A5A5A]" />
+                          <Input
+                            value={searchTerm}
+                            onChange={(e) => {
+                              setSearchTerm(e.currentTarget.value);
+                            }}
+                            placeholder="Recherche"
+                            className="pl-10 border-none text-[#5A5A5A] placeholder:text-[#5A5A5A] w-full"
+                          />
+                        </div>
+                      </div>
+                      {tissues
+                        ?.filter((tissu) =>
+                          tissu.name
+                            .toLowerCase()
+                            .trim()
+                            .includes(searchTerm.toLowerCase().trim())
+                        )
+                        ?.map((tissu) => (
+                          <SelectItem key={tissu.id} value={tissu.id}>
+                            {tissu.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
           <FormField
             control={form.control}
-            name="tissuId"
+            name="typeId"
             render={({ field }) => (
               <FormItem className="flex flex-col items-end w-full text-[#15091B]">
                 <FormLabel
                   htmlFor="slogan"
                   className="text-[#182233] text-lg font-normal">
-                  القماش
+                  النوع
                 </FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -115,31 +169,11 @@ export function ChooseTissuForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <div className="p-2">
-                      <div className="relative w-full flex-1 border border-[#E7F1F8] bg-transparent rounded-lg">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5A5A5A]" />
-                        <Input
-                          value={searchTerm}
-                          onChange={(e) => {
-                            setSearchTerm(e.currentTarget.value);
-                          }}
-                          placeholder="Recherche"
-                          className="pl-10 border-none text-[#5A5A5A] placeholder:text-[#5A5A5A] w-full"
-                        />
-                      </div>
-                    </div>
-                    {tissues
-                      ?.filter((tissu) =>
-                        tissu.name
-                          .toLowerCase()
-                          .trim()
-                          .includes(searchTerm.toLowerCase().trim())
-                      )
-                      ?.map((tissu) => (
-                        <SelectItem key={tissu.id} value={tissu.id}>
-                          {tissu.name}
-                        </SelectItem>
-                      ))}
+                    {product?.pricings?.map((price) => (
+                      <SelectItem key={price.id} value={price.subtype.id}>
+                        {price.subtype.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />

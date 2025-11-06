@@ -3,25 +3,13 @@ import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-
-    const demandId = searchParams.get("demandId");
-
-    const history = await db.demandHistory.findMany({
-      where: {
-        demandId: demandId || "",
-      },
-      include: {
-        user: true,
-        newStage: true,
-        oldStage: true,
-      },
+    const tissues = await db.tissu.findMany({
       orderBy: {
         createdAt: "desc",
       },
     });
     return NextResponse.json({
-      history,
+      tissues,
     });
   } catch (error) {
     console.log("[DIRECT_MESSAGES_GET]", error);

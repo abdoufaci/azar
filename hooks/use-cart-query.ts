@@ -30,9 +30,7 @@ export const useCartQuery = () => {
   return {
     data: data?.cart as Cart & {
       items: (CartItem & {
-        product: Product & {
-          pricing: ProductPricing;
-        };
+        product: Product;
         tissu: Tissu;
       })[];
     },

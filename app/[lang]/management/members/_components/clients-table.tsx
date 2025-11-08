@@ -36,9 +36,6 @@ export function ClientsTable({ clients, onEdit }: Props) {
                 Client
               </TableHead>
               <TableHead className="text-[#64748B] font-normal text-center">
-                Email
-              </TableHead>
-              <TableHead className="text-[#64748B] font-normal text-center">
                 Psuedo
               </TableHead>
               <TableHead className="text-[#64748B] font-normal text-center">
@@ -62,9 +59,6 @@ export function ClientsTable({ clients, onEdit }: Props) {
                   <div className="rounded-full px-8 py-2 w-fit border border-[#95A1B14F] text-[#95A1B1] font-medium">
                     {client.name}
                   </div>
-                </TableCell>
-                <TableCell className="text-[#8E8E8E] text-center">
-                  {client.email}
                 </TableCell>
                 <TableCell className="text-[#8E8E8E] text-center">
                   {client.username}

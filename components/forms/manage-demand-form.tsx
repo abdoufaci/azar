@@ -31,6 +31,7 @@ import { addDemandMaterial } from "@/actions/mutations/demand/add-demand-materia
 import { addDemand } from "@/actions/mutations/demand/add-demand";
 import { useDemandsQuery } from "@/hooks/admin/use-query-demands";
 import { DemandInTable } from "@/types/types";
+import { useSearchParams } from "next/navigation";
 
 interface Props {
   onCancel: () => void;
@@ -50,7 +51,11 @@ export default function ManageDemandForm({
   const [isPending, startTransition] = useTransition();
   const [materialInput, setMaterialInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
-  const { refetch } = useDemandsQuery();
+  const searchParams = useSearchParams();
+
+  const { refetch } = useDemandsQuery({
+    isArchive: !!searchParams.get("isArchive"),
+  });
 
   const form = useForm<DemandFormData>({
     resolver: zodResolver(demandFormSchema),

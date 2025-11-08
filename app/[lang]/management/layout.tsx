@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/sidebar";
 import { currentUser } from "@/lib/auth";
 import NextTopLoader from "nextjs-toploader";
+import { Suspense } from "react";
 
 interface Props {
   children: React.ReactNode;
@@ -34,6 +35,7 @@ export default async function RootLayout({ children }: Props) {
           speed={200}
           shadow="0 0 10px #1E78FF,0 0 5px #1E78FF"
         />
+
         <ManagementHeader user={auth} />
         {children}
       </SidebarInset>

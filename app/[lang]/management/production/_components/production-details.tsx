@@ -47,6 +47,9 @@ import { useSubOrdersQuery } from "@/hooks/admin/use-sub-orders-query";
 import { useOrderQuery } from "@/hooks/admin/use-order-query";
 import { useProductionsQuery } from "@/hooks/admin/use-query-productions";
 import { useEmployeesClientsQuery } from "@/hooks/use-employees-clients-query";
+import { useSearchParams } from "next/navigation";
+import { manageProductionArchive } from "@/actions/mutations/order/manage-production-archive";
+import { Switch } from "@/components/ui/switch";
 
 interface Props {
   order: ProductionInTable;
@@ -63,6 +66,7 @@ interface Props {
     action: "add" | "remove"
   ) => void;
   updateStageOptimistic: (stage: OrderStage) => void;
+  deleteProductionOptimistic: (id: string) => void;
 }
 
 function ProductionDetails({
@@ -73,10 +77,12 @@ function ProductionDetails({
   columns,
   manageEmployeeOptimistic,
   updateStageOptimistic,
+  deleteProductionOptimistic,
 }: Props) {
   const { data: users, isPending: isFetchingUsers } = useEmployeesClientsQuery(
     motherOrder?.workShopId
   );
+  const [isArchived, setIsArchived] = useState(!!motherOrder?.isArchived);
   const employees = users?.employees || [];
 
   const [newOrderStageInput, setNewOrderStageInput] = useState("");
@@ -97,7 +103,10 @@ function ProductionDetails({
       orderId: motherOrder.subOrderId ? motherOrder.subOrderId : motherOrder.id,
     }
   );
-  const { refetch } = useProductionsQuery();
+  const searchParams = useSearchParams();
+  const { refetch } = useProductionsQuery({
+    isArchive: !!searchParams.get("isArchive"),
+  });
 
   const order = motherOrder.subOrderId ? res?.data : motherOrder;
 
@@ -203,6 +212,29 @@ function ProductionDetails({
         <Separator className="w-full" />
       </div>
       <div className="space-y-5">
+        <div className="flex items-center gap-3">
+          <h1 className="text-[#576070] font-medium text-sm">Archive</h1>
+          <Switch
+            className="data-[state=checked]:bg-brand"
+            thumbClassName="data-[state=checked]:bg-white"
+            checked={isArchived}
+            onCheckedChange={(e) => {
+              setIsArchived(e);
+              startTransition(() => {
+                deleteProductionOptimistic(order.id);
+                toast.info(isArchived ? "Restauré !" : "Archivé !");
+                manageProductionArchive({
+                  id: order.id,
+                  isArchived: e,
+                })
+                  .catch(() => {
+                    toast.error("Erreur .");
+                  })
+                  .finally(() => refetch());
+              });
+            }}
+          />
+        </div>
         <div className="flex items-center gap-3">
           <h1 className="text-[#576070] font-medium text-sm">Crée par</h1>
           <div className="rounded-full p-1 border border-[#EBECF2] flex items-center gap-1.5 pr-2">
@@ -1244,6 +1276,9 @@ function ProductionDetails({
                 order={order}
                 employees={employees}
                 orderStages={orderStages}
+                deleteProductionOptimistic={() =>
+                  deleteProductionOptimistic(order.id)
+                }
               />
             ))
           )}

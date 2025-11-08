@@ -17,6 +17,7 @@ import {
   Search,
   Pen,
   Loader2,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,6 +79,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import { useTissuesQuery } from "@/hooks/use-tissues-query";
 import { useEmployeesClientsQuery } from "@/hooks/use-employees-clients-query";
 import { useVariantsQuery } from "@/hooks/use-variants-query";
+import { useSearchParams } from "next/navigation";
 
 interface Props {
   onCancel: () => void;
@@ -104,7 +106,8 @@ export default function ManageProductionForm({
   isFetchingVariants,
   variants: intialVariants,
 }: Props) {
-  const { data: users } = useEmployeesClientsQuery();
+  const { data: users, isPending: isFetchingClients } =
+    useEmployeesClientsQuery();
   const clients = users?.clients ?? [];
   const {
     data: intialTissues,
@@ -149,6 +152,11 @@ export default function ManageProductionForm({
   const [variantSearchTerm, setVariantSearchTerm] = useState("");
   const [variantToEdit, setVariantToEdit] =
     useState<ProductVariantWithPricing | null>(null);
+  const searchParams = useSearchParams();
+
+  const { refetch: refetchProductions } = useProductionsQuery({
+    isArchive: !!searchParams.get("isArchive"),
+  });
 
   const foundVariant = variants.find(
     (variant) => variant.id === production?.variantId
@@ -255,6 +263,7 @@ export default function ManageProductionForm({
             .then((data) => {
               //@ts-ignore
               addProductionOptimistic(data);
+              refetchProductions();
               toast.success("Created !");
               onCancel();
             })
@@ -286,6 +295,10 @@ export default function ManageProductionForm({
               return (
                 <button
                   key={category.id}
+                  onDoubleClick={() => {
+                    form.setValue("category", category.id);
+                    handleContinue();
+                  }}
                   onClick={() => form.setValue("category", category.id)}
                   className={`relative rounded-[9px] transition-all duration-300 ${
                     isSelected ? "ring-4 ring-brand" : "opacity-80"
@@ -378,10 +391,16 @@ export default function ManageProductionForm({
               </span>
             )}
           </div>
-          <h1 className="text-3xl font-medium text-[#000000]">
-            Les Informations de{" "}
-            <span className="text-brand">{categoryLabel}</span>
-          </h1>
+          <div className="flex items-center gap-4">
+            <ArrowLeft
+              onClick={handleCancel}
+              className="h-5 w-5 cursor-pointer"
+            />
+            <h1 className="text-3xl font-medium text-[#000000]">
+              Les Informations de{" "}
+              <span className="text-brand">{categoryLabel}</span>
+            </h1>
+          </div>
         </div>
 
         <Form {...form}>
@@ -516,9 +535,9 @@ export default function ManageProductionForm({
                                         <path
                                           d="M0.6875 17.1878H15.3542M2.21467 10.0259C1.82381 10.4176 1.60426 10.9484 1.60417 11.5017V14.4378H4.55858C5.11225 14.4378 5.643 14.2178 6.03442 13.8255L14.7428 5.11256C15.1335 4.72077 15.3529 4.19004 15.3529 3.63672C15.3529 3.08341 15.1335 2.55268 14.7428 2.16089L13.8829 1.29922C13.689 1.10521 13.4588 0.951327 13.2053 0.846362C12.9519 0.741398 12.6803 0.687415 12.406 0.6875C12.1317 0.687585 11.8601 0.741737 11.6067 0.846858C11.3534 0.95198 11.1232 1.10601 10.9294 1.30014L2.21467 10.0259Z"
                                           stroke="#A2ABBD"
-                                          stroke-width="1.375"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
+                                          strokeWidth="1.375"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
                                         />
                                       </svg>
                                     </div>
@@ -629,10 +648,14 @@ export default function ManageProductionForm({
                               <div className="space-y-1">
                                 {tissues
                                   ?.filter((tissu) =>
-                                    tissu.name
-                                      .toLowerCase()
-                                      .trim()
-                                      .includes(searchTerm.toLowerCase().trim())
+                                    searchTerm === ""
+                                      ? true
+                                      : tissu.name
+                                          .toLowerCase()
+                                          .trim()
+                                          .includes(
+                                            searchTerm.toLowerCase().trim()
+                                          )
                                   )
                                   ?.map((tissu) => {
                                     return (
@@ -736,11 +759,17 @@ export default function ManageProductionForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
+                      {isFetchingClients ? (
+                        <SelectItem value={"de"}>
+                          <Loader2 className="w-5 h-5 text-brand animate-spin" />
                         </SelectItem>
-                      ))}
+                      ) : (
+                        clients.map((client) => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />

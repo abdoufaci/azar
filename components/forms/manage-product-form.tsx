@@ -8,6 +8,7 @@ import {
   Plus,
   ChevronDown,
   Search,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +55,9 @@ import AddProductVariantForm from "./add-product-variant-form";
 import { updateProduct } from "@/actions/mutations/products/update-product";
 import ManageProductTissues from "./manage-product-tissues";
 import { ScrollArea } from "../ui/scroll-area";
+import { useProductsQuery } from "@/hooks/use-query-products";
+import { useModal } from "@/hooks/use-modal-store";
+import { deleteProduct } from "@/actions/mutations/products/delete-product";
 
 interface Props {
   onCancel: () => void;
@@ -72,6 +76,7 @@ interface Props {
   tissues: Tissu[];
   addProductOptimistic: (product: ProductInTable) => void;
   updateProductOptimistic: (product: ProductInTable) => void;
+  deleteProductOptimistic: (id: string) => void;
 }
 
 export default function ManageProductForm({
@@ -83,6 +88,7 @@ export default function ManageProductForm({
   tissues,
   addProductOptimistic,
   updateProductOptimistic,
+  deleteProductOptimistic,
 }: Props) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(product ? 2 : 1);
   const [typesToRemove, setTypesToRemove] = useState<
@@ -115,6 +121,7 @@ export default function ManageProductForm({
       id?: string;
     }[]
   >([]);
+  const { onOpen } = useModal();
 
   const foundVariant = variants.find(
     (variant) => variant.id === product?.variantId
@@ -240,6 +247,10 @@ export default function ManageProductForm({
               return (
                 <button
                   key={category.id}
+                  onDoubleClick={() => {
+                    form.setValue("category", category.id);
+                    handleContinue();
+                  }}
                   onClick={() => form.setValue("category", category.id)}
                   className={`relative rounded-[9px] transition-all duration-300 ${
                     isSelected ? "ring-4 ring-brand" : "opacity-80"
@@ -318,14 +329,44 @@ export default function ManageProductForm({
 
   return (
     <div className="min-h-screen bg-[#ffffff] flex flex-col items-center justify-center p-6">
-      <div className="w-full max-w-xl">
+      <div className={cn("w-full", product ? "max-w-2xl" : "max-w-xl")}>
         {/* Header */}
         <div className="mb-8">
           <div className="text-brand text-sm font-medium mb-2">B2B</div>
-          <h1 className="text-3xl font-medium text-[#000000]">
-            Les Informations de{" "}
-            <span className="text-brand">{categoryLabel}</span>
-          </h1>
+          <div className="flex items-center gap-5 justify-between">
+            <div className="flex items-center gap-4">
+              <ArrowLeft
+                onClick={handleCancel}
+                className="h-5 w-5 cursor-pointer"
+              />
+
+              <h1 className="text-3xl font-medium text-[#000000]">
+                Les Informations de{" "}
+                <span className="text-brand">{categoryLabel}</span>
+              </h1>
+            </div>
+            {!!product && (
+              <Button
+                disabled={isPending}
+                onClick={() => {
+                  if (!!product) {
+                    startTransition(() => {
+                      deleteProduct(product.id)
+                        .then(() => {
+                          deleteProductOptimistic(product.id);
+                          toast.success("Success !");
+                          handleCancel();
+                        })
+                        .catch(() => toast.error("Erreur ."));
+                    });
+                  }
+                }}
+                variant={"delete"}
+                className="rounded-full">
+                Supprimer Produit
+              </Button>
+            )}
+          </div>
         </div>
 
         <Form {...form}>
@@ -351,6 +392,7 @@ export default function ManageProductForm({
                             value={form.watch("images")}
                             onChange={field.onChange}
                             imageContainerClassName="w-24 min-w-24 !h-24 min-h-24"
+                            imageClassName="cursor-pointer"
                             MainImageIdx={MainImageIdx}
                             onClick={(idx) => {
                               form.setValue(
@@ -358,7 +400,10 @@ export default function ManageProductForm({
                                 MainImageIdx === idx ? 0 : idx
                               );
                             }}
-                            setImagesToDelete={setImagesToDelete}>
+                            setImagesToDelete={setImagesToDelete}
+                            onExpandImages={() =>
+                              onOpen("images", { images: field.value })
+                            }>
                             {!!field.value.length ? (
                               <div
                                 className="w-24 h-24 rounded-[10px] border-2 border-dashed border-[#d1d5db] bg-[#F3F6F8] 
@@ -493,9 +538,9 @@ export default function ManageProductForm({
                                           <path
                                             d="M0.6875 17.1878H15.3542M2.21467 10.0259C1.82381 10.4176 1.60426 10.9484 1.60417 11.5017V14.4378H4.55858C5.11225 14.4378 5.643 14.2178 6.03442 13.8255L14.7428 5.11256C15.1335 4.72077 15.3529 4.19004 15.3529 3.63672C15.3529 3.08341 15.1335 2.55268 14.7428 2.16089L13.8829 1.29922C13.689 1.10521 13.4588 0.951327 13.2053 0.846362C12.9519 0.741398 12.6803 0.687415 12.406 0.6875C12.1317 0.687585 11.8601 0.741737 11.6067 0.846858C11.3534 0.95198 11.1232 1.10601 10.9294 1.30014L2.21467 10.0259Z"
                                             stroke="#A2ABBD"
-                                            stroke-width="1.375"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
+                                            strokeWidth="1.375"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
                                           />
                                         </svg>
                                       </div>

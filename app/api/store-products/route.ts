@@ -23,6 +23,7 @@ export async function GET(req: Request) {
     if (cursor) {
       products = await db.product.findMany({
         where: {
+          isArchived: false,
           category: type as ProductCategory,
           audience: !!user ? "B2B" : "B2C",
           ...(subtypeId && {

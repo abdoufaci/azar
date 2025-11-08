@@ -14,8 +14,7 @@ export async function GET(req: Request) {
     const type = searchParams.get("type");
     const variant = searchParams.get("variant");
     const status = searchParams.get("status");
-
-    let productions: ProductionInTable[];
+    const isArchive = searchParams.get("isArchive");
 
     const baseOrderInclude = {
       client: true,
@@ -38,9 +37,10 @@ export async function GET(req: Request) {
         },
       },
     };
-    //@ts-ignore
-    productions = await db.order.findMany({
+
+    const productions = await db.order.findMany({
       where: {
+        isArchived: isArchive === "true",
         status: "ACCEPTED",
         ...(search && {
           OR: [

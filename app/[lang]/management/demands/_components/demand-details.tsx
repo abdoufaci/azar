@@ -18,6 +18,7 @@ import { DemandStage } from "@prisma/client";
 import { format } from "date-fns";
 import { ChevronLeft, Loader2, Plus } from "lucide-react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -32,13 +33,16 @@ function DemandDetails({ demand, stages, updateStageOptimistic }: Props) {
   const [showAdd, setShowAdd] = useState(false);
   const [isAddingDemandStagePending, startAddingDemandStage] = useTransition();
   const [isPending, startTransition] = useTransition();
+  const searchParams = useSearchParams();
 
   const { data: history, isPending: isFetchingDemandHistory } =
     useDemandHistoryQuery({
       demandId: demand.id,
     });
 
-  const { refetch } = useDemandsQuery();
+  const { refetch } = useDemandsQuery({
+    isArchive: !!searchParams.get("isArchive"),
+  });
 
   const handleAddDemandStage = () => {
     startAddingDemandStage(() => {

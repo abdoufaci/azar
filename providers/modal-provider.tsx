@@ -2,6 +2,7 @@
 
 import { AcceptOrderModal } from "@/components/modals/accept-order-modal";
 import { ChooseTissuModal } from "@/components/modals/choose-tissu-modal";
+import { ImagesModal } from "@/components/modals/images-modal";
 import { ManageInvoiceModal } from "@/components/modals/manage-invoice-modal";
 import { ManageWorkShopModal } from "@/components/modals/manage-work-shop-modal";
 import { ThankyouModal } from "@/components/modals/thankyou-modal";
@@ -27,6 +28,7 @@ export const ModalProvider = () => {
       <ChooseTissuModal />
       <AcceptOrderModal />
       <ManageInvoiceModal />
+      <ImagesModal />
     </>
   );
 };

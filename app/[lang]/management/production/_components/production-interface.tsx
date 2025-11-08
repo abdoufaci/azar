@@ -27,7 +27,7 @@ import {
   WorkShop,
 } from "@prisma/client";
 import { Plus } from "lucide-react";
-import { useMemo, useOptimistic, useRef, useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import ManageProductionForm from "@/components/forms/manage-production-form";
 import VariantsFilter from "@/components/filters/variant-filter";
 import {
@@ -45,6 +45,7 @@ import { useTypesQuery } from "@/hooks/use-types-query";
 import { useVariantsQuery } from "@/hooks/use-variants-query";
 import { useEmployeesClientsQuery } from "@/hooks/use-employees-clients-query";
 import { useWorkShopsQuery } from "@/hooks/use-workshops-query";
+import ArchiveButton from "@/components/archive-button";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
@@ -71,9 +72,19 @@ function ProductionInterface({
   );
   const [isPending, startTransition] = useTransition();
 
-  const { data } = useProductionsQuery();
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchPreviousPage,
+    isPending: tanstackIsPending,
+  } = useProductionsQuery({ isArchive: !!searchParams?.isArchive });
+
+  const latest = data?.pages[data?.pages?.length - 1]?.productions || [];
+
   const [productions, manageProductionOptimistic] = useOptimistic(
-    data?.pages[data?.pages?.length - 1]?.productions || [],
+    latest,
     productionOptimisticReducer
   );
   const { data: variants, isPending: isFetchingVariants } = useVariantsQuery();
@@ -91,7 +102,12 @@ function ProductionInterface({
     <div className="space-y-5">
       {!isAdd && (
         <>
-          <h1 className="text-2xl font-medium text-[#06191D]">Production</h1>
+          <div className="flex items-center gap-5">
+            <h1 className="text-2xl font-medium text-[#06191D]">
+              Production {!!searchParams?.isArchive && "- Archive"}
+            </h1>
+            {!searchParams?.isArchive && <ArchiveButton url={url} />}
+          </div>
           <div className="flex items-center justify-between gap-5 flex-wrap">
             <div className="flex items-center gap-4 flex-1">
               <Button
@@ -155,7 +171,7 @@ function ProductionInterface({
                           height="2.45375"
                           rx="0.715677"
                           stroke="#576070"
-                          stroke-width="0.613437"
+                          strokeWidth="0.613437"
                         />
                         <rect
                           x="0.306719"
@@ -164,7 +180,7 @@ function ProductionInterface({
                           height="2.45375"
                           rx="0.715677"
                           stroke="#576070"
-                          stroke-width="0.613437"
+                          strokeWidth="0.613437"
                         />
                         <rect
                           x="0.306719"
@@ -173,7 +189,7 @@ function ProductionInterface({
                           height="2.45375"
                           rx="0.715677"
                           stroke="#576070"
-                          stroke-width="0.613437"
+                          strokeWidth="0.613437"
                         />
                       </svg>
                       Status
@@ -229,9 +245,9 @@ function ProductionInterface({
                         <path
                           d="M11.2032 2.08857V0.56958H0.570312V2.08857M5.88677 0.56958V11.2025M5.88677 11.2025H4.36778M5.88677 11.2025H7.40576"
                           stroke="#576070"
-                          stroke-width="1.13924"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.13924"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                       </svg>
                       Text
@@ -262,9 +278,11 @@ function ProductionInterface({
             manageProductionOptimistic({ type: "ADD", item })
           }
           updateProductionOptimistic={(item) =>
-            manageProductionOptimistic({
-              type: "updateProduction",
-              production: item,
+            startTransition(() => {
+              manageProductionOptimistic({
+                type: "updateProduction",
+                production: item,
+              });
             })
           }
         />
@@ -283,17 +301,30 @@ function ProductionInterface({
           }}
           columns={columns}
           updateStageOptimistic={(stage, idx) =>
-            manageProductionOptimistic({ type: "updateStage", idx, stage })
-          }
-          manageEmployeeOptimistic={(employee, role, idx, action) =>
-            manageProductionOptimistic({
-              type: "addEmployee",
-              employee,
-              role,
-              idx,
-              action,
+            startTransition(() => {
+              manageProductionOptimistic({ type: "updateStage", idx, stage });
             })
           }
+          manageEmployeeOptimistic={(employee, role, idx, action) =>
+            startTransition(() => {
+              manageProductionOptimistic({
+                type: "addEmployee",
+                employee,
+                role,
+                idx,
+                action,
+              });
+            })
+          }
+          deleteProductionOptimistic={(id) =>
+            manageProductionOptimistic({ type: "DELETE", id })
+          }
+          data={data}
+          fetchNextPage={fetchNextPage}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          tanstackIsPending={tanstackIsPending}
+          fetchPreviousPage={fetchPreviousPage}
         />
       )}
     </div>

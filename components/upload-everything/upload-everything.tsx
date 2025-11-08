@@ -36,6 +36,7 @@ interface Props {
   children: React.ReactNode;
   onClick?: (idx: number) => void;
   MainImageIdx?: number;
+  onExpandImages?: () => void;
 }
 
 export const UploadEverything = ({
@@ -49,6 +50,7 @@ export const UploadEverything = ({
   imageContainerClassName,
   onClick,
   MainImageIdx,
+  onExpandImages,
 }: Props) => {
   const [deletePedning, startDeleteTransition] = useTransition();
   const [shouldRenderIframe, setShouldRenderIframe] = useState(false);
@@ -117,6 +119,7 @@ export const UploadEverything = ({
                     "rounded-lg w-full h-full object-cover",
                     imageClassName
                   )}
+                  onClick={() => onExpandImages?.()}
                 />
                 <div className="flex items-center gap-2 absolute top-2 right-2">
                   {MainImageIdx !== undefined && (

@@ -40,6 +40,11 @@ const main = async () => {
     //   ],
     // });
 
+    await db.order.deleteMany();
+    await db.demand.deleteMany();
+    await db.tissu.deleteMany();
+    await db.product.deleteMany();
+
     console.log("adding finished");
   } catch (error) {
     console.log({ error });

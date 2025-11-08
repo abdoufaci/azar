@@ -1,4 +1,5 @@
 import { addOrderStage } from "@/actions/mutations/order/add-order-stage";
+import { manageProductionArchive } from "@/actions/mutations/order/manage-production-archive";
 import { removeOrderWorker } from "@/actions/mutations/order/remove-order-worker";
 import { updateOrderStage } from "@/actions/mutations/order/update-order-stage";
 import { updateOrderWorkers } from "@/actions/mutations/order/update-order-workers";
@@ -13,6 +14,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { SheetClose } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
 import { useOrderHistoryQuery } from "@/hooks/admin/use-order-history-query";
 import { cn } from "@/lib/utils";
 import {
@@ -38,9 +40,15 @@ interface Props {
   order: OrderWithRelations;
   orderStages: OrderStage[];
   employees: UserWithWorkshop[];
+  deleteProductionOptimistic: () => void;
 }
 
-function SubProductionDetails({ order, employees, orderStages }: Props) {
+function SubProductionDetails({
+  order,
+  employees,
+  orderStages,
+  deleteProductionOptimistic,
+}: Props) {
   const [newOrderStageInput, setNewOrderStageInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [isAddingOrderStagePending, startAddingOrderStage] = useTransition();
@@ -50,6 +58,7 @@ function SubProductionDetails({ order, employees, orderStages }: Props) {
     isPending: isFetchingOrderHistory,
     refetch,
   } = useOrderHistoryQuery({ orderId: order.id });
+  const [isArchived, setIsArchived] = useState(!!order?.isArchived);
 
   const handleAddOrderStage = () => {
     startAddingOrderStage(() => {
@@ -104,6 +113,29 @@ function SubProductionDetails({ order, employees, orderStages }: Props) {
         <Separator className="w-full" />
       </div>
       <div className="space-y-5">
+        <div className="flex items-center gap-3">
+          <h1 className="text-[#576070] font-medium text-sm">Archive</h1>
+          <Switch
+            className="data-[state=checked]:bg-brand"
+            thumbClassName="data-[state=checked]:bg-white"
+            checked={isArchived}
+            onCheckedChange={(e) => {
+              setIsArchived(e);
+              startTransition(() => {
+                deleteProductionOptimistic();
+                toast.info(isArchived ? "Restauré !" : "Archivé !");
+                manageProductionArchive({
+                  id: order.id,
+                  isArchived: e,
+                })
+                  .catch(() => {
+                    toast.error("Erreur .");
+                  })
+                  .finally(() => refetch());
+              });
+            }}
+          />
+        </div>
         <div className="flex items-center gap-3">
           <h1 className="text-[#576070] font-medium text-sm">Crée par</h1>
           <div className="rounded-full p-1 border border-[#EBECF2] flex items-center gap-1.5 pr-2">

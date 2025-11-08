@@ -1,6 +1,7 @@
 "use client";
 
 import ProductCard from "@/app/[lang]/store/_components/product-card";
+import ArchiveButton from "@/components/archive-button";
 import SearchFilter from "@/components/filters/search-filter";
 import TypeFilter from "@/components/filters/type-filter";
 import VariantsFilter from "@/components/filters/variant-filter";
@@ -56,7 +57,10 @@ function ProductsInterface({ searchParams, tissues }: Props) {
     isFetchingNextPage,
     isLoading,
     refetch,
-  } = useProductsQuery({ audience: activeTab });
+  } = useProductsQuery({
+    audience: activeTab,
+    isArchive: !!searchParams?.isArchive,
+  });
 
   const [products, manageProductOptimistic] = useOptimistic(
     intialProducts?.pages.flatMap((page) => page?.products) as ProductInTable[],
@@ -75,7 +79,15 @@ function ProductsInterface({ searchParams, tissues }: Props) {
     <div className="space-y-5">
       {!isAdd && (
         <>
-          <h1 className="text-2xl font-medium text-[#06191D]">Produits</h1>
+          <div className="flex items-center gap-5">
+            <h1 className="text-2xl font-medium text-[#06191D]">
+              Produits {!!searchParams?.isArchive && "- Archive"}
+            </h1>
+
+            {!searchParams?.isArchive && (
+              <ArchiveButton url={"/management/products"} />
+            )}
+          </div>
           <div className="w-full h-12 border-b border-b-[#9BB5BB4D] flex">
             <div
               onClick={(e) => {
@@ -156,12 +168,17 @@ function ProductsInterface({ searchParams, tissues }: Props) {
           product={productToEdit}
           key={productToEdit?.id}
           tissues={tissues}
-          addProductOptimistic={(item) =>
-            manageProductOptimistic({ type: "ADD", item })
-          }
+          addProductOptimistic={(item) => {
+            manageProductOptimistic({ type: "ADD", item });
+            refetch();
+          }}
           updateProductOptimistic={(product) =>
             manageProductOptimistic({ type: "updateProduct", product })
           }
+          deleteProductOptimistic={(id) => {
+            manageProductOptimistic({ type: "DELETE", id });
+            refetch();
+          }}
         />
       ) : (
         <>
@@ -181,7 +198,15 @@ function ProductsInterface({ searchParams, tissues }: Props) {
                     setIsAdd(true);
                     setProductToEdit(product);
                   }}>
-                  <ProductCard product={product} key={product.id} isAdmin />
+                  <ProductCard
+                    refetch={refetch}
+                    deleteProductOptimistic={(id) =>
+                      manageProductOptimistic({ type: "DELETE", id })
+                    }
+                    product={product}
+                    key={product.id}
+                    isAdmin
+                  />
                 </div>
               ))}
             </div>

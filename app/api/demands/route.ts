@@ -15,11 +15,13 @@ export async function GET(req: Request) {
     const material = searchParams.get("material");
     const status = searchParams.get("status");
     const priority = searchParams.get("priority");
+    const isArchive = searchParams.get("isArchive");
 
     let demands: DemandInTable[];
 
     demands = await db.demand.findMany({
       where: {
+        isArchived: isArchive === "true",
         ...(search && {
           OR: [
             {

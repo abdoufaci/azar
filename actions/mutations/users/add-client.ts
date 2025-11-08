@@ -1,7 +1,7 @@
 "use server";
 
 import { checkIsAdmin } from "@/actions/security/admin-check";
-import { getUserByEmail } from "@/data/user";
+import { getUserByUsername } from "@/data/user";
 import z from "zod";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
@@ -12,10 +12,10 @@ export const addClient = async (
   data: z.infer<typeof ManageClientformSchema>
 ) => {
   await checkIsAdmin();
-  const existingUser = await getUserByEmail(data.email);
+  const existingUser = await getUserByUsername(data.username);
 
   if (existingUser) {
-    return { error: "Email already in use!" };
+    return { error: "Pseudo already in use!" };
   }
   const hashedPassowrd = await bcrypt.hash(data.password!, 10);
 

@@ -3,7 +3,7 @@
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@uidotdev/usehooks";
 import { Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFilterModal } from "@/hooks/use-filter-modal-store";
 
 interface Props {
@@ -18,7 +18,14 @@ export default function SearchFilter({ url: pathname, searchParams }: Props) {
 
   const { search, ...rest } = admin;
 
+  const [firstRender, setFirstRender] = useState(true);
+
   useEffect(() => {
+    if (firstRender) {
+      setFirstRender(false);
+      return;
+    }
+
     onSearch({
       demand,
       admin: {

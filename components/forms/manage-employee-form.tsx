@@ -55,7 +55,6 @@ import { updateEmployee } from "@/actions/mutations/users/update-employee";
 
 export const ManageEmployeeformSchema = z.object({
   name: z.string(),
-  email: z.string(),
   phone: z.string(),
   address: z.string(),
   password: z.string().optional(),
@@ -90,7 +89,6 @@ export function ManageEmployeeForm({
     resolver: zodResolver(ManageEmployeeformSchema),
     defaultValues: {
       address: user?.address,
-      email: user?.email,
       name: user?.name,
       phone: user?.phone,
       role: user?.employeeRole,
@@ -205,7 +203,9 @@ export function ManageEmployeeForm({
                               ? "Decoupeur"
                               : field.value === "TAILOR"
                               ? "Couteur"
-                              : field.value === "MANCHEUR" ? "Mancheur" : "Tapisier"}
+                              : field.value === "MANCHEUR"
+                              ? "Mancheur"
+                              : "Tapisier"}
                           </p>
                         ) : (
                           <p className="text-sm text-[#A2ABBD]">
@@ -314,32 +314,6 @@ export function ManageEmployeeForm({
                       className="w-full text-xs rounded-lg border border-[#A2ABBD] px-4 py-5 focus:outline-none 
                     focus:ring-0 placeholder:text-[#A2ABBD]"
                       placeholder="Nom de client"
-                      {...field}
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem className="flex flex-col items-start w-full text-[#15091B]">
-                <FormLabel
-                  htmlFor="slogan"
-                  className="text-[#182233] text-lg font-normal">
-                  Email
-                </FormLabel>
-                <FormControl>
-                  <div className="relative w-full">
-                    <Input
-                      type="text"
-                      id="slogan"
-                      className="w-full text-xs rounded-lg border border-[#A2ABBD] px-4 py-5 focus:outline-none 
-                    focus:ring-0 placeholder:text-[#A2ABBD]"
-                      placeholder="Email de compte"
                       {...field}
                     />
                   </div>

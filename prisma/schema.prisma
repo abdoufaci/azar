@@ -65,7 +65,7 @@ model Invoice {
 model User {
   id                    String                 @id @default(cuid())
   name                  String
-  email                 String                 @unique
+  email                 String?                @unique
   username              String                 @unique
   emailVerified         DateTime               @default(now())
   image                 Json?
@@ -259,17 +259,17 @@ model ProductPrices {
 }
 
 model Product {
-  id           String          @id @default(cuid())
-  category     ProductCategory
-  price        Int             @default(0)
-  mainImageIdx Int
-
+  id            String          @id @default(cuid())
+  category      ProductCategory
+  price         Int             @default(0)
+  mainImageIdx  Int
   frName        String
   frDescription String
   arName        String
   arDescription String
   images        Json[]
   audience      ProductAudience
+  isArchived    Boolean         @default(false)
 
   pricings ProductPricing[]
 
@@ -390,12 +390,13 @@ model OrderColumnCell {
 }
 
 model Order {
-  id      String      @id @default(cuid())
-  orderId String
-  status  OrderStatus @default(PENDING)
-  price   Int?
-  barCode String?
-  note    String      @default("")
+  id         String      @id @default(cuid())
+  orderId    String
+  status     OrderStatus @default(PENDING)
+  price      Int?
+  barCode    String?
+  note       String      @default("")
+  isArchived Boolean     @default(false)
 
   subOrderId String?
   subOrder   Order?  @relation(fields: [subOrderId], references: [id], onDelete: Cascade, name: "motherOrder")
@@ -543,10 +544,11 @@ model DemandStage {
 }
 
 model Demand {
-  id       String         @id @default(cuid())
-  priority DemandPriority
-  demand   String
-  demandId String         @unique
+  id         String         @id @default(cuid())
+  priority   DemandPriority
+  demand     String
+  demandId   String         @unique
+  isArchived Boolean        @default(false)
 
   materialId String
   material   DemandMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)

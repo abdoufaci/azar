@@ -15,7 +15,9 @@ export type ModalType =
   | "thankyou"
   | "chooseTissu"
   | "acceptOrder"
-  | "manageInvoice";
+  | "manageInvoice"
+  |'images'
+  ;
 
 export interface ModalData {
   isEdit?: boolean;
@@ -28,6 +30,7 @@ export interface ModalData {
   user?: UserInTable;
   invoice?: Invoice;
   date?: Date;
+  images?: {type: string;id: string;}[]
 }
 
 interface ModalStore {

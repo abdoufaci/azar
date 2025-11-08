@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { badgeVariant } from "@/constants/badge-var";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import qs from "query-string";
 import { DemandInTable } from "@/types/types";
@@ -40,22 +40,26 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import DemandDetails from "./demand-details";
 import { useDemandsQuery } from "@/hooks/admin/use-query-demands";
 import { Skeleton } from "@/components/ui/skeleton";
+import { manageDemandArchive } from "@/actions/mutations/demand/manage-demand-archive";
 
 interface Props {
   stages: DemandStage[];
   demands: DemandInTable[];
   updateStageOptimistic: (stage: DemandStage, idx: number) => void;
+  deleteDemandOptimistic: (id: string) => void;
 }
 
 export function DemandesTable({
   stages,
   demands,
   updateStageOptimistic,
+  deleteDemandOptimistic,
 }: Props) {
   const [newDemandStageInput, setNewDemandStageInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [isAddingDemandStagePending, startAddingDemandStage] = useTransition();
   const [isPending, startTransition] = useTransition();
+  const searchParams = useSearchParams();
 
   const {
     data,
@@ -65,7 +69,9 @@ export function DemandesTable({
     fetchPreviousPage,
     isPending: tanstackIsPending,
     refetch,
-  } = useDemandsQuery();
+  } = useDemandsQuery({
+    isArchive: !!searchParams.get("isArchive"),
+  });
   const [isFetchingPreviousPage, setIsFetchingPreviousPage] = useState(false);
 
   let currentDemands = data;
@@ -109,6 +115,7 @@ export function DemandesTable({
             <TableHead className="text-[#64748B] font-normal text-center">
               ID
             </TableHead>
+            <TableHead className="text-[#64748B] font-normal text-center"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -292,6 +299,42 @@ export function DemandesTable({
                     </TableCell>
                     <TableCell className="text-[#95A1B1] text-center">
                       {demande.demandId}
+                    </TableCell>
+                    <TableCell className="text-[#95A1B1] text-center">
+                      <svg
+                        onClick={() => {
+                          startTransition(() => {
+                            deleteDemandOptimistic(demande.id);
+                            toast.info(
+                              demande.isArchived ? "Restauré !" : "Archivé !"
+                            );
+                            manageDemandArchive({
+                              id: demande.id,
+                              isArchived: !demande.isArchived,
+                            })
+                              .catch(() => {
+                                toast.error("Erreur .");
+                              })
+                              .finally(() => refetch());
+                          });
+                        }}
+                        width="15"
+                        height="15"
+                        viewBox="0 0 15 15"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        {demande.isArchived ? (
+                          <path
+                            d="M7.5 12.5L10.8333 9.16667L9.66666 8L8.33333 9.33333V5.83334H6.66666V9.33333L5.33333 8L4.16666 9.16667L7.5 12.5ZM1.66667 15C1.20833 15 0.816111 14.8369 0.49 14.5108C0.163889 14.1847 0.000555555 13.7922 0 13.3333V2.9375C0 2.74306 0.0313888 2.55556 0.0941665 2.375C0.156944 2.19445 0.250555 2.02778 0.375 1.875L1.41667 0.604171C1.56944 0.409726 1.76028 0.260282 1.98917 0.155838C2.21805 0.0513933 2.45778 -0.000551146 2.70833 4.40917e-06H12.2917C12.5417 4.40917e-06 12.7814 0.0522266 13.0108 0.156671C13.2403 0.261115 13.4311 0.410282 13.5833 0.604171L14.625 1.875C14.75 2.02778 14.8439 2.19445 14.9067 2.375C14.9694 2.55556 15.0005 2.74306 15 2.9375V13.3333C15 13.7917 14.8369 14.1842 14.5108 14.5108C14.1847 14.8375 13.7922 15.0006 13.3333 15H1.66667ZM2 2.5H13L12.2917 1.66667H2.70833L2 2.5Z"
+                            fill="#1E78FF"
+                          />
+                        ) : (
+                          <path
+                            d="M7.5 12.5L10.8333 9.16667L9.66666 8L8.33333 9.33333V5.83334H6.66666V9.33333L5.33333 8L4.16666 9.16667L7.5 12.5ZM1.66667 4.16667V13.3333H13.3333V4.16667H1.66667ZM1.66667 15C1.20833 15 0.816111 14.8369 0.49 14.5108C0.163889 14.1847 0.000555555 13.7922 0 13.3333V2.9375C0 2.74306 0.0313888 2.55556 0.0941665 2.375C0.156944 2.19445 0.250555 2.02778 0.375 1.875L1.41667 0.604171C1.56944 0.409726 1.76028 0.260282 1.98917 0.155838C2.21805 0.0513933 2.45778 -0.000551146 2.70833 4.40917e-06H12.2917C12.5417 4.40917e-06 12.7814 0.0522266 13.0108 0.156671C13.2403 0.261115 13.4311 0.410282 13.5833 0.604171L14.625 1.875C14.75 2.02778 14.8439 2.19445 14.9067 2.375C14.9694 2.55556 15.0005 2.74306 15 2.9375V13.3333C15 13.7917 14.8369 14.1842 14.5108 14.5108C14.1847 14.8375 13.7922 15.0006 13.3333 15H1.66667ZM2 2.5H13L12.2917 1.66667H2.70833L2 2.5Z"
+                            fill="#95A1B1"
+                          />
+                        )}
+                      </svg>
                     </TableCell>
                   </TableRow>
                 </SheetTrigger>

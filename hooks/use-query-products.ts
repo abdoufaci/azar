@@ -5,9 +5,10 @@ import { ProductAudience, ProductCategory } from "@prisma/client";
 
 interface Props {
   audience: ProductAudience;
+  isArchive?: boolean;
 }
 
-export const useProductsQuery = ({ audience }: Props) => {
+export const useProductsQuery = ({ audience, isArchive = false }: Props) => {
   const { admin: filterData } = useFilterModal();
 
   const fetchCars = async ({
@@ -22,6 +23,7 @@ export const useProductsQuery = ({ audience }: Props) => {
           ...filterData,
           audience,
           cursor: pageParam,
+          isArchive,
         },
       },
       { skipNull: true }
@@ -39,7 +41,7 @@ export const useProductsQuery = ({ audience }: Props) => {
     isLoadingError,
     refetch,
   } = useInfiniteQuery({
-    queryKey: ["products", filterData, audience],
+    queryKey: ["products", filterData, audience, isArchive],
     queryFn: fetchCars,
     getNextPageParam: (lastPage) => lastPage?.nextCursor,
     initialPageParam: undefined,

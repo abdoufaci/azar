@@ -1,5 +1,5 @@
 import { ProductSubtype, ProductCategory } from "@prisma/client";
-import { ArrowRight, ChevronDown, Plus } from "lucide-react";
+import { ArrowRight, ChevronDown, Plus, Search } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Dispatch, SetStateAction, useState, useTransition } from "react";
@@ -11,6 +11,7 @@ import { Checkbox } from "../ui/checkbox";
 import { addProductVariant } from "@/actions/mutations/products/add-product-variant";
 import { ProductVariantWithPricing } from "@/types/types";
 import { updateProductVariant } from "@/actions/mutations/products/update-product-variant";
+import { ScrollArea } from "../ui/scroll-area";
 
 interface Props {
   selectedCategory: ProductCategory;
@@ -46,6 +47,8 @@ function AddProductVariantForm({
   const [model, setModel] = useState(variant ? variant.name : "");
   const [newTypeInput, setNewTypeInput] = useState("");
   const [types, setTypes] = useState(intialTypes || []);
+  const [searchTerm, setSearchTerm] = useState("");
+
   const [selectedTypes, setSelectedTypes] = useState<
     {
       id: string;
@@ -286,41 +289,40 @@ function AddProductVariantForm({
                   className="p-0 sm:!w-[576px] w-full"
                   align="start">
                   <div className="space-y-2">
-                    <div className="space-y-1">
-                      {types
-                        .filter((type) => type.category === selectedCategory)
-                        .map((type) => ({ id: type.id, name: type.name }))
-                        .map((type) => {
-                          const isChecked = selectedTypes
-                            ?.map((item) => item.id)
-                            .includes(type.id);
-                          return (
-                            <div
-                              key={type.id}
-                              onClick={() => {
-                                if (isChecked) {
-                                  setTypesToRemove((prev) => [...prev, type]);
-                                }
-
-                                if (!isChecked) {
-                                  setTypesToRemove((prev) =>
-                                    prev.filter((item) => item.id !== type.id)
-                                  );
-                                }
-                                return !isChecked
-                                  ? setSelectedTypes((prev) => [...prev, type])
-                                  : setSelectedTypes((prev) =>
-                                      prev?.filter(
-                                        (value) => value.name !== type.name
-                                      )
-                                    );
-                              }}
-                              className="flex items-center gap-2 border-b p-4 cursor-pointer">
-                              <Checkbox
-                                className="cursor-pointer data-[state=checked]:bg-brand data-[state=checked]:border-brand 
-                                border border-[#0000006B] rounded-full"
-                                checked={isChecked}
-                                onCheckedChange={(checked) => {
+                    <div className="px-4 pt-4">
+                      <div className="relative w-full flex-1 max-w-md border border-[#E7F1F8] bg-transparent rounded-lg">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5A5A5A]" />
+                        <Input
+                          value={searchTerm}
+                          onChange={(e) => {
+                            setSearchTerm(e.currentTarget.value);
+                          }}
+                          placeholder="Recherche"
+                          className="pl-10 border-none text-[#5A5A5A] placeholder:text-[#5A5A5A] w-full"
+                        />
+                      </div>
+                    </div>
+                    <ScrollArea className="h-40">
+                      <div className="space-y-1">
+                        {types
+                          ?.filter((type) =>
+                            type.category === selectedCategory &&
+                            searchTerm === ""
+                              ? true
+                              : type.name
+                                  .toLowerCase()
+                                  .trim()
+                                  .includes(searchTerm.toLowerCase().trim())
+                          )
+                          ?.map((type) => ({ id: type.id, name: type.name }))
+                          .map((type) => {
+                            const isChecked = selectedTypes
+                              ?.map((item) => item.id)
+                              .includes(type.id);
+                            return (
+                              <div
+                                key={type.id}
+                                onClick={() => {
                                   if (isChecked) {
                                     setTypesToRemove((prev) => [...prev, type]);
                                   }
@@ -341,12 +343,44 @@ function AddProductVariantForm({
                                         )
                                       );
                                 }}
-                              />
-                              <h1 className="text-[#232323]">{type.name}</h1>
-                            </div>
-                          );
-                        })}
-                    </div>
+                                className="flex items-center gap-2 border-b p-4 cursor-pointer">
+                                <Checkbox
+                                  className="cursor-pointer data-[state=checked]:bg-brand data-[state=checked]:border-brand 
+                                border border-[#0000006B] rounded-full"
+                                  checked={isChecked}
+                                  onCheckedChange={(checked) => {
+                                    if (isChecked) {
+                                      setTypesToRemove((prev) => [
+                                        ...prev,
+                                        type,
+                                      ]);
+                                    }
+
+                                    if (!isChecked) {
+                                      setTypesToRemove((prev) =>
+                                        prev.filter(
+                                          (item) => item.id !== type.id
+                                        )
+                                      );
+                                    }
+                                    return !isChecked
+                                      ? setSelectedTypes((prev) => [
+                                          ...prev,
+                                          type,
+                                        ])
+                                      : setSelectedTypes((prev) =>
+                                          prev?.filter(
+                                            (value) => value.name !== type.name
+                                          )
+                                        );
+                                  }}
+                                />
+                                <h1 className="text-[#232323]">{type.name}</h1>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </ScrollArea>
                     <div className="px-4 pb-2">
                       {showAdd ? (
                         <Input

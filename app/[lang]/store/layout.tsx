@@ -2,6 +2,16 @@ import { tajawal } from "@/app/fonts";
 import StoreHeader from "./_components/store-header";
 import { getDictionary } from "../dictionaries";
 import NextTopLoader from "nextjs-toploader";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Azar",
+  description: "A platform for managing forniture",
+  icons: {
+    icon: "/icon.png",
+    href: "/icon.png",
+  },
+};
 
 export default async function StoreLayout({
   children,

@@ -47,6 +47,12 @@ import { truncate } from "@/lib/truncate";
 import { Calendar } from "@/components/ui/calendar";
 import ProductionDetails from "./production-details";
 import { updateColumnName } from "@/actions/mutations/order/update-column-name";
+import {
+  FetchNextPageOptions,
+  FetchPreviousPageOptions,
+  InfiniteData,
+  InfiniteQueryObserverResult,
+} from "@tanstack/react-query";
 
 interface Props {
   orderStages: OrderStage[];
@@ -58,12 +64,23 @@ interface Props {
   onSubOrderClick: (production: ProductionInTable) => void;
   productions: ProductionInTable[];
   updateStageOptimistic: (stage: OrderStage, idx: number) => void;
+  deleteProductionOptimistic: (id: string) => void;
   manageEmployeeOptimistic: (
     employee: User,
     role: EmplyeeRole,
     idx: number,
     action: "add" | "remove"
   ) => void;
+  fetchNextPage: (
+    options?: FetchNextPageOptions | undefined
+  ) => Promise<InfiniteQueryObserverResult<InfiniteData<any, unknown>, Error>>;
+  fetchPreviousPage: (
+    options?: FetchPreviousPageOptions | undefined
+  ) => Promise<InfiniteQueryObserverResult<InfiniteData<any, unknown>, Error>>;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  tanstackIsPending: boolean;
+  data: InfiniteData<any, unknown> | undefined;
 }
 
 function ProductionsTable({
@@ -75,16 +92,14 @@ function ProductionsTable({
   productions,
   updateStageOptimistic,
   manageEmployeeOptimistic,
+  data,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage,
+  tanstackIsPending,
+  fetchPreviousPage,
+  deleteProductionOptimistic,
 }: Props) {
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchPreviousPage,
-    isPending: tanstackIsPending,
-    refetch,
-  } = useProductionsQuery();
   const [newOrderStageInput, setNewOrderStageInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [isAddingOrderStagePending, startAddingOrderStage] = useTransition();
@@ -285,7 +300,6 @@ function ProductionsTable({
                                                 order.orderStageId || "",
                                             })
                                               .catch(() => {
-                                                refetch();
                                                 currentStage = order.orderStage;
                                                 toast.error("Erreur .");
                                               })
@@ -433,7 +447,6 @@ function ProductionsTable({
                                             text: cellText,
                                           })
                                             .then(() => {
-                                              refetch();
                                               toast.success("Success !");
                                               setCellTextToEdit(null);
                                               setCellText("");
@@ -554,7 +567,6 @@ function ProductionsTable({
                                                       : member.id,
                                                   })
                                                     .then(() => {
-                                                      refetch();
                                                       toast.success(
                                                         "Success !"
                                                       );
@@ -663,7 +675,6 @@ function ProductionsTable({
                                                     statusId: status.id,
                                                   })
                                                     .then(() => {
-                                                      refetch();
                                                       toast.success(
                                                         "Success !"
                                                       );
@@ -766,7 +777,6 @@ function ProductionsTable({
                                           cellId: cell?.id,
                                         })
                                           .then(() => {
-                                            refetch();
                                             toast.success("Success !");
                                           })
                                           .catch(() => toast.error("Erreur ."))
@@ -798,6 +808,9 @@ function ProductionsTable({
                       }
                       updateStageOptimistic={(stage) =>
                         updateStageOptimistic(stage, idx)
+                      }
+                      deleteProductionOptimistic={(id) =>
+                        deleteProductionOptimistic(id)
                       }
                     />
                   </SheetContent>

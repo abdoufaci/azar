@@ -14,6 +14,16 @@ import { OrdersSwitch } from "./_components/orders-switch";
 import { redirect } from "next/navigation";
 import { getAvailableProductions } from "@/actions/queries/order/get-available-productions";
 import { getWorkshops } from "@/actions/queries/workshop/get-workshops";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Commande",
+  description: "A platform for managing forniture",
+  icons: {
+    icon: "/icon.png",
+    href: "/icon.png",
+  },
+};
 
 export default async function DemandesPage({
   searchParams,

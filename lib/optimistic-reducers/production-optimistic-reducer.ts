@@ -3,7 +3,7 @@
 import { ProductionInTable } from "@/types/types";
 import { EmplyeeRole, OrderStage, User } from "@prisma/client";
 
-export type OptimisticAction =
+type OptimisticAction =
   | { type: "ADD"; item: ProductionInTable }
   | { type: "DELETE"; id: string }
   | { type: "updateStage"; stage: OrderStage; idx: number }
@@ -24,7 +24,6 @@ export const productionOptimisticReducer = (
     case "ADD":
       return [action.item, ...state];
     case "DELETE":
-      // Filter out the item being deleted
       return state.filter((item) => item.id !== action.id);
     case "updateStage":
       let curr = state;
@@ -85,7 +84,5 @@ export const productionOptimisticReducer = (
       }
 
       return currentState;
-    default:
-      return state;
   }
 };

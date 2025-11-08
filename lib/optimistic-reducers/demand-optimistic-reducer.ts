@@ -3,7 +3,7 @@
 import { DemandInTable } from "@/types/types";
 import { EmplyeeRole, OrderStage, User } from "@prisma/client";
 
-export type OptimisticAction =
+type OptimisticAction =
   | { type: "ADD"; item: DemandInTable }
   | { type: "DELETE"; id: string }
   | { type: "updateStage"; stage: OrderStage; idx: number }

@@ -6,10 +6,15 @@ import { SessionProvider } from "next-auth/react";
 import { ModalProvider } from "@/providers/modal-provider";
 import { Toaster } from "sonner";
 import { QClientProvider } from "@/providers/query-client-provider";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Azar",
   description: "A platform for managing forniture",
+  icons: {
+    icon: "/icon.png",
+    href: "/icon.png",
+  },
 };
 
 export default async function RootLayout({

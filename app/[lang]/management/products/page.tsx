@@ -4,6 +4,16 @@ import { getProductSubTypes } from "@/actions/queries/products/get-product-sub-t
 import { getProductVariants } from "@/actions/queries/products/get-product-variants";
 import { getProducts } from "@/actions/queries/products/get-products";
 import { getTissues } from "@/actions/queries/products/get-tissues";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Produit",
+  description: "A platform for managing forniture",
+  icons: {
+    icon: "/icon.png",
+    href: "/icon.png",
+  },
+};
 
 async function ProductsPage({
   searchParams,

@@ -16,6 +16,16 @@ import { getDemandMaterials } from "@/actions/queries/demands/get-demand-materia
 import DemandsInterface from "../../demands/_components/demands-interface";
 import WorkshopInterface from "./_components/workshop-interface";
 import { getColumns } from "@/actions/queries/order/get-columns";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Atelier",
+  description: "A platform for managing forniture",
+  icons: {
+    icon: "/icon.png",
+    href: "/icon.png",
+  },
+};
 
 interface Props {
   params: { lang: string; workshopId: string };

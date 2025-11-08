@@ -4,7 +4,11 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useFilterModal } from "../use-filter-modal-store";
 import qs from "query-string";
 
-export const useDemandsQuery = () => {
+interface Props {
+  isArchive?: boolean;
+}
+
+export const useDemandsQuery = ({ isArchive = false }: Props) => {
   const { admin, demand } = useFilterModal();
 
   const fetchDemands = async ({
@@ -19,6 +23,7 @@ export const useDemandsQuery = () => {
           cursor: pageParam,
           ...admin,
           ...demand,
+          isArchive,
         },
       },
       { skipNull: true }
@@ -38,7 +43,7 @@ export const useDemandsQuery = () => {
     fetchPreviousPage,
     isPending,
   } = useInfiniteQuery({
-    queryKey: ["demands", admin, demand],
+    queryKey: ["demands", admin, demand, isArchive],
     queryFn: fetchDemands,
     getNextPageParam: (lastPage) => lastPage?.nextCursor,
     initialPageParam: undefined,
@@ -46,6 +51,7 @@ export const useDemandsQuery = () => {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
+    refetchIntervalInBackground: false,
   });
 
   return {

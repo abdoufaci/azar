@@ -2,7 +2,7 @@
 
 import { ProductInTable } from "@/types/types";
 
-export type OptimisticAction =
+type OptimisticAction =
   | { type: "ADD"; item: ProductInTable }
   | { type: "DELETE"; id: string }
   | { type: "updateProduct"; product: ProductInTable };

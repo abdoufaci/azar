@@ -51,7 +51,7 @@ export function EmployeesTable({ employees, onEdit }: Props) {
                 Atelier
               </TableHead>
               <TableHead className="text-[#64748B] font-normal text-center">
-                Email
+                Role
               </TableHead>
               <TableHead className="text-[#64748B] font-normal text-center">
                 Psuedo
@@ -87,7 +87,13 @@ export function EmployeesTable({ employees, onEdit }: Props) {
                       </div>
                     </TableCell>
                     <TableCell className="text-[#8E8E8E] text-center">
-                      {employee.email}
+                      {employee.employeeRole === "CUTTER"
+                        ? "Decoupeur"
+                        : employee.employeeRole === "TAILOR"
+                        ? "Couteur"
+                        : employee.employeeRole === "MANCHEUR"
+                        ? "Mancheur"
+                        : "Tapisier"}
                     </TableCell>
                     <TableCell className="text-[#8E8E8E] text-center">
                       {employee.username}

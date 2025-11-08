@@ -25,6 +25,7 @@ export async function GET(req: Request) {
     const audience = searchParams.get("audience");
     const type = searchParams.get("type");
     const variant = searchParams.get("variant");
+    const isArchive = searchParams.get("isArchive");
 
     let products: (Product & {
       tissues: Tissu[];
@@ -36,6 +37,7 @@ export async function GET(req: Request) {
 
     products = await db.product.findMany({
       where: {
+        isArchived: isArchive === "true",
         audience: audience as ProductAudience,
         ...(variant && {
           variantId: variant,

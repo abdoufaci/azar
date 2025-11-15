@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useFilterModal } from "@/hooks/use-filter-modal-store";
 import {
   DeskType,
   StockDisponibility,
@@ -23,23 +24,20 @@ interface Props {
 
 function DeskTypeFilter({ searchParams, url: pathname }: Props) {
   const router = useRouter();
+  const { onSearch, admin, desk } = useFilterModal();
 
   return (
     <Select
       onValueChange={(type) => {
-        const { type: curr, page, ...rest } = searchParams;
+        const { type: curr, ...rest } = desk;
 
-        const url = qs.stringifyUrl(
-          {
-            url: pathname,
-            query: {
-              ...rest,
-              type: type !== "default" ? type : null,
-            },
+        onSearch({
+          admin,
+          desk: {
+            ...rest,
+            type: type === "default" ? undefined : type,
           },
-          { skipNull: true }
-        );
-        router.push(url);
+        });
       }}>
       <SelectTrigger className="w-32 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">
         <SelectValue placeholder="Type" />

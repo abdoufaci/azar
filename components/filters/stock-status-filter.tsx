@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useFilterModal } from "@/hooks/use-filter-modal-store";
 import { StockDisponibility, StockType, User, WorkShop } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import qs from "query-string";
@@ -17,23 +18,20 @@ interface Props {
 
 function StockStatusFilter({ searchParams, url: pathname }: Props) {
   const router = useRouter();
+  const { onSearch, admin, stock } = useFilterModal();
 
   return (
     <Select
       onValueChange={(disponibility) => {
-        const { disponibility: curr, page, ...rest } = searchParams;
-
-        const url = qs.stringifyUrl(
-          {
-            url: pathname,
-            query: {
-              ...rest,
-              disponibility: disponibility !== "default" ? disponibility : null,
-            },
+        const { disponibility: curr, ...rest } = stock;
+        onSearch({
+          admin,
+          stock: {
+            ...rest,
+            disponibility:
+              disponibility === "default" ? undefined : disponibility,
           },
-          { skipNull: true }
-        );
-        router.push(url);
+        });
       }}>
       <SelectTrigger className="w-32 bg-transparent border-[#E2E9EB] text-[#A2ABBD]">
         <SelectValue placeholder="Status" />

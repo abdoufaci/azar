@@ -8,31 +8,39 @@ import ManageStockForm from "@/components/forms/manage-stock-form";
 import { Button } from "@/components/ui/button";
 import { StockInTable } from "@/types/types";
 import { StockType, WorkShop } from "@prisma/client";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { StocksTable } from "./stock-table";
+import { useWareHousesQuery } from "@/hooks/use-ware-houses-query";
+import WareHouseFilter from "@/components/filters/ware-house-filter";
+import { useStockssQuery } from "@/hooks/admin/use-query-stocks";
+import { stockOptimisticReducer } from "@/lib/optimistic-reducers/stock-optimistic-reducer";
+import { useStockTypesQuery } from "@/hooks/use-stock-types-query";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
-  workshops: WorkShop[];
-  types: StockType[];
-  currentPage: number;
-  totalStocks: number;
-  stocksPerPage: number;
-  stocks: StockInTable[];
 }
 
-function StockInterface({
-  searchParams,
-  workshops,
-  types,
-  currentPage,
-  stocks,
-  stocksPerPage,
-  totalStocks,
-}: Props) {
+function StockInterface({ searchParams }: Props) {
   const [isAdd, setIsAdd] = useState(false);
-  const [isPending, startTransition] = useTransition();
-  const [isOpen, setIsOpen] = useState(false);
+  const { data: warehouses, isPending: isFetchingWareHouses } =
+    useWareHousesQuery();
+  const { data: types, isPending: isFetchingTypes } = useStockTypesQuery();
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchPreviousPage,
+    isPending: tanstackIsPending,
+    refetch,
+  } = useStockssQuery();
+
+  const [stocks, setStocks] = useState<StockInTable[]>([]);
+
+  useEffect(() => {
+    setStocks(data?.pages[data?.pages?.length - 1]?.stocks || []);
+  }, [data]);
 
   return (
     <div className="space-y-5">
@@ -51,15 +59,17 @@ function StockInterface({
             />
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <WorkShopFilter
+            <WareHouseFilter
               url={"/management/stock"}
               searchParams={searchParams}
-              workShops={workshops}
+              wareHouses={warehouses}
+              isPending={isFetchingWareHouses}
             />
             <StockTypeFilter
               url={"/management/stock"}
               searchParams={searchParams}
               types={types}
+              isPending={isFetchingTypes}
             />
             <StockStatusFilter
               url={"/management/stock"}
@@ -74,15 +84,39 @@ function StockInterface({
             setIsAdd(false);
           }}
           types={types}
-          workShops={workshops}
+          warehouses={warehouses}
+          isFetchingWareHouses={isFetchingWareHouses}
+          addStockOptimistic={(item) =>
+            setStocks((prev) =>
+              stockOptimisticReducer(prev, { type: "ADD", item })
+            )
+          }
+          isFetchingTypes={isFetchingTypes}
         />
       ) : (
         <StocksTable
-          currentPage={currentPage}
-          searchParams={searchParams}
           stocks={stocks}
-          stocksPerPage={stocksPerPage}
-          totalStocks={totalStocks}
+          data={data}
+          fetchNextPage={fetchNextPage}
+          fetchPreviousPage={fetchPreviousPage}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          tanstackIsPending={tanstackIsPending}
+          refetch={refetch}
+          updateStockQuantityOptimistic={(quantity, idx) =>
+            setStocks((prev) =>
+              stockOptimisticReducer(prev, { type: "updateQty", idx, quantity })
+            )
+          }
+          updateStockDisponibilityOptimistic={(disponibility, idx) =>
+            setStocks((prev) =>
+              stockOptimisticReducer(prev, {
+                type: "updateDisponibility",
+                idx,
+                disponibility,
+              })
+            )
+          }
         />
       )}
     </div>

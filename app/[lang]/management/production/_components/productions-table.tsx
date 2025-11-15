@@ -24,7 +24,6 @@ import {
   Product,
   User,
 } from "@prisma/client";
-import { useProductionsQuery } from "@/hooks/admin/use-query-productions";
 import { ProductionInTable, UserWithWorkshop } from "@/types/types";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -291,8 +290,8 @@ function ProductionsTable({
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           currentStage = stage;
+                                          updateStageOptimistic(stage, idx);
                                           startTransition(() => {
-                                            updateStageOptimistic(stage, idx);
                                             updateOrderStage({
                                               orderId: order.id,
                                               orderStageId: stage.id,

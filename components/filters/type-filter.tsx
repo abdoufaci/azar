@@ -14,8 +14,8 @@ import { useRouter } from "next/navigation";
 import qs from "query-string";
 
 interface Props {
-  searchParams: Record<string, string | string[] | undefined>;
-  url: string;
+  searchParams?: Record<string, string | string[] | undefined>;
+  url?: string;
   types: ProductSubtype[];
   isPending: boolean;
 }

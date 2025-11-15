@@ -49,7 +49,7 @@ import {
 } from "../ui/dropdown-menu";
 import { ScrollArea } from "../ui/scroll-area";
 import { addClient } from "@/actions/mutations/users/add-client";
-import { UserWithWorkshop } from "@/types/types";
+import { UserInTable, UserWithWorkshop } from "@/types/types";
 import { updateClient } from "@/actions/mutations/users/update-client";
 
 export const ManageClientformSchema = z.object({
@@ -64,9 +64,16 @@ export const ManageClientformSchema = z.object({
 interface Props {
   onCancel: () => void;
   user: UserWithWorkshop | null;
+  addUserOptimistic: (user: UserInTable) => void;
+  updateUserOptimistic: (user: UserInTable) => void;
 }
 
-export function ManageClientForm({ onCancel, user }: Props) {
+export function ManageClientForm({
+  onCancel,
+  user,
+  addUserOptimistic,
+  updateUserOptimistic,
+}: Props) {
   const form = useForm<z.infer<typeof ManageClientformSchema>>({
     resolver: zodResolver(ManageClientformSchema),
     defaultValues: {
@@ -135,6 +142,7 @@ export function ManageClientForm({ onCancel, user }: Props) {
       user
         ? updateClient(data, user)
             .then((res) => {
+              updateUserOptimistic(res);
               toast.success("Client est modifier avec succès");
               onCancel();
             })
@@ -144,13 +152,10 @@ export function ManageClientForm({ onCancel, user }: Props) {
             })
         : addClient(data)
             .then((res) => {
-              if (res.error) {
-                toast.error(res.error);
-              }
-              if (res.success) {
-                toast.success("Client est crée avec succès");
-                onCancel();
-              }
+              //@ts-ignore
+              addUserOptimistic(res);
+              toast.success("Client est crée avec succès");
+              onCancel();
             })
             .catch(() => toast.error("Erreur"));
     });
@@ -262,7 +267,9 @@ export function ManageClientForm({ onCancel, user }: Props) {
                   <div className="relative w-full">
                     <Input
                       value={field.value}
-                      onChange={field.onChange}
+                      onChange={(e) =>
+                        field.onChange(e.target.value.toLowerCase())
+                      }
                       type="text"
                       className={cn(
                         "w-full text-xs rounded-lg border border-[#A2ABBD] px-4 py-5 focus:outline-none focus:ring-0 placeholder:text-[#A2ABBD]",

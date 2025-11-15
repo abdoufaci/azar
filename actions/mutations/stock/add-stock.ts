@@ -10,17 +10,22 @@ export const addStock = async (data: StockFormData) => {
 
   const ref = uid.rnd();
 
-  await db.stock.create({
+  const stock = await db.stock.create({
     data: {
       name: data.name,
-      intialQuantity: data.intialQuantity,
-      currentQuantity: data.currentQuantity,
-      workShopId: data.workShopId,
+      quantity: data.quantity,
+      wareHouseId: data.warehouse.id,
       typeId: data.type.id,
       disponibility: data.disponibility,
       ref,
     },
+    include: {
+      type: true,
+      wareHouse: true,
+    },
   });
 
   revalidatePath("/");
+
+  return stock;
 };

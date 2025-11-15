@@ -8,6 +8,23 @@ export interface AdminData {
   status?: string;
 }
 
+export interface SupplyData {
+  supplier?: string;
+}
+
+export interface DeskData {
+  type?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface StockData {
+  warehouse?: string;
+  disponibility?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
 export interface DemandData {
   material?: string;
   priority?: string;
@@ -28,10 +45,16 @@ interface ModalStore {
     store?: StoreData;
     admin?: AdminData;
     demand?: DemandData;
+    stock?: StockData;
+    desk?: DeskData;
+    supply?: SupplyData;
   }) => void;
   store: StoreData;
   admin: AdminData;
   demand: DemandData;
+  stock: StockData;
+  desk: DeskData;
+  supply: SupplyData;
 }
 
 export const useFilterModal = create<ModalStore>((set) => ({
@@ -39,6 +62,15 @@ export const useFilterModal = create<ModalStore>((set) => ({
   production: {},
   admin: {},
   demand: {},
-  onSearch: ({ store = {}, admin = {}, demand = {} }) =>
-    set({ store, admin, demand }),
+  stock: {},
+  desk: {},
+  supply: {},
+  onSearch: ({
+    store = {},
+    admin = {},
+    demand = {},
+    stock = {},
+    desk = {},
+    supply = {},
+  }) => set({ store, admin, demand, stock, desk, supply }),
 }));

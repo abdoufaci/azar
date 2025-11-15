@@ -168,7 +168,6 @@ model WorkShop {
   employees User[]
   orders    Order[]
   demands   Demand[]
-  stocks    Stock[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -598,25 +597,78 @@ model StockType {
   name  String
   color String
 
-  stocks Stock[]
+  stocks           Stock[]
+  supplierProducts SupplierProduct[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WareHouse {
+  id   String @id @default(cuid())
+  name String
+
+  stocks   Stock[]
+  supplies Supply[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Supplier {
+  id   String @id @default(cuid())
+  name String
+
+  supplies Supply[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SupplierProduct {
+  id        String @id @default(cuid())
+  name      String
+  quantity  Int
+  unitPrice Int
+
+  typeId String
+  type   StockType @relation(fields: [typeId], references: [id], onDelete: Cascade)
+
+  supplyId String?
+  supply   Supply? @relation(fields: [supplyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Supply {
+  id  String @id @default(cuid())
+  ref String @unique
+
+  products SupplierProduct[]
+
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  wareHouseId String
+  warehouse   WareHouse @relation(fields: [wareHouseId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Stock {
-  id              String             @id @default(cuid())
-  name            String
-  disponibility   StockDisponibility
-  intialQuantity  Int
-  currentQuantity Int
-  ref             String             @unique
+  id            String             @id @default(cuid())
+  name          String
+  disponibility StockDisponibility
+  quantity      Int
+  ref           String             @unique
 
   typeId String
   type   StockType @relation(fields: [typeId], references: [id], onDelete: Cascade)
 
-  workShopId String
-  workshop   WorkShop @relation(fields: [workShopId], references: [id], onDelete: Cascade)
+  wareHouseId String
+  wareHouse   WareHouse @relation(fields: [wareHouseId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -631,6 +683,7 @@ model Desk {
   id     String   @id @default(cuid())
   ref    String   @unique
   name   String
+  note   String   @default("")
   amount Int
   type   DeskType
 

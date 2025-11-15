@@ -55,7 +55,6 @@ import AddProductVariantForm from "./add-product-variant-form";
 import { updateProduct } from "@/actions/mutations/products/update-product";
 import ManageProductTissues from "./manage-product-tissues";
 import { ScrollArea } from "../ui/scroll-area";
-import { useProductsQuery } from "@/hooks/use-query-products";
 import { useModal } from "@/hooks/use-modal-store";
 import { deleteProduct } from "@/actions/mutations/products/delete-product";
 

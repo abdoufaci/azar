@@ -25,18 +25,62 @@ export const updateEmployee = async (
 
   const { password, workshop, role, ...rest } = data;
 
-  await db.user.update({
+  const updatedUser = await db.user.update({
     where: { id: user.id },
     data: {
       ...rest,
       password: !!hashedPassowrd ? hashedPassowrd : user.password,
-      role: "EMPLOYEE",
-      employeeRole: role,
+      role: role === "ADMIN" ? "ADMIN" : "EMPLOYEE",
+      employeeRole: role === "ADMIN" ? "TAILOR" : role,
       workShopId: workshop.id,
+    },
+    include: {
+      invoices: true,
+      workShop: true,
+      cutterOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      tailorOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      tapisierOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      mancheurOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
     },
   });
 
   revalidatePath("/");
 
-  return { success: "user" };
+  return updatedUser;
 };

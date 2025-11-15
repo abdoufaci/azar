@@ -51,7 +51,7 @@ function ProductsInterface({ searchParams, tissues }: Props) {
   const { data: types, isPending: isFetchingTypes } = useTypesQuery();
 
   const {
-    data: intialProducts,
+    data,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -62,10 +62,7 @@ function ProductsInterface({ searchParams, tissues }: Props) {
     isArchive: !!searchParams?.isArchive,
   });
 
-  const [products, manageProductOptimistic] = useOptimistic(
-    intialProducts?.pages.flatMap((page) => page?.products) as ProductInTable[],
-    productOptimisticReducer
-  );
+  const [products, setProducts] = useState<ProductInTable[]>([]);
 
   const [Buttonref, ButtonInView] = useInView();
 
@@ -74,6 +71,12 @@ function ProductsInterface({ searchParams, tissues }: Props) {
       fetchNextPage();
     }
   }, [ButtonInView]);
+
+  useEffect(() => {
+    setProducts(
+      data?.pages.flatMap((page) => page?.products) || ([] as ProductInTable[])
+    );
+  }, [data]);
 
   return (
     <div className="space-y-5">
@@ -169,15 +172,19 @@ function ProductsInterface({ searchParams, tissues }: Props) {
           key={productToEdit?.id}
           tissues={tissues}
           addProductOptimistic={(item) => {
-            manageProductOptimistic({ type: "ADD", item });
-            refetch();
+            setProducts((prev) =>
+              productOptimisticReducer(prev, { type: "ADD", item })
+            );
           }}
           updateProductOptimistic={(product) =>
-            manageProductOptimistic({ type: "updateProduct", product })
+            setProducts((prev) =>
+              productOptimisticReducer(prev, { type: "updateProduct", product })
+            )
           }
           deleteProductOptimistic={(id) => {
-            manageProductOptimistic({ type: "DELETE", id });
-            refetch();
+            setProducts((prev) =>
+              productOptimisticReducer(prev, { type: "DELETE", id })
+            );
           }}
         />
       ) : (
@@ -201,7 +208,9 @@ function ProductsInterface({ searchParams, tissues }: Props) {
                   <ProductCard
                     refetch={refetch}
                     deleteProductOptimistic={(id) =>
-                      manageProductOptimistic({ type: "DELETE", id })
+                      setProducts((prev) =>
+                        productOptimisticReducer(prev, { type: "DELETE", id })
+                      )
                     }
                     product={product}
                     key={product.id}

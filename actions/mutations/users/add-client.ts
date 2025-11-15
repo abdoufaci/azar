@@ -27,9 +27,53 @@ export const addClient = async (
       password: hashedPassowrd,
       role: "CLIENT",
     },
+    include: {
+      invoices: true,
+      workShop: true,
+      cutterOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      tailorOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      tapisierOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      mancheurOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+    },
   });
 
   revalidatePath("/");
 
-  return { success: user };
+  return user;
 };

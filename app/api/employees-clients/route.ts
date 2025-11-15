@@ -6,12 +6,19 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
 
     const workshopId = searchParams.get("workshopId");
+    const target = searchParams.get("target");
+    const includeAdmin = searchParams.get("includeAdmin");
 
     const users = await db.user.findMany({
       where: {
-        role: {
-          in: ["CLIENT", "EMPLOYEE"],
-        },
+        role:
+          target === "client"
+            ? "CLIENT"
+            : includeAdmin === "true"
+            ? {
+                in: ["ADMIN", "EMPLOYEE"],
+              }
+            : "EMPLOYEE",
         ...(workshopId && {
           workShopId: workshopId,
         }),
@@ -65,10 +72,8 @@ export async function GET(req: Request) {
       },
     });
 
-    const clients = users.filter((user) => user.role === "CLIENT");
-    const employees = users.filter((user) => user.role === "EMPLOYEE");
     return NextResponse.json({
-      users: { clients, employees },
+      users,
     });
   } catch (error) {
     console.log("[DIRECT_MESSAGES_GET]", error);

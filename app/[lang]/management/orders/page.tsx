@@ -15,6 +15,7 @@ import { redirect } from "next/navigation";
 import { getAvailableProductions } from "@/actions/queries/order/get-available-productions";
 import { getWorkshops } from "@/actions/queries/workshop/get-workshops";
 import { Metadata } from "next";
+import OrdersInterface from "./_components/orders-interface";
 
 export const metadata: Metadata = {
   title: "Commande",
@@ -25,70 +26,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function DemandesPage({
-  searchParams,
-}: {
-  params: any;
-  searchParams: Promise<{ [key: string]: string | undefined }>;
-}) {
-  const currentPage = (await searchParams).page;
-  const ordersPerPage = 8;
-  const [
-    types,
-    variants,
-    orders,
-    totalOrders,
-    availableProductions,
-    workshops,
-  ] = await Promise.all([
-    getProductSubTypes(),
-    getProductVariants(),
-    getOrders({
-      currentPage: Number(currentPage || "1"),
-      ordersPerPage,
-      searchParams,
-    }),
-    getOrdersCount({ searchParams }),
-    getAvailableProductions(),
-    getWorkshops(),
-  ]);
-
+export default async function DemandesPage() {
   return (
-    <div className="min-h-screen p-6">
-      <div className="space-y-6">
-        <OrdersSwitch searchParams={await searchParams} />
-        <div className="flex items-center justify-between gap-5 flex-wrap">
-          <div className="flex items-center gap-4 flex-1">
-            <SearchFilter
-              url="/management/orders"
-              searchParams={await searchParams}
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <TypeFilter
-              url="/management/orders"
-              searchParams={await searchParams}
-              types={types}
-              isPending={false}
-            />
-            <VariantsFilter
-              url="/management/orders"
-              searchParams={await searchParams}
-              variants={variants}
-              isPending={false}
-            />
-          </div>
-        </div>
-        <OrdersTable
-          orders={orders}
-          currentPage={Number(currentPage || "1")}
-          ordersPerPage={ordersPerPage}
-          searchParams={await searchParams}
-          totalOrders={totalOrders}
-          availableProductions={availableProductions}
-          workshops={workshops}
-        />
-      </div>
+    <div className="min-h-screen p-8">
+      <OrdersInterface />
     </div>
   );
 }

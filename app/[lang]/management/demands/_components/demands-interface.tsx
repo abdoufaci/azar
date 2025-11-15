@@ -27,7 +27,7 @@ import {
   WorkShop,
 } from "@prisma/client";
 import { Plus } from "lucide-react";
-import { useOptimistic, useState, useTransition } from "react";
+import { useEffect, useOptimistic, useState, useTransition } from "react";
 import VariantsFilter from "@/components/filters/variant-filter";
 import { DemandesTable } from "./demandes-table";
 import ManageDemandForm from "@/components/forms/manage-demand-form";
@@ -37,17 +37,16 @@ import { demandOptimisticReducer } from "@/lib/optimistic-reducers/demand-optimi
 import { useWorkShopsQuery } from "@/hooks/use-workshops-query";
 import Link from "next/link";
 import ArchiveButton from "@/components/archive-button";
+import { useMaterialsQuery } from "@/hooks/use-materials-query";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
   stages: DemandStage[];
-  materials: DemandMaterial[];
   url?: string;
 }
 
 function DemandsInterface({
   searchParams,
-  materials,
   stages,
   url = "/management/demands",
 }: Props) {
@@ -56,13 +55,17 @@ function DemandsInterface({
   const { data: workShops, isPending: isFetchingWorkShops } =
     useWorkShopsQuery();
   const { data } = useDemandsQuery({ isArchive: !!searchParams?.isArchive });
-  const latest = data?.pages[data?.pages?.length - 1]
-    ?.demands as DemandInTable[];
-  const [demands, manageDemandOptimistic] = useOptimistic(
-    latest,
-    demandOptimisticReducer
-  );
+  const [demands, setDemands] = useState<DemandInTable[]>([]);
+  const { data: materials, isPending: isFetchingMaterials } =
+    useMaterialsQuery();
+
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setDemands(
+      data?.pages[data?.pages?.length - 1]?.demands || ([] as DemandInTable[])
+    );
+  }, [data]);
 
   return (
     <div className="space-y-5">
@@ -97,6 +100,7 @@ function DemandsInterface({
                 url={url}
                 searchParams={searchParams}
                 materials={materials}
+                isPending={isFetchingMaterials}
               />
               <PriorityFilter url={url} searchParams={searchParams} />
               <StatusFilter
@@ -111,20 +115,21 @@ function DemandsInterface({
       {isAdd ? (
         <ManageDemandForm
           materials={materials}
+          isFetchingMaterials={isFetchingMaterials}
           onCancel={() => setIsAdd(false)}
           workShops={workShops}
           addDemandOptimistic={(item) =>
-            startTransition(() => {
-              manageDemandOptimistic({ type: "ADD", item });
-            })
+            setDemands((prev) =>
+              demandOptimisticReducer(prev, { type: "ADD", item })
+            )
           }
           updateDemandOptimistic={(item) =>
-            startTransition(() => {
-              manageDemandOptimistic({
+            setDemands((prev) =>
+              demandOptimisticReducer(prev, {
                 type: "updateDemand",
                 production: item,
-              });
-            })
+              })
+            )
           }
         />
       ) : (
@@ -132,15 +137,19 @@ function DemandsInterface({
           stages={stages}
           demands={demands}
           updateStageOptimistic={(stage, idx) =>
-            startTransition(() => {
-              manageDemandOptimistic({ type: "updateStage", stage, idx });
-            })
+            setDemands((prev) =>
+              demandOptimisticReducer(prev, {
+                type: "updateStage",
+                stage,
+                idx,
+              })
+            )
           }
-          deleteDemandOptimistic={(id) => {
-            startTransition(() => {
-              manageDemandOptimistic({ type: "DELETE", id });
-            });
-          }}
+          deleteDemandOptimistic={(id) =>
+            setDemands((prev) =>
+              demandOptimisticReducer(prev, { type: "DELETE", id })
+            )
+          }
         />
       )}
     </div>

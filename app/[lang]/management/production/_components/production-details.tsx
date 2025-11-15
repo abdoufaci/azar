@@ -79,11 +79,12 @@ function ProductionDetails({
   updateStageOptimistic,
   deleteProductionOptimistic,
 }: Props) {
-  const { data: users, isPending: isFetchingUsers } = useEmployeesClientsQuery(
-    motherOrder?.workShopId
-  );
+  const { data: employees, isPending: isFetchingUsers } =
+    useEmployeesClientsQuery({
+      workshopId: motherOrder?.workShopId,
+      target: "employee",
+    });
   const [isArchived, setIsArchived] = useState(!!motherOrder?.isArchived);
-  const employees = users?.employees || [];
 
   const [newOrderStageInput, setNewOrderStageInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
@@ -139,22 +140,22 @@ function ProductionDetails({
     });
   };
 
-  const cutters = employees.filter(
+  const cutters = employees?.filter(
     (user) =>
       user.workShopId === order?.workShopId && user.employeeRole === "CUTTER"
   );
 
-  const tailors = employees.filter(
+  const tailors = employees?.filter(
     (user) =>
       user.workShopId === order?.workShopId && user.employeeRole === "TAILOR"
   );
 
-  const tapisiers = employees.filter(
+  const tapisiers = employees?.filter(
     (user) =>
       user.workShopId === order?.workShopId && user.employeeRole === "TAPISIER"
   );
 
-  const mancheurs = employees.filter(
+  const mancheurs = employees?.filter(
     (user) =>
       user.workShopId === order?.workShopId && user.employeeRole === "MANCHEUR"
   );
@@ -220,17 +221,16 @@ function ProductionDetails({
             checked={isArchived}
             onCheckedChange={(e) => {
               setIsArchived(e);
+              deleteProductionOptimistic(order.id);
+              toast.info(isArchived ? "Restauré !" : "Archivé !");
               startTransition(() => {
-                deleteProductionOptimistic(order.id);
-                toast.info(isArchived ? "Restauré !" : "Archivé !");
                 manageProductionArchive({
                   id: order.id,
                   isArchived: e,
-                })
-                  .catch(() => {
-                    toast.error("Erreur .");
-                  })
-                  .finally(() => refetch());
+                }).catch(() => {
+                  toast.error("Erreur .");
+                });
+                // .finally(() => refetch());
               });
             }}
           />
@@ -285,12 +285,8 @@ function ProductionDetails({
                 disabled={isPending}
                 onClick={() => {
                   if (!isPending) {
+                    manageEmployeeOptimistic(order.cutter!, "CUTTER", "remove");
                     startTransition(() => {
-                      manageEmployeeOptimistic(
-                        order.cutter!,
-                        "CUTTER",
-                        "remove"
-                      );
                       removeOrderWorker({
                         orderId: order.id,
                         type: "CUTTER",
@@ -330,8 +326,8 @@ function ProductionDetails({
                       key={employee.id}
                       onClick={() => {
                         if (!isPending) {
+                          manageEmployeeOptimistic(employee, "CUTTER", "add");
                           startTransition(() => {
-                            manageEmployeeOptimistic(employee, "CUTTER", "add");
                             updateOrderWorkers({
                               orderId: order.id,
                               userId: employee.id,
@@ -401,12 +397,8 @@ function ProductionDetails({
                 disabled={isPending}
                 onClick={() => {
                   if (!isPending) {
+                    manageEmployeeOptimistic(order.tailor!, "TAILOR", "remove");
                     startTransition(() => {
-                      manageEmployeeOptimistic(
-                        order.tailor!,
-                        "TAILOR",
-                        "remove"
-                      );
                       removeOrderWorker({
                         orderId: order.id,
                         type: "TAILOR",
@@ -446,8 +438,8 @@ function ProductionDetails({
                       key={employee.id}
                       onClick={() => {
                         if (!isPending) {
+                          manageEmployeeOptimistic(employee, "TAILOR", "add");
                           startTransition(() => {
-                            manageEmployeeOptimistic(employee, "TAILOR", "add");
                             updateOrderWorkers({
                               orderId: order.id,
                               userId: employee.id,
@@ -516,12 +508,12 @@ function ProductionDetails({
                 disabled={isPending}
                 onClick={() => {
                   if (!isPending) {
+                    manageEmployeeOptimistic(
+                      order.tapisier!,
+                      "TAPISIER",
+                      "remove"
+                    );
                     startTransition(() => {
-                      manageEmployeeOptimistic(
-                        order.tapisier!,
-                        "TAPISIER",
-                        "remove"
-                      );
                       removeOrderWorker({
                         orderId: order.id,
                         type: "TAPISIER",
@@ -561,12 +553,8 @@ function ProductionDetails({
                       key={employee.id}
                       onClick={() => {
                         if (!isPending) {
+                          manageEmployeeOptimistic(employee, "TAPISIER", "add");
                           startTransition(() => {
-                            manageEmployeeOptimistic(
-                              employee,
-                              "TAPISIER",
-                              "add"
-                            );
                             updateOrderWorkers({
                               orderId: order.id,
                               userId: employee.id,
@@ -635,12 +623,12 @@ function ProductionDetails({
                 disabled={isPending}
                 onClick={() => {
                   if (!isPending) {
+                    manageEmployeeOptimistic(
+                      order.mancheur!,
+                      "MANCHEUR",
+                      "remove"
+                    );
                     startTransition(() => {
-                      manageEmployeeOptimistic(
-                        order.mancheur!,
-                        "MANCHEUR",
-                        "remove"
-                      );
                       removeOrderWorker({
                         orderId: order.id,
                         type: "MANCHEUR",
@@ -680,12 +668,8 @@ function ProductionDetails({
                       key={employee.id}
                       onClick={() => {
                         if (!isPending) {
+                          manageEmployeeOptimistic(employee, "MANCHEUR", "add");
                           startTransition(() => {
-                            manageEmployeeOptimistic(
-                              employee,
-                              "MANCHEUR",
-                              "add"
-                            );
                             updateOrderWorkers({
                               orderId: order.id,
                               userId: employee.id,
@@ -769,8 +753,8 @@ function ProductionDetails({
                       <div
                         onClick={(e) => {
                           e.stopPropagation();
+                          updateStageOptimistic(stage);
                           startTransition(() => {
-                            updateStageOptimistic(stage);
                             updateOrderStage({
                               orderId: order.id,
                               orderStageId: stage.id,

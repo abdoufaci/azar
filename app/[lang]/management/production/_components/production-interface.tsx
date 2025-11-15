@@ -27,7 +27,7 @@ import {
   WorkShop,
 } from "@prisma/client";
 import { Plus } from "lucide-react";
-import { useOptimistic, useState, useTransition } from "react";
+import { useEffect, useOptimistic, useState, useTransition } from "react";
 import ManageProductionForm from "@/components/forms/manage-production-form";
 import VariantsFilter from "@/components/filters/variant-filter";
 import {
@@ -43,7 +43,6 @@ import { productionOptimisticReducer } from "@/lib/optimistic-reducers/productio
 import { useTissuesQuery } from "@/hooks/use-tissues-query";
 import { useTypesQuery } from "@/hooks/use-types-query";
 import { useVariantsQuery } from "@/hooks/use-variants-query";
-import { useEmployeesClientsQuery } from "@/hooks/use-employees-clients-query";
 import { useWorkShopsQuery } from "@/hooks/use-workshops-query";
 import ArchiveButton from "@/components/archive-button";
 
@@ -81,12 +80,8 @@ function ProductionInterface({
     isPending: tanstackIsPending,
   } = useProductionsQuery({ isArchive: !!searchParams?.isArchive });
 
-  const latest = data?.pages[data?.pages?.length - 1]?.productions || [];
+  const [productions, setProductions] = useState<ProductionInTable[]>([]);
 
-  const [productions, manageProductionOptimistic] = useOptimistic(
-    latest,
-    productionOptimisticReducer
-  );
   const { data: variants, isPending: isFetchingVariants } = useVariantsQuery();
   const { data: types, isPending: isFetchingTypes } = useTypesQuery();
 
@@ -97,6 +92,10 @@ function ProductionInterface({
         .catch(() => toast.error("Erreur ."));
     });
   };
+
+  useEffect(() => {
+    setProductions(data?.pages[data?.pages?.length - 1]?.productions || []);
+  }, [data]);
 
   return (
     <div className="space-y-5">
@@ -275,15 +274,17 @@ function ProductionInterface({
           clients={[]}
           key={productionToEdit?.id}
           addProductionOptimistic={(item) =>
-            manageProductionOptimistic({ type: "ADD", item })
+            setProductions((prev) =>
+              productionOptimisticReducer(prev, { type: "ADD", item })
+            )
           }
           updateProductionOptimistic={(item) =>
-            startTransition(() => {
-              manageProductionOptimistic({
+            setProductions((prev) =>
+              productionOptimisticReducer(prev, {
                 type: "updateProduction",
                 production: item,
-              });
-            })
+              })
+            )
           }
         />
       ) : (
@@ -301,23 +302,29 @@ function ProductionInterface({
           }}
           columns={columns}
           updateStageOptimistic={(stage, idx) =>
-            startTransition(() => {
-              manageProductionOptimistic({ type: "updateStage", idx, stage });
-            })
+            setProductions((prev) =>
+              productionOptimisticReducer(prev, {
+                type: "updateStage",
+                idx,
+                stage,
+              })
+            )
           }
           manageEmployeeOptimistic={(employee, role, idx, action) =>
-            startTransition(() => {
-              manageProductionOptimistic({
+            setProductions((prev) =>
+              productionOptimisticReducer(prev, {
                 type: "addEmployee",
                 employee,
                 role,
                 idx,
                 action,
-              });
-            })
+              })
+            )
           }
           deleteProductionOptimistic={(id) =>
-            manageProductionOptimistic({ type: "DELETE", id })
+            setProductions((prev) =>
+              productionOptimisticReducer(prev, { type: "DELETE", id })
+            )
           }
           data={data}
           fetchNextPage={fetchNextPage}

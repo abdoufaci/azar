@@ -55,6 +55,8 @@ import { updateClient } from "@/actions/mutations/users/update-client";
 import { addOrderToProduction } from "@/actions/mutations/order/add-order-to-production";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { linkOrderWithProduction } from "@/actions/mutations/order/link-order-with-production";
+import { useAvailableProductionsQuery } from "@/hooks/use-available-productions-query";
+import { useWorkShopsQuery } from "@/hooks/use-workshops-query";
 
 export const AcceptOrderformSchema = z.object({
   workShopId: z.string(),
@@ -68,7 +70,11 @@ export function AcceptOrderForm() {
     useState<ProductionInTable>();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { workShops, productions, order } = data;
+  const { order, onUpdateOrderStatus } = data;
+  const { data: productions, isPending: isFetchingProductions } =
+    useAvailableProductionsQuery();
+  const { data: workShops, isPending: isFetchingWorkShops } =
+    useWorkShopsQuery();
 
   const form = useForm<z.infer<typeof AcceptOrderformSchema>>({
     resolver: zodResolver(AcceptOrderformSchema),
@@ -82,6 +88,7 @@ export function AcceptOrderForm() {
         ...data,
       })
         .then(() => {
+          onUpdateOrderStatus?.();
           toast.success("Success !");
           onClose();
         })
@@ -99,6 +106,7 @@ export function AcceptOrderForm() {
         note: order?.note,
       })
         .then(() => {
+          onUpdateOrderStatus?.();
           toast.success("Success !");
           onClose();
         })
@@ -145,63 +153,71 @@ export function AcceptOrderForm() {
               </div>
               <ScrollArea className="h-40">
                 <div className="space-y-5 pt-2">
-                  {productions
-                    ?.filter((order) =>
-                      order.variant.name
-                        .toLowerCase()
-                        .trim()
-                        .includes(searchTerm.toLowerCase().trim())
-                    )
-                    .map((production) => {
-                      return (
-                        <div
-                          onClick={() =>
-                            selectedProduction?.id === production.id
-                              ? setSelectedProduction(undefined)
-                              : //@ts-ignore
-                                setSelectedProduction(production)
-                          }
-                          key={production.id}
-                          className={cn(
-                            "p-5 rounded-[11.62px] shadow-lg space-y-4 cursor-pointer relative",
-                            production.variantId === order?.variantId &&
-                              production.subtypeId === production.subtypeId
-                              ? "border border-brand"
-                              : "border border-[#95A1B11A]",
-                            selectedProduction?.id === production.id &&
-                              "border border-yellow-brand"
-                          )}>
-                          {production.variantId === order?.variantId &&
-                            production.subtypeId === production.subtypeId && (
-                              <h5 className="text-xs font-semibold text-brand absolute top-0 transform -translate-y-1/2 left-5 bg-white">
-                                matched
-                              </h5>
-                            )}
-                          <div className="flex items-center justify-between gap-5">
-                            <h1 className="text-[#95A1B1] text-sm">
-                              {production.orderId}
-                            </h1>
-                            <h1 className="text-[#576070] text-sm">
-                              <span className="text-[#95A1B1]">Tissus : </span>
-                              {production.tissu?.name}
-                            </h1>
-                          </div>
-                          <div className="flex items-center gap-5">
-                            <div
-                              style={{
-                                backgroundColor: `${production.variant.color}33`,
-                                color: `${production.variant.color}`,
-                              }}
-                              className="rounded-full px-4 py-1.5 text-xs font-medium">
-                              {production.variant.name}
+                  {isFetchingProductions ? (
+                    <div className="p-5 flex items-center justify-center">
+                      <Loader2 className="h-5 w-5 text-brand animate-spin" />
+                    </div>
+                  ) : (
+                    productions
+                      ?.filter((order) =>
+                        order.variant.name
+                          .toLowerCase()
+                          .trim()
+                          .includes(searchTerm.toLowerCase().trim())
+                      )
+                      .map((production) => {
+                        return (
+                          <div
+                            onClick={() =>
+                              selectedProduction?.id === production.id
+                                ? setSelectedProduction(undefined)
+                                : //@ts-ignore
+                                  setSelectedProduction(production)
+                            }
+                            key={production.id}
+                            className={cn(
+                              "p-5 rounded-[11.62px] shadow-lg space-y-4 cursor-pointer relative",
+                              production.variantId === order?.variantId &&
+                                production.subtypeId === production.subtypeId
+                                ? "border border-brand"
+                                : "border border-[#95A1B11A]",
+                              selectedProduction?.id === production.id &&
+                                "border border-yellow-brand"
+                            )}>
+                            {production.variantId === order?.variantId &&
+                              production.subtypeId === production.subtypeId && (
+                                <h5 className="text-xs font-semibold text-brand absolute top-0 transform -translate-y-1/2 left-5 bg-white">
+                                  matched
+                                </h5>
+                              )}
+                            <div className="flex items-center justify-between gap-5">
+                              <h1 className="text-[#95A1B1] text-sm">
+                                {production.orderId}
+                              </h1>
+                              <h1 className="text-[#576070] text-sm">
+                                <span className="text-[#95A1B1]">
+                                  Tissus :{" "}
+                                </span>
+                                {production.tissu?.name}
+                              </h1>
                             </div>
-                            <h1 className="text-[#182233] font-medium">
-                              {production.subType.name}
-                            </h1>
+                            <div className="flex items-center gap-5">
+                              <div
+                                style={{
+                                  backgroundColor: `${production.variant.color}33`,
+                                  color: `${production.variant.color}`,
+                                }}
+                                className="rounded-full px-4 py-1.5 text-xs font-medium">
+                                {production.variant.name}
+                              </div>
+                              <h1 className="text-[#182233] font-medium">
+                                {production.subType.name}
+                              </h1>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })
+                  )}
                 </div>
               </ScrollArea>
             </PopoverContent>
@@ -244,11 +260,17 @@ export function AcceptOrderForm() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {workShops?.map((workshop) => (
-                        <SelectItem key={workshop.id} value={workshop.id}>
-                          {workshop.name}
-                        </SelectItem>
-                      ))}
+                      {isFetchingWorkShops ? (
+                        <div className="p-5 flex items-center justify-center">
+                          <Loader2 className="h-5 w-5 text-brand animate-spin" />
+                        </div>
+                      ) : (
+                        workShops?.map((workshop) => (
+                          <SelectItem key={workshop.id} value={workshop.id}>
+                            {workshop.name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />

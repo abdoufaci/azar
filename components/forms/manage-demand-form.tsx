@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +29,6 @@ import { toast } from "sonner";
 import { DemandFormData, demandFormSchema } from "@/schemas/demand-schema";
 import { addDemandMaterial } from "@/actions/mutations/demand/add-demand-material";
 import { addDemand } from "@/actions/mutations/demand/add-demand";
-import { useDemandsQuery } from "@/hooks/admin/use-query-demands";
 import { DemandInTable } from "@/types/types";
 import { useSearchParams } from "next/navigation";
 
@@ -37,6 +36,7 @@ interface Props {
   onCancel: () => void;
   workShops: WorkShop[];
   materials: DemandMaterial[];
+  isFetchingMaterials: boolean;
   addDemandOptimistic: (action: DemandInTable) => void;
   updateDemandOptimistic: (action: DemandInTable) => void;
 }
@@ -47,15 +47,12 @@ export default function ManageDemandForm({
   materials,
   addDemandOptimistic,
   updateDemandOptimistic,
+  isFetchingMaterials,
 }: Props) {
   const [isPending, startTransition] = useTransition();
   const [materialInput, setMaterialInput] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const searchParams = useSearchParams();
-
-  const { refetch } = useDemandsQuery({
-    isArchive: !!searchParams.get("isArchive"),
-  });
 
   const form = useForm<DemandFormData>({
     resolver: zodResolver(demandFormSchema),
@@ -66,7 +63,7 @@ export default function ManageDemandForm({
       addDemand(data)
         .then((res) => {
           addDemandOptimistic(res);
-          refetch();
+          // refetch();
           toast.success("Success !");
           onCancel();
         })
@@ -166,28 +163,34 @@ export default function ManageDemandForm({
                       <PopoverContent className="p-0 w-fit">
                         <div className="space-y-2">
                           <div className="space-y-1">
-                            {materials.map((material) => (
-                              <div
-                                key={material.id}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  field.onChange({
-                                    id: material.id,
-                                    color: material.color,
-                                    name: material.name,
-                                  });
-                                }}
-                                className="px-4 pt-3 flex items-center justify-center cursor-pointer">
-                                <div
-                                  style={{
-                                    backgroundColor: `${material?.color}33`,
-                                    color: `${material?.color}`,
-                                  }}
-                                  className="px-3 py-1.5 rounded-[3.96px] font-medium text-xs cursor-pointer w-full max-w-32 flex items-center justify-center">
-                                  {material?.name}
-                                </div>
+                            {isFetchingMaterials ? (
+                              <div className="p-4 flex items-center justify-center">
+                                <Loader2 className="h-5 w-5 text-brand animate-spin" />
                               </div>
-                            ))}
+                            ) : (
+                              materials.map((material) => (
+                                <div
+                                  key={material.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    field.onChange({
+                                      id: material.id,
+                                      color: material.color,
+                                      name: material.name,
+                                    });
+                                  }}
+                                  className="px-4 pt-3 flex items-center justify-center cursor-pointer">
+                                  <div
+                                    style={{
+                                      backgroundColor: `${material?.color}33`,
+                                      color: `${material?.color}`,
+                                    }}
+                                    className="px-3 py-1.5 rounded-[3.96px] font-medium text-xs cursor-pointer w-full max-w-32 flex items-center justify-center">
+                                    {material?.name}
+                                  </div>
+                                </div>
+                              ))
+                            )}
                           </div>
 
                           <div className="px-4 pb-2">

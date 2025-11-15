@@ -54,6 +54,7 @@ import { UserWithWorkshop } from "@/types/types";
 import { updateClient } from "@/actions/mutations/users/update-client";
 import { manageCart } from "@/actions/mutations/cart/manage-cart";
 import { useCartQuery } from "@/hooks/use-cart-query";
+import { usePathname } from "next/navigation";
 
 export const ChooseTissuformSchema = z.object({
   tissuId: z.string().optional(),
@@ -63,6 +64,8 @@ export const ChooseTissuformSchema = z.object({
 export function ChooseTissuForm() {
   const { data, onClose } = useModal();
   const [searchTerm, setSearchTerm] = useState("");
+  const pathname = usePathname();
+  const lang = pathname.split("/")[1];
 
   const { product, tissues } = data;
 
@@ -103,11 +106,11 @@ export function ChooseTissuForm() {
               control={form.control}
               name="tissuId"
               render={({ field }) => (
-                <FormItem className="flex flex-col items-end w-full text-[#15091B]">
+                <FormItem className="flex flex-col  w-full text-[#15091B]">
                   <FormLabel
                     htmlFor="slogan"
                     className="text-[#182233] text-lg font-normal">
-                    القماش
+                    {lang === "ar" ? "القماش" : "Tissu"}
                   </FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -154,11 +157,11 @@ export function ChooseTissuForm() {
             control={form.control}
             name="typeId"
             render={({ field }) => (
-              <FormItem className="flex flex-col items-end w-full text-[#15091B]">
+              <FormItem className="flex flex-col  w-full text-[#15091B]">
                 <FormLabel
                   htmlFor="slogan"
                   className="text-[#182233] text-lg font-normal">
-                  النوع
+                  {lang === "ar" ? "النوع" : "Type"}
                 </FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -187,7 +190,7 @@ export function ChooseTissuForm() {
           variant={"yellow_brand"}
           size={"lg"}
           className="w-full">
-          اضافة
+          {lang === "ar" ? "اضافة" : "Ajouter"}
         </Button>
       </form>
     </Form>

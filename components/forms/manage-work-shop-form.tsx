@@ -52,6 +52,8 @@ import {
 import { ScrollArea } from "../ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { addWorkShop } from "@/actions/mutations/workshop/add-workshop";
+import { useEmployeesClientsQuery } from "@/hooks/use-employees-clients-query";
+import { useWorkShopsQuery } from "@/hooks/use-workshops-query";
 
 export const ManageWorkShopformSchema = z.object({
   name: z.string(),
@@ -73,9 +75,11 @@ interface Member {
 }
 
 export function ManageWorkShopForm() {
-  const { onClose, data } = useModal();
-
-  const { employees: users } = data;
+  const { onClose } = useModal();
+  const { data: users, isPending: isFetchingUsers } = useEmployeesClientsQuery({
+    target: "employee",
+  });
+  const { refetch } = useWorkShopsQuery(true);
 
   const [isPending, startTransition] = useTransition();
   const [steps, setSteps] = useState<1 | 2>(1);
@@ -113,6 +117,7 @@ export function ManageWorkShopForm() {
       addWorkShop(data)
         .then(() => {
           onClose();
+          refetch();
           toast.success("Atelier ajouté avec succès");
         })
         .catch(() => toast.error("Erreur lors de l'ajout de l'atelier"));
@@ -180,75 +185,81 @@ export function ManageWorkShopForm() {
 
                         {/* Members List */}
                         <div className="space-y-3">
-                          {users
-                            ?.filter((item) =>
-                              item.name
-                                .toLowerCase()
-                                .trim()
-                                .includes(searchTerm.trim().toLowerCase())
-                            )
-                            .map((member) => {
-                              const isSelected = field.value.some(
-                                (m) => m.id === member.id
-                              );
-                              return (
-                                <div
-                                  key={member.id}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    toggleMember({
-                                      avatar:
-                                        (member.image as { id: string })?.id ||
-                                        "",
-                                      id: member.id,
-                                      name: member.name,
-                                      role: member.employeeRole,
-                                    });
-                                  }}
-                                  className="flex cursor-pointer w-full items-center justify-between rounded-[5.46px] bg-[#f3f6f8] p-4 py-2 transition-colors hover:bg-[#ebecf2]">
-                                  <div className="flex items-center gap-4">
-                                    <Avatar className="h-12 w-12">
-                                      <AvatarImage
-                                        src={""}
-                                        alt={member.name}
-                                        className="object-cover"
-                                      />
-                                      <AvatarFallback className="bg-brand text-white">
-                                        {member.name
-                                          .split(" ")
-                                          .map((n) => n[0])
-                                          .join("")}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div className="text-left">
-                                      <div className="text-lg font-semibold text-[#182233]">
-                                        {member.name}
-                                      </div>
-                                      <div className="text-sm text-[#576070]">
-                                        {member.employeeRole === "CUTTER"
-                                          ? "Decoupeur"
-                                          : member.employeeRole === "TAILOR"
-                                          ? "Couteur"
-                                          : member.employeeRole === "MANCHEUR"
-                                          ? "Mancheur"
-                                          : "Tapisier"}
+                          {isFetchingUsers ? (
+                            <div className="p-4 flex items-center justify-center">
+                              <Loader2 className="h-5 w-5 text-brand animate-spin" />
+                            </div>
+                          ) : (
+                            users
+                              ?.filter((item) =>
+                                item.name
+                                  .toLowerCase()
+                                  .trim()
+                                  .includes(searchTerm.trim().toLowerCase())
+                              )
+                              .map((member) => {
+                                const isSelected = field.value.some(
+                                  (m) => m.id === member.id
+                                );
+                                return (
+                                  <div
+                                    key={member.id}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      toggleMember({
+                                        avatar:
+                                          (member.image as { id: string })
+                                            ?.id || "",
+                                        id: member.id,
+                                        name: member.name,
+                                        role: member.employeeRole,
+                                      });
+                                    }}
+                                    className="flex cursor-pointer w-full items-center justify-between rounded-[5.46px] bg-[#f3f6f8] p-4 py-2 transition-colors hover:bg-[#ebecf2]">
+                                    <div className="flex items-center gap-4">
+                                      <Avatar className="h-12 w-12">
+                                        <AvatarImage
+                                          src={""}
+                                          alt={member.name}
+                                          className="object-cover"
+                                        />
+                                        <AvatarFallback className="bg-brand text-white">
+                                          {member.name
+                                            .split(" ")
+                                            .map((n) => n[0])
+                                            .join("")}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div className="text-left">
+                                        <div className="text-lg font-semibold text-[#182233]">
+                                          {member.name}
+                                        </div>
+                                        <div className="text-sm text-[#576070]">
+                                          {member.employeeRole === "CUTTER"
+                                            ? "Decoupeur"
+                                            : member.employeeRole === "TAILOR"
+                                            ? "Couteur"
+                                            : member.employeeRole === "MANCHEUR"
+                                            ? "Mancheur"
+                                            : "Tapisier"}
+                                        </div>
                                       </div>
                                     </div>
+                                    <div
+                                      className={`flex h-6 w-6 items-center justify-center rounded-full ${
+                                        isSelected
+                                          ? "bg-[#1e78ff]"
+                                          : "border-2 border-[#d9d9d9] bg-[#ffffff]"
+                                      }`}>
+                                      {isSelected && (
+                                        <Check className="h-4 w-4 text-[#ffffff]" />
+                                      )}
+                                    </div>
                                   </div>
-                                  <div
-                                    className={`flex h-6 w-6 items-center justify-center rounded-full ${
-                                      isSelected
-                                        ? "bg-[#1e78ff]"
-                                        : "border-2 border-[#d9d9d9] bg-[#ffffff]"
-                                    }`}>
-                                    {isSelected && (
-                                      <Check className="h-4 w-4 text-[#ffffff]" />
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
+                                );
+                              })
+                          )}
                         </div>
                       </div>
                     </FormControl>

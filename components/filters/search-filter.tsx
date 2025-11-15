@@ -7,8 +7,8 @@ import { useEffect, useRef, useState } from "react";
 import { useFilterModal } from "@/hooks/use-filter-modal-store";
 
 interface Props {
-  url: string;
-  searchParams: Record<string, string | string[] | undefined>;
+  url?: string;
+  searchParams?: Record<string, string | string[] | undefined>;
 }
 
 export default function SearchFilter({ url: pathname, searchParams }: Props) {

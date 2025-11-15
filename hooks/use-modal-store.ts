@@ -2,10 +2,19 @@ import {
   OrderInTable,
   OrderWithRelations,
   ProductInTable,
+  SupplyInTable,
   UserInTable,
   UserWithWorkshop,
 } from "@/types/types";
-import { Invoice, ProductPrices, Tissu, WorkShop } from "@prisma/client";
+import {
+  Invoice,
+  ProductPrices,
+  Supplier,
+  Supply,
+  Tissu,
+  WareHouse,
+  WorkShop,
+} from "@prisma/client";
 import { create } from "zustand";
 
 export type ModalType =
@@ -16,8 +25,9 @@ export type ModalType =
   | "chooseTissu"
   | "acceptOrder"
   | "manageInvoice"
-  |'images'
-  ;
+  | "images"
+  | "deleteUser"
+  | "manageSupply";
 
 export interface ModalData {
   isEdit?: boolean;
@@ -30,7 +40,12 @@ export interface ModalData {
   user?: UserInTable;
   invoice?: Invoice;
   date?: Date;
-  images?: {type: string;id: string;}[]
+  images?: { type: string; id: string }[];
+  onDeleteUser?: () => void;
+  onUpdateOrderStatus?: () => void;
+  suppliers?: Supplier[];
+  warehouses?: WareHouse[];
+  onAddSupply?: (item: SupplyInTable) => void;
 }
 
 interface ModalStore {

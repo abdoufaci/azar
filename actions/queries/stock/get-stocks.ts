@@ -35,7 +35,7 @@ export const getStocks = async ({
     },
     include: {
       type: true,
-      workshop: true,
+      wareHouse: true,
     },
     orderBy: {
       createdAt: "desc",

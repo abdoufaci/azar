@@ -322,7 +322,7 @@ function AddProductVariantForm({
                             return (
                               <div
                                 key={type.id}
-                                onClick={() => {
+                                onClick={(e) => {
                                   if (isChecked) {
                                     setTypesToRemove((prev) => [...prev, type]);
                                   }
@@ -332,7 +332,7 @@ function AddProductVariantForm({
                                       prev.filter((item) => item.id !== type.id)
                                     );
                                   }
-                                  return !isChecked
+                                  !isChecked
                                     ? setSelectedTypes((prev) => [
                                         ...prev,
                                         type,
@@ -348,7 +348,9 @@ function AddProductVariantForm({
                                   className="cursor-pointer data-[state=checked]:bg-brand data-[state=checked]:border-brand 
                                 border border-[#0000006B] rounded-full"
                                   checked={isChecked}
-                                  onCheckedChange={(checked) => {
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
                                     if (isChecked) {
                                       setTypesToRemove((prev) => [
                                         ...prev,
@@ -363,7 +365,7 @@ function AddProductVariantForm({
                                         )
                                       );
                                     }
-                                    return !isChecked
+                                    !isChecked
                                       ? setSelectedTypes((prev) => [
                                           ...prev,
                                           type,

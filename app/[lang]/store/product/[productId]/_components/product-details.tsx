@@ -143,11 +143,25 @@ function ProductDetails({ product, tissues, lang, dict }: Props) {
 
             {/* Price */}
             <div
-              className={cn(
-                "text-5xl font-bold text-[#f2ba05]",
-                lang === "ar" ? "text-right" : "text-left"
-              )}>
-              {product?.price}
+              dir={lang === "ar" ? "rtl" : "ltr"}
+              className={cn("flex flex-col gap-3 font-medium ")}>
+              <h1 className="text-[#f2ba05] text-2xl">
+                {lang === "ar" ? "الاسعار" : "Les prix"}
+              </h1>
+              <div className="space-y-1">
+                {product?.prices.map((price) => (
+                  <div key={price.id} className="flex items-center gap-2">
+                    <h1 className="text-[#64748B]">
+                      {
+                        product.pricings.find(
+                          (pricing) => pricing.subtypeId === price.typeId
+                        )?.subtype.name
+                      }
+                    </h1>
+                    <h3 dir="ltr">{price.price} da</h3>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Description */}

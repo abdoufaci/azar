@@ -1,5 +1,6 @@
 "use server";
 
+import { checkIsAdmin } from "@/actions/security/admin-check";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
@@ -10,6 +11,8 @@ export const manageProductArchive = async ({
   id: string;
   isArchived: boolean;
 }) => {
+  await checkIsAdmin();
+
   await db.product.update({
     where: { id },
     data: {

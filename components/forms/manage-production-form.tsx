@@ -80,6 +80,7 @@ import { useTissuesQuery } from "@/hooks/use-tissues-query";
 import { useEmployeesClientsQuery } from "@/hooks/use-employees-clients-query";
 import { useVariantsQuery } from "@/hooks/use-variants-query";
 import { useSearchParams } from "next/navigation";
+import { variantOptimisticReducer } from "@/lib/optimistic-reducers/variant-optimistic-reducer";
 
 interface Props {
   onCancel: () => void;
@@ -106,36 +107,15 @@ export default function ManageProductionForm({
   isFetchingVariants,
   variants: intialVariants,
 }: Props) {
-  const { data: users, isPending: isFetchingClients } =
-    useEmployeesClientsQuery();
-  const clients = users?.clients ?? [];
+  const { data: clients, isPending: isFetchingClients } =
+    useEmployeesClientsQuery({ target: "client" });
   const {
     data: intialTissues,
     isPending: isFetchingTissues,
     refetch,
   } = useTissuesQuery();
-  const [tissues, addTissuOptimistic] = useOptimistic(
-    intialTissues || [],
-    (state, incoming: Tissu) => [incoming, ...state]
-  );
-  const [variants, manageVariantOptimistic] = useOptimistic(
-    intialVariants,
-    (
-      state,
-      action:
-        | { type: "add"; incoming: ProductVariantWithPricing }
-        | { type: "update"; updatedState: ProductVariantWithPricing[] }
-    ) => {
-      switch (action.type) {
-        case "add":
-          return [action.incoming, ...state];
-        case "update":
-          return action.updatedState;
-        default:
-          return state;
-      }
-    }
-  );
+  const [tissues, setTissues] = useState<Tissu[]>([]);
+  const [variants, setVariants] = useState<ProductVariantWithPricing[]>([]);
 
   const [step, setStep] = useState<1 | 2 | 3>(production ? 2 : 1);
   const [typesToRemove, setTypesToRemove] = useState<
@@ -154,13 +134,17 @@ export default function ManageProductionForm({
     useState<ProductVariantWithPricing | null>(null);
   const searchParams = useSearchParams();
 
-  const { refetch: refetchProductions } = useProductionsQuery({
-    isArchive: !!searchParams.get("isArchive"),
-  });
-
   const foundVariant = variants.find(
     (variant) => variant.id === production?.variantId
   );
+
+  useEffect(() => {
+    setVariants(intialVariants || []);
+  }, [intialVariants]);
+
+  useEffect(() => {
+    setTissues(intialTissues || []);
+  }, [intialTissues]);
 
   const form = useForm<ProductionFormData>({
     resolver: zodResolver(productionFormSchema),
@@ -213,7 +197,7 @@ export default function ManageProductionForm({
     startAddingTissue(() => {
       addTissu({ name: newTissuInput })
         .then((res) => {
-          addTissuOptimistic(res);
+          setTissues((prev) => [res, ...prev]);
           refetch();
           setNewTissuInput("");
           setShowAdd(false);
@@ -263,7 +247,7 @@ export default function ManageProductionForm({
             .then((data) => {
               //@ts-ignore
               addProductionOptimistic(data);
-              refetchProductions();
+              // refetchProductions();
               toast.success("Created !");
               onCancel();
             })
@@ -362,7 +346,9 @@ export default function ManageProductionForm({
         setTypesToRemove={setTypesToRemove}
         variant={variantToEdit}
         onAddVariant={(variant) =>
-          manageVariantOptimistic({ type: "add", incoming: variant })
+          setVariants((prev) =>
+            variantOptimisticReducer(prev, { type: "add", incoming: variant })
+          )
         }
         onUpdateVariant={(variant) => {
           let curr = variants;
@@ -371,7 +357,12 @@ export default function ManageProductionForm({
             ...variant,
           };
 
-          manageVariantOptimistic({ type: "update", updatedState: curr });
+          setVariants((prev) =>
+            variantOptimisticReducer(prev, {
+              type: "update",
+              updatedState: curr,
+            })
+          );
         }}
       />
     );

@@ -3,21 +3,18 @@
 import { db } from "@/lib/db";
 
 export const updateStockQty = async ({
-  currentQuantity,
-  intialQuantity,
+  quantity,
   stockId,
 }: {
   stockId: string;
-  intialQuantity: number;
-  currentQuantity: number;
+  quantity: number;
 }) => {
   await db.stock.update({
     where: {
       id: stockId,
     },
     data: {
-      currentQuantity,
-      intialQuantity,
+      quantity,
     },
   });
 };

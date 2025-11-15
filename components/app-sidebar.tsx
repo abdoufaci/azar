@@ -50,6 +50,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             height={100}
             width={200}
             className="object-cover"
+            loading="lazy"
           />
         </div>
       </SidebarHeader>

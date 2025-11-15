@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmployeesTable } from "./employees-table";
@@ -9,19 +9,25 @@ import { ManageClientForm } from "@/components/forms/manage-client-form";
 import { ManageEmployeeForm } from "@/components/forms/manage-employee-form";
 import { User, WorkShop } from "@prisma/client";
 import { UserInTable } from "@/types/types";
+import { userOptimisticReducer } from "@/lib/optimistic-reducers/user-optimistic-reducer";
+import { useEmployeesClientsQuery } from "@/hooks/use-employees-clients-query";
 
-type TabType = "client" | "employees";
+type TabType = "client" | "employee";
 
-interface Props {
-  workshops: WorkShop[];
-  clients: UserInTable[];
-  employees: UserInTable[];
-}
-
-export function MembersInterface({ workshops, clients, employees }: Props) {
+export function MembersInterface() {
   const [activeTab, setActiveTab] = useState<TabType>("client");
   const [isAdd, setIsAdd] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserInTable | null>(null);
+  const { data, isPending } = useEmployeesClientsQuery({
+    target: activeTab,
+    includeAdmin: true,
+  });
+  const [users, setUsers] = useState<UserInTable[]>([]);
+
+  useEffect(() => {
+    //@ts-ignore
+    setUsers(data);
+  }, [data]);
 
   return (
     <div className="space-y-5">
@@ -66,33 +72,33 @@ export function MembersInterface({ workshops, clients, employees }: Props) {
           onClick={(e) => {
             e.stopPropagation();
             setIsAdd(false);
-            setActiveTab("employees");
+            setActiveTab("employee");
           }}
           className={cn(
             "h-full flex justify-center items-center gap-4 w-32 cursor-pointer",
-            activeTab === "employees" ? "border-b-2 border-b-brand" : ""
+            activeTab === "employee" ? "border-b-2 border-b-brand" : ""
           )}>
           <h1
             className={cn(
-              activeTab === "employees" ? "text-[#576070]" : "text-[#A2ABBD]"
+              activeTab === "employee" ? "text-[#576070]" : "text-[#A2ABBD]"
             )}>
             Employées
           </h1>
           <div
             onClick={(e) => {
               e.stopPropagation();
-              if (activeTab === "employees") {
+              if (activeTab === "employee") {
                 setIsAdd(true);
               }
             }}
             className={cn(
               "h-4 w-4 rounded-md border  flex items-center justify-center cursor-pointer",
-              activeTab === "employees" ? "border-[#5A5A5A]" : "border-white"
+              activeTab === "employee" ? "border-[#5A5A5A]" : "border-white"
             )}>
             <Plus
               className={cn(
                 "h-3 w-3",
-                activeTab === "employees" ? "text-[#5A5A5A]" : "text-white"
+                activeTab === "employee" ? "text-[#5A5A5A]" : "text-white"
               )}
             />
           </div>
@@ -116,17 +122,33 @@ export function MembersInterface({ workshops, clients, employees }: Props) {
                   setIsAdd(false);
                 }}
                 user={selectedUser}
+                addUserOptimistic={(user) =>
+                  setUsers((prev) =>
+                    userOptimisticReducer(prev, { type: "ADD", item: user })
+                  )
+                }
+                updateUserOptimistic={(user) =>
+                  setUsers((prev) =>
+                    userOptimisticReducer(prev, { type: "updateUser", user })
+                  )
+                }
               />
             </div>
           ) : (
             <ClientsTable
-              clients={clients}
+              clients={users || []}
               onEdit={(user) => setSelectedUser(user)}
+              onDelete={(id) =>
+                setUsers((prev) =>
+                  userOptimisticReducer(prev, { type: "DELETE", id })
+                )
+              }
+              isPending={isPending}
             />
           )}
         </>
       )}
-      {activeTab === "employees" && (
+      {activeTab === "employee" && (
         <>
           {isAdd || !!selectedUser ? (
             <div className="w-full max-w-xl mx-auto space-y-5">
@@ -140,18 +162,33 @@ export function MembersInterface({ workshops, clients, employees }: Props) {
                 </h1>
               </div>
               <ManageEmployeeForm
-                workshops={workshops}
                 onCancel={() => {
                   setSelectedUser(null);
                   setIsAdd(false);
                 }}
                 user={selectedUser}
+                addUserOptimistic={(user) =>
+                  setUsers((prev) =>
+                    userOptimisticReducer(prev, { type: "ADD", item: user })
+                  )
+                }
+                updateUserOptimistic={(user) =>
+                  setUsers((prev) =>
+                    userOptimisticReducer(prev, { type: "updateUser", user })
+                  )
+                }
               />
             </div>
           ) : (
             <EmployeesTable
-              employees={employees}
+              employees={users || []}
               onEdit={(user) => setSelectedUser(user)}
+              onDelete={(id) =>
+                setUsers((prev) =>
+                  userOptimisticReducer(prev, { type: "DELETE", id })
+                )
+              }
+              isPending={isPending}
             />
           )}
         </>

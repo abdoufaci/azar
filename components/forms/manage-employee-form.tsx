@@ -48,10 +48,11 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { ScrollArea } from "../ui/scroll-area";
-import { EmplyeeRole, WorkShop } from "@prisma/client";
+import { EmplyeeRole, UserRole, WorkShop } from "@prisma/client";
 import { addEmployee } from "@/actions/mutations/users/add-employee";
-import { UserWithWorkshop } from "@/types/types";
+import { UserInTable, UserWithWorkshop } from "@/types/types";
 import { updateEmployee } from "@/actions/mutations/users/update-employee";
+import { useWorkShopsQuery } from "@/hooks/use-workshops-query";
 
 export const ManageEmployeeformSchema = z.object({
   name: z.string(),
@@ -65,6 +66,7 @@ export const ManageEmployeeformSchema = z.object({
     EmplyeeRole.TAILOR,
     EmplyeeRole.TAPISIER,
     EmplyeeRole.MANCHEUR,
+    UserRole.ADMIN,
   ]),
   workshop: z.object({
     name: z.string(),
@@ -74,29 +76,35 @@ export const ManageEmployeeformSchema = z.object({
 
 interface Props {
   onCancel: () => void;
-  workshops: WorkShop[];
   user: UserWithWorkshop | null;
   workshop?: WorkShop | null;
+  addUserOptimistic: (user: UserInTable) => void;
+  updateUserOptimistic: (user: UserInTable) => void;
 }
 
 export function ManageEmployeeForm({
   onCancel,
-  workshops,
   user,
   workshop,
+  addUserOptimistic,
+  updateUserOptimistic,
 }: Props) {
+  const { data: workshops, isPending: isFetchingWorkShops } =
+    useWorkShopsQuery();
   const form = useForm<z.infer<typeof ManageEmployeeformSchema>>({
     resolver: zodResolver(ManageEmployeeformSchema),
     defaultValues: {
       address: user?.address,
       name: user?.name,
       phone: user?.phone,
-      role: user?.employeeRole,
+      role: user?.role === "ADMIN" ? "ADMIN" : user?.employeeRole,
       username: user?.username,
-      workshop: {
-        id: user?.workShopId || workshop?.id || "",
-        name: user?.workShop?.name || workshop?.name || "",
-      },
+      workshop: user?.workShopId
+        ? {
+            id: user?.workShopId || workshop?.id || "",
+            name: user?.workShop?.name || workshop?.name || "",
+          }
+        : undefined,
     },
   });
   const [isPending, startTransition] = useTransition();
@@ -157,19 +165,17 @@ export function ManageEmployeeForm({
       user
         ? updateEmployee(data, user)
             .then((res) => {
+              updateUserOptimistic(res);
               toast.success("Employé est modifier avec succès");
               onCancel();
             })
             .catch(() => toast.error("Erreur"))
         : addEmployee(data)
             .then((res) => {
-              if (res.error) {
-                toast.error(res.error);
-              }
-              if (res.success) {
-                toast.success("Employeé est crée avec succès");
-                onCancel();
-              }
+              //@ts-ignore
+              addUserOptimistic(res);
+              toast.success("Employeé est crée avec succès");
+              onCancel();
             })
             .catch(() => toast.error("Erreur"));
     });
@@ -197,7 +203,9 @@ export function ManageEmployeeForm({
                       <div className="flex flex-col text-start">
                         {field.value ? (
                           <p className="text-sm">
-                            {field.value === "CHEF"
+                            {field.value === "ADMIN"
+                              ? "Admin"
+                              : field.value === "CHEF"
                               ? "chef"
                               : field.value === "CUTTER"
                               ? "Decoupeur"
@@ -218,10 +226,17 @@ export function ManageEmployeeForm({
                     <DropdownMenuContent className="w-[350px] sm:!w-[576px]">
                       <DropdownMenuItem
                         onClick={() => {
+                          field.onChange(UserRole.ADMIN);
+                        }}
+                        className="hover:cursor-pointer w-full">
+                        Admin
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
                           field.onChange(EmplyeeRole.CHEF);
                         }}
                         className="hover:cursor-pointer w-full">
-                        chef
+                        Chef
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {
@@ -276,19 +291,25 @@ export function ManageEmployeeForm({
                       <ChevronDown className="size-4 text-[#A7ABAF]" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-[350px] sm:!w-[576px]">
-                      {workshops.map((workshop) => (
-                        <DropdownMenuItem
-                          key={workshop.id}
-                          onClick={() => {
-                            field.onChange({
-                              id: workshop.id,
-                              name: workshop.name,
-                            });
-                          }}
-                          className="hover:cursor-pointer w-full">
-                          {workshop.name}
-                        </DropdownMenuItem>
-                      ))}
+                      {isFetchingWorkShops ? (
+                        <div className="flex items-center justify-center">
+                          <Loader2 className="h-5 w-5 text-brand animate-spin" />
+                        </div>
+                      ) : (
+                        workshops.map((workshop) => (
+                          <DropdownMenuItem
+                            key={workshop.id}
+                            onClick={() => {
+                              field.onChange({
+                                id: workshop.id,
+                                name: workshop.name,
+                              });
+                            }}
+                            className="hover:cursor-pointer w-full">
+                            {workshop.name}
+                          </DropdownMenuItem>
+                        ))
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </FormControl>
@@ -396,7 +417,9 @@ export function ManageEmployeeForm({
                   <div className="relative w-full">
                     <Input
                       value={field.value}
-                      onChange={field.onChange}
+                      onChange={(e) =>
+                        field.onChange(e.target.value.toLowerCase())
+                      }
                       type="text"
                       className={cn(
                         "w-full text-xs rounded-lg border border-[#A2ABBD] px-4 py-5 focus:outline-none focus:ring-0 placeholder:text-[#A2ABBD]",

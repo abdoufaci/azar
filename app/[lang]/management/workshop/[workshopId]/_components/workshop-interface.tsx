@@ -37,11 +37,9 @@ import { ManageEmployeeForm } from "@/components/forms/manage-employee-form";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
-  workShops: WorkShop[];
   workshop: WorkShop | null;
   orderStages: OrderStage[];
   stages: DemandStage[];
-  materials: DemandMaterial[];
   url: string;
   columns: (OrderColumn & {
     statuses: OrderColumnStatus[];
@@ -49,11 +47,9 @@ interface Props {
 }
 
 function WorkshopInterface({
-  materials,
   orderStages,
   searchParams,
   stages,
-  workShops,
   workshop,
   url,
   columns,
@@ -71,12 +67,13 @@ function WorkshopInterface({
         </h1>
       </div>
       <ManageEmployeeForm
-        workshops={workShops}
         onCancel={() => {
           setIsAdd(false);
         }}
         user={null}
         workshop={workshop}
+        addUserOptimistic={() => {}}
+        updateUserOptimistic={() => {}}
       />
     </div>
   ) : (
@@ -143,7 +140,6 @@ function WorkshopInterface({
         <DemandsInterface
           searchParams={searchParams}
           stages={stages}
-          materials={materials}
           url={url}
         />
       )}

@@ -6,6 +6,7 @@ export const getStoreProducts = async () => {
 
   const salons = await db.product.findMany({
     where: {
+      isArchived: false,
       ...(!!user && {
         audience: "B2B",
       }),
@@ -28,6 +29,7 @@ export const getStoreProducts = async () => {
 
   const tables = await db.product.findMany({
     where: {
+      isArchived: false,
       ...(!!user && {
         audience: "B2B",
       }),
@@ -50,6 +52,7 @@ export const getStoreProducts = async () => {
 
   const chaires = await db.product.findMany({
     where: {
+      isArchived: false,
       ...(!!user && {
         audience: "B2B",
       }),

@@ -177,8 +177,8 @@ function DemandDetails({ demand, stages, updateStageOptimistic }: Props) {
                       <div
                         onClick={(e) => {
                           e.stopPropagation();
+                          updateStageOptimistic(stage);
                           startTransition(() => {
-                            updateStageOptimistic(stage);
                             updateDemandStage({
                               demandId: demand.id,
                               stageId: stage.id,

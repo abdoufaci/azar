@@ -60,15 +60,15 @@ export function LoginForm() {
             setError(data?.error);
             return;
           }
-          if (data?.success) {
-            form.reset();
-            setSuccess(data?.success);
-            return;
-          }
-          if (data?.twoFactor) {
-            setShowTwoFactor(true);
-            return;
-          }
+          // if (data?.success) {
+          //   form.reset();
+          //   setSuccess(data?.success);
+          //   return;
+          // }
+          // if (data?.twoFactor) {
+          //   setShowTwoFactor(true);
+          //   return;
+          // }
 
           router.push("/management");
         })

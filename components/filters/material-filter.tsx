@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select";
 import { useFilterModal } from "@/hooks/use-filter-modal-store";
 import { DemandMaterial, ProductSubtype, User } from "@prisma/client";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import qs from "query-string";
 
@@ -15,9 +16,15 @@ interface Props {
   searchParams: Record<string, string | string[] | undefined>;
   url: string;
   materials: DemandMaterial[];
+  isPending: boolean;
 }
 
-function MaterialFilter({ searchParams, url: pathname, materials }: Props) {
+function MaterialFilter({
+  searchParams,
+  url: pathname,
+  materials,
+  isPending,
+}: Props) {
   const router = useRouter();
   const { onSearch, admin, demand } = useFilterModal();
 
@@ -39,11 +46,17 @@ function MaterialFilter({ searchParams, url: pathname, materials }: Props) {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="default">Par Default</SelectItem>
-        {materials.map((material) => (
-          <SelectItem key={material.id} value={material.id}>
-            {material.name}
+        {isPending ? (
+          <SelectItem value="default">
+            <Loader2 className="h-5 w-5 text-brand animate-spin" />
           </SelectItem>
-        ))}
+        ) : (
+          materials.map((material) => (
+            <SelectItem key={material.id} value={material.id}>
+              {material.name}
+            </SelectItem>
+          ))
+        )}
       </SelectContent>
     </Select>
   );

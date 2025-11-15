@@ -10,12 +10,16 @@ export const addDesk = async (data: DeskFormData) => {
   const uid = new ShortUniqueId({ length: 10 });
   const ref = uid.rnd();
 
-  await db.desk.create({
+  const { amount, ...rest } = data;
+
+  const desk = await db.desk.create({
     data: {
-      ...data,
+      ...rest,
+      amount: data.type === "DEPOSIT" ? amount : -1 * amount,
       ref,
     },
   });
 
   revalidatePath("/");
+  return desk;
 };

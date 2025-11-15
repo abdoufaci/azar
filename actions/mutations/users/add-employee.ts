@@ -25,13 +25,57 @@ export const addEmployee = async (
     data: {
       ...rest,
       password: hashedPassowrd,
-      role: "EMPLOYEE",
-      employeeRole: role,
+      role: role === "ADMIN" ? "ADMIN" : "EMPLOYEE",
+      employeeRole: role === "ADMIN" ? "TAPISIER" : role,
       workShopId: workshop.id,
+    },
+    include: {
+      invoices: true,
+      workShop: true,
+      cutterOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      tailorOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      tapisierOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      mancheurOrders: {
+        include: {
+          variant: true,
+          subType: true,
+          pricing: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
     },
   });
 
   revalidatePath("/");
 
-  return { success: user };
+  return user;
 };

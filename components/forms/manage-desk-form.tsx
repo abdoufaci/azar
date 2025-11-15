@@ -43,9 +43,16 @@ import { SaveEditDeskModal } from "../modals/save-edit-desk-modal";
 interface Props {
   onCancel: () => void;
   desk?: Desk | null;
+  updateDeskOptimistic: (desk: Desk) => void;
+  addDeskOptimistic: (desk: Desk) => void;
 }
 
-export default function ManageDeskForm({ onCancel, desk }: Props) {
+export default function ManageDeskForm({
+  onCancel,
+  desk,
+  addDeskOptimistic,
+  updateDeskOptimistic,
+}: Props) {
   const [isPending, startTransition] = useTransition();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -69,7 +76,8 @@ export default function ManageDeskForm({ onCancel, desk }: Props) {
       ? setIsOpen(true)
       : startTransition(() => {
           addDesk(data)
-            .then(() => {
+            .then((res) => {
+              addDeskOptimistic(res);
               toast.success("Success !");
               onCancel();
             })
@@ -99,7 +107,8 @@ export default function ManageDeskForm({ onCancel, desk }: Props) {
         onClose={() => {
           setIsOpen(false);
         }}
-        onComplete={() => {
+        onComplete={(desk) => {
+          updateDeskOptimistic(desk);
           setIsOpen(false);
           onCancel();
         }}

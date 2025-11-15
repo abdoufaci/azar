@@ -2,8 +2,10 @@
 
 import { AcceptOrderModal } from "@/components/modals/accept-order-modal";
 import { ChooseTissuModal } from "@/components/modals/choose-tissu-modal";
+import { DeleteUserModal } from "@/components/modals/delete-user-modal";
 import { ImagesModal } from "@/components/modals/images-modal";
 import { ManageInvoiceModal } from "@/components/modals/manage-invoice-modal";
+import { ManageSupplyModal } from "@/components/modals/manage-supply-modal";
 import { ManageWorkShopModal } from "@/components/modals/manage-work-shop-modal";
 import { ThankyouModal } from "@/components/modals/thankyou-modal";
 import { useEffect, useState } from "react";
@@ -29,6 +31,8 @@ export const ModalProvider = () => {
       <AcceptOrderModal />
       <ManageInvoiceModal />
       <ImagesModal />
+      <DeleteUserModal />
+      <ManageSupplyModal />
     </>
   );
 };

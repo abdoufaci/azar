@@ -11,7 +11,7 @@ export const updateDesk = async ({
   data: DeskFormData;
   deskId: string;
 }) => {
-  await db.desk.update({
+  const updated = await db.desk.update({
     where: { id: deskId },
     data: {
       ...data,
@@ -19,4 +19,6 @@ export const updateDesk = async ({
   });
 
   revalidatePath("/");
+
+  return updated;
 };

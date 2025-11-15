@@ -18,10 +18,7 @@ export default async function ProductionPage({
   params: any;
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
-  const [orderStages] = await Promise.all([
-    getOrderStages(),
-    // getColumns(),
-  ]);
+  const [orderStages] = await Promise.all([getOrderStages()]);
 
   return (
     <div className="p-8">

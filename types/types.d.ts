@@ -20,10 +20,24 @@ import {
   Stock,
   StockType,
   Invoice,
+  WareHouse,
+  SupplierProduct,
+  Supply,
+  Supplier,
 } from "@prisma/client";
 
+export type SupplierProductInTable = SupplierProduct & {
+  type: StockType;
+};
+
+export type SupplyInTable = Supply & {
+  products: SupplierProductInTable[];
+  supplier: Supplier;
+  warehouse: WareHousee;
+};
+
 export type StockInTable = Stock & {
-  workshop: WorkShop;
+  wareHouse: WareHouse;
   type: StockType;
 };
 

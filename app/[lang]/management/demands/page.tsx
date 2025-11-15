@@ -22,18 +22,11 @@ export default async function DemandesPage({
   params: any;
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
-  const [stages, materials] = await Promise.all([
-    getDemandStages(),
-    getDemandMaterials(),
-  ]);
+  const [stages] = await Promise.all([getDemandStages()]);
 
   return (
     <div className="p-8">
-      <DemandsInterface
-        searchParams={await searchParams}
-        stages={stages}
-        materials={materials}
-      />
+      <DemandsInterface searchParams={await searchParams} stages={stages} />
     </div>
   );
 }

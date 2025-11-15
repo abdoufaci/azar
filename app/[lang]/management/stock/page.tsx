@@ -10,6 +10,7 @@ import { getStocksCount } from "@/actions/queries/stock/get-stocks-count";
 import { getDesks } from "@/actions/queries/stock/get-desks";
 import { getDesksCount } from "@/actions/queries/stock/get-desks-count";
 import { getPaymentsSum } from "@/actions/queries/stock/get-payments-sum";
+import SupplyInterface from "./_components/supply-interface";
 
 async function StockPage({
   searchParams,
@@ -18,26 +19,7 @@ async function StockPage({
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
   const { target } = await searchParams;
-  const currentPage = (await searchParams).page;
-  const itemsPerPage = 8;
-  const [stocks, desks, totalStocks, totalDesks, workshops, types, payments] =
-    await Promise.all([
-      getStocks({
-        currentPage: Number(currentPage || "1"),
-        stocksPerPage: itemsPerPage,
-        searchParams,
-      }),
-      getDesks({
-        currentPage: Number(currentPage || "1"),
-        desksPerPage: itemsPerPage,
-        searchParams,
-      }),
-      getStocksCount({ searchParams }),
-      getDesksCount({ searchParams }),
-      getWorkshops(),
-      getStockTypes(),
-      getPaymentsSum(),
-    ]);
+  const payments = await getPaymentsSum();
   const { todaysDeposits, todaysWithdrawals, total } = payments;
 
   return (
@@ -73,29 +55,35 @@ async function StockPage({
               </h1>
             </div>
           </Link>
+          <Link href={"/management/stock?target=supply"}>
+            <div
+              className={cn(
+                "h-full flex justify-center items-center gap-4 w-32 cursor-pointer",
+                target === "supply" ? "border-b-2 border-b-brand" : ""
+              )}>
+              <h1
+                className={cn(
+                  target === "supply" ? "text-[#576070]" : "text-[#A2ABBD]"
+                )}>
+                Fourniseur
+              </h1>
+            </div>
+          </Link>
         </div>
-        {target === "desk" ? (
+        {target === "desk" && (
           <DeskInterface
             searchParams={await searchParams}
-            currentPage={Number(currentPage || "1")}
-            desks={desks}
-            desksPerPage={itemsPerPage}
-            totalDesks={totalDesks}
             todaysDeposits={todaysDeposits}
             todaysWithdrawals={todaysWithdrawals}
             total={total}
           />
-        ) : (
-          <StockInterface
-            searchParams={await searchParams}
-            currentPage={Number(currentPage || "1")}
-            stocks={stocks}
-            stocksPerPage={itemsPerPage}
-            totalStocks={totalStocks}
-            types={types}
-            workshops={workshops}
-          />
         )}
+
+        {target === "stock" && (
+          <StockInterface searchParams={await searchParams} />
+        )}
+
+        {target === "supply" && <SupplyInterface />}
       </div>
     </div>
   );

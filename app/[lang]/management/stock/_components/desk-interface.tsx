@@ -9,16 +9,14 @@ import WorkShopFilter from "@/components/filters/workshop-filter";
 import ManageDeskForm from "@/components/forms/manage-desk-form";
 import { Button } from "@/components/ui/button";
 import { Desk, StockType, WorkShop } from "@prisma/client";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { DesksTable } from "./desk-table";
 import { Separator } from "@/components/ui/separator";
+import { useDesksQuery } from "@/hooks/admin/use-query-desks";
+import { deskOptimisticReducer } from "@/lib/optimistic-reducers/desk-optimistic-reducer";
 
 interface Props {
   searchParams: Record<string, string | string[] | undefined>;
-  currentPage: number;
-  totalDesks: number;
-  desksPerPage: number;
-  desks: Desk[];
   todaysDeposits: number;
   todaysWithdrawals: number;
   total: number;
@@ -26,17 +24,26 @@ interface Props {
 
 function DeskInterface({
   searchParams,
-  currentPage,
-  desks,
-  desksPerPage,
-  totalDesks,
   todaysDeposits,
   todaysWithdrawals,
   total,
 }: Props) {
   const [isAdd, setIsAdd] = useState(false);
   const [deskToEdit, setDeskToEdit] = useState<Desk | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [desks, setDesks] = useState<Desk[]>([]);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchPreviousPage,
+    isPending: tanstackIsPending,
+    refetch,
+  } = useDesksQuery();
+
+  useEffect(() => {
+    setDesks(data?.pages[data?.pages?.length - 1]?.desks || []);
+  }, [data]);
 
   return (
     <div className="space-y-5">
@@ -67,7 +74,7 @@ function DeskInterface({
           <div className="space-y-0.5">
             <h3 className="text-[#182233] font-medium text-sm">Sortie</h3>
             <h1 className="text-2xl text-brand font-semibold">
-              -{todaysWithdrawals} da
+              {todaysWithdrawals} da
             </h1>
           </div>
         </div>
@@ -101,15 +108,27 @@ function DeskInterface({
             setIsAdd(false);
             setDeskToEdit(null);
           }}
+          addDeskOptimistic={(item) =>
+            setDesks((prev) =>
+              deskOptimisticReducer(prev, { type: "ADD", item })
+            )
+          }
+          updateDeskOptimistic={(desk) =>
+            setDesks((prev) =>
+              deskOptimisticReducer(prev, { type: "UPDATE", desk })
+            )
+          }
           desk={deskToEdit}
         />
       ) : (
         <DesksTable
-          currentPage={currentPage}
           desks={desks}
-          desksPerPage={desksPerPage}
-          searchParams={searchParams}
-          totalDesks={totalDesks}
+          data={data}
+          fetchNextPage={fetchNextPage}
+          fetchPreviousPage={fetchPreviousPage}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          tanstackIsPending={tanstackIsPending}
           onEdit={(desk) => {
             setIsAdd(true);
             setDeskToEdit(desk);

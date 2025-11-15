@@ -27,6 +27,7 @@ import {
 import { useEffect } from "react";
 import qs from "query-string";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useFilterModal } from "@/hooks/use-filter-modal-store";
 
 const FormSchema = z.object({
   Date: z
@@ -38,18 +39,19 @@ const FormSchema = z.object({
 });
 
 interface Props {
-  url: string;
-  searchParams: Record<string, string | string[] | undefined>;
+  url?: string;
+  searchParams?: Record<string, string | string[] | undefined>;
 }
 
 export function DateFilter({ url: pathname, searchParams }: Props) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
+  const { onSearch, admin, desk } = useFilterModal();
+
+  const { dateFrom, dateTo, ...rest } = desk;
 
   const router = useRouter();
-
-  const { dateFrom, dateTo, page, ...rest } = searchParams;
 
   const Date = form.watch("Date");
 
@@ -60,32 +62,26 @@ export function DateFilter({ url: pathname, searchParams }: Props) {
   }, [Date, form.handleSubmit]);
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    const url = qs.stringifyUrl(
-      {
-        url: pathname,
-        query: {
-          ...rest,
-          dateFrom: data.Date?.from.toString(),
-          dateTo: data.Date?.to.toString(),
-        },
+    onSearch({
+      admin,
+      desk: {
+        ...rest,
+        dateFrom: data.Date?.from.toString(),
+        dateTo: data.Date?.to.toString(),
       },
-      { skipNull: true }
-    );
-    router.push(url);
+    });
   }
 
   const handleReset = () => {
     form.setValue("Date", undefined);
-    const url = qs.stringifyUrl(
-      {
-        url: pathname,
-        query: {
-          ...rest,
-        },
+    onSearch({
+      admin,
+      desk: {
+        ...rest,
+        dateFrom: undefined,
+        dateTo: undefined,
       },
-      { skipNull: true }
-    );
-    router.push(url);
+    });
   };
 
   return (

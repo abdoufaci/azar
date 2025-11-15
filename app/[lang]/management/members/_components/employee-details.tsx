@@ -121,9 +121,6 @@ function EmployeeDetails({ employee }: Props) {
         // Example: download PDF in browser
         const blob = new Blob([response.data], { type: "application/pdf" });
         const url = URL.createObjectURL(blob);
-        console.log({
-          url,
-        });
         const a = document.createElement("a");
         a.href = url;
         a.download = "invoice.pdf";

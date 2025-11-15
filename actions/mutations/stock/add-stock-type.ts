@@ -7,7 +7,7 @@ export const addStockType = async (name: string) => {
   var randomColor = require("randomcolor"); // import the script
   var color = randomColor();
 
-  await db.stockType.create({
+  const type = await db.stockType.create({
     data: {
       name,
       color,
@@ -15,4 +15,6 @@ export const addStockType = async (name: string) => {
   });
 
   revalidatePath("/");
+
+  return type;
 };

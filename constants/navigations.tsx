@@ -28,7 +28,7 @@ export const AdminNav = [
   },
   {
     title: "Command Client",
-    url: "/management/orders?client=B2B",
+    url: "/management/orders",
     icon: Commands,
   },
   {
@@ -56,11 +56,11 @@ export const AdminNav = [
     url: "/management/members",
     icon: UsersRound,
   },
-  {
-    title: "Settings",
-    url: "/management/settings",
-    icon: Settings,
-  },
+  // {
+  //   title: "Settings",
+  //   url: "/management/settings",
+  //   icon: Settings,
+  // },
 ];
 
 export const ClientDashboardNav = [
@@ -74,11 +74,11 @@ export const ClientDashboardNav = [
     url: "/dashboard/payments",
     icon: Landmark,
   },
-  {
-    title: "Settings",
-    url: "/dashboard/settings",
-    icon: Settings,
-  },
+  // {
+  //   title: "Settings",
+  //   url: "/dashboard/settings",
+  //   icon: Settings,
+  // },
 ];
 
 export const companiesNav = (dict: any) => [

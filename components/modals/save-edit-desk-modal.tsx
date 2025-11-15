@@ -20,11 +20,12 @@ import { Button } from "../ui/button";
 import { useTransition } from "react";
 import { updateDesk } from "@/actions/mutations/stock/update-desk";
 import { toast } from "sonner";
+import { Desk } from "@prisma/client";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onComplete: () => void;
+  onComplete: (desk: Desk) => void;
   data: DeskFormData;
   currentData: DeskFormData;
   deskId: string;
@@ -132,9 +133,9 @@ export const SaveEditDeskModal = ({
             onClick={() => {
               startTransition(() => {
                 updateDesk({ data, deskId })
-                  .then(() => {
+                  .then((res) => {
                     toast.success("Success !");
-                    onComplete();
+                    onComplete(res);
                   })
                   .catch(() => toast.error("Erreur"));
               });

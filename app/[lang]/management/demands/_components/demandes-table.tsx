@@ -216,8 +216,8 @@ export function DemandesTable({
                                     <div
                                       onClick={(e) => {
                                         e.stopPropagation();
+                                        updateStageOptimistic(stage, idx);
                                         startTransition(() => {
-                                          updateStageOptimistic(stage, idx);
                                           updateDemandStage({
                                             demandId: demande.id,
                                             stageId: stage.id,
@@ -302,20 +302,21 @@ export function DemandesTable({
                     </TableCell>
                     <TableCell className="text-[#95A1B1] text-center">
                       <svg
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          deleteDemandOptimistic(demande.id);
+                          toast.info(
+                            demande.isArchived ? "Restauré !" : "Archivé !"
+                          );
                           startTransition(() => {
-                            deleteDemandOptimistic(demande.id);
-                            toast.info(
-                              demande.isArchived ? "Restauré !" : "Archivé !"
-                            );
                             manageDemandArchive({
                               id: demande.id,
                               isArchived: !demande.isArchived,
-                            })
-                              .catch(() => {
-                                toast.error("Erreur .");
-                              })
-                              .finally(() => refetch());
+                            }).catch(() => {
+                              toast.error("Erreur .");
+                              refetch();
+                            });
                           });
                         }}
                         width="15"

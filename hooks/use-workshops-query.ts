@@ -4,11 +4,14 @@ import { WorkShop } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import qs from "query-string";
 
-export const useWorkShopsQuery = () => {
+export const useWorkShopsQuery = (isWorkshopPage?: boolean) => {
   const fetchWorkShops = async () => {
     const url = qs.stringifyUrl(
       {
         url: "/api/workshops",
+        query: {
+          isWorkshopPage,
+        },
       },
       { skipNull: true }
     );
@@ -18,7 +21,7 @@ export const useWorkShopsQuery = () => {
 
   const { data, refetch, isPending } = useQuery({
     queryFn: fetchWorkShops,
-    queryKey: ["workshops"],
+    queryKey: ["workshops", isWorkshopPage],
   });
 
   return {
